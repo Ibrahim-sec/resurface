@@ -46,44 +46,28 @@ Return ONLY valid JSON.
 
 
 class LLMValidator:
-    """Validates replay results using Gemini LLM"""
+    """Validates replay results using Gemini or Groq LLM"""
     
     GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
     
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash",
-                 confidence_threshold: float = 0.7):
+                 confidence_threshold: float = 0.7, provider: str = "gemini"):
         self.api_key = api_key
         self.model = model
         self.confidence_threshold = confidence_threshold
+        self.provider = provider
     
-    def _call_gemini(self, prompt: str, max_retries: int = 5) -> Optional[str]:
-        """Call Gemini API with retry + exponential backoff"""
+    def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
+        """Call LLM API with retry + exponential backoff"""
         import time as _time
-        
-        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
-        
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.1,
-                "maxOutputTokens": 2048,
-                "responseMimeType": "application/json"
-            }
-        }
         
         for attempt in range(max_retries):
             try:
-                req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
-                req.data = json.dumps(payload).encode()
-                resp = urllib.request.urlopen(req, timeout=60)
-                data = json.loads(resp.read())
-                
-                candidates = data.get('candidates', [])
-                if candidates:
-                    parts = candidates[0].get('content', {}).get('parts', [])
-                    if parts:
-                        return parts[0].get('text', '')
-                return None
+                if self.provider == "groq":
+                    return self._call_groq(prompt)
+                else:
+                    return self._call_gemini(prompt)
             except urllib.error.HTTPError as e:
                 if e.code == 429:
                     wait = (2 ** attempt) * 5
@@ -91,13 +75,50 @@ class LLMValidator:
                     _time.sleep(wait)
                     continue
                 else:
-                    logger.error(f"Gemini validation call failed: HTTP {e.code}")
+                    logger.error(f"LLM call failed: HTTP {e.code}")
                     return None
             except Exception as e:
-                logger.error(f"Gemini validation call failed: {e}")
+                logger.error(f"LLM call failed: {e}")
                 return None
         
-        logger.error(f"Gemini API: max retries ({max_retries}) exhausted")
+        logger.error(f"LLM API: max retries ({max_retries}) exhausted")
+        return None
+    
+    def _call_gemini(self, prompt: str) -> Optional[str]:
+        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048, "responseMimeType": "application/json"}
+        }
+        req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        candidates = data.get('candidates', [])
+        if candidates:
+            parts = candidates[0].get('content', {}).get('parts', [])
+            if parts:
+                return parts[0].get('text', '')
+        return None
+    
+    def _call_groq(self, prompt: str) -> Optional[str]:
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "max_tokens": 2048,
+            "response_format": {"type": "json_object"}
+        }
+        req = urllib.request.Request(self.GROQ_URL, headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.api_key}'
+        })
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        choices = data.get('choices', [])
+        if choices:
+            return choices[0].get('message', {}).get('content', '')
         return None
     
     def validate(self, replay_report: ReplayReport) -> ReplayReport:
@@ -140,7 +161,7 @@ class LLMValidator:
         logger.info(f"Validating replay for report {parsed.report_id}...")
         
         # Call LLM
-        response_text = self._call_gemini(prompt)
+        response_text = self._call_llm(prompt)
         if not response_text:
             replay_report.result = ReplayResult.INCONCLUSIVE
             replay_report.llm_analysis = "Validation failed: no LLM response"

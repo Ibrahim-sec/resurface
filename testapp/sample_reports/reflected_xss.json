@@ -1,0 +1,14 @@
+{
+  "id": 900001,
+  "title": "Reflected XSS in Search Functionality via q Parameter",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 60, "name": "Cross-site Scripting (XSS) - Reflected"},
+  "vulnerability_information": "## Summary\nThe search functionality at `/search` is vulnerable to Reflected Cross-Site Scripting (XSS). The `q` parameter value is reflected directly into the HTML response without any sanitization or encoding.\n\n## Steps to Reproduce\n1. Navigate to the target application\n2. Go to the search page at `/search`\n3. Inject the following payload in the `q` parameter:\n   ```\n   /search?q=<script>alert(document.domain)</script>\n   ```\n4. The JavaScript executes in the context of the page, showing an alert box with the domain name\n\n## Proof of Concept\n```\nGET /search?q=<script>alert(document.domain)</script> HTTP/1.1\nHost: target.com\n```\n\nThe response body contains:\n```html\n<h2>Search Results for: <script>alert(document.domain)</script></h2>\n```\n\nThe script tag is rendered and executed by the browser.\n\n## Impact\nAn attacker can craft a malicious URL and send it to a victim. When the victim clicks the link, arbitrary JavaScript executes in their browser session, allowing:\n- Session hijacking via cookie theft\n- Phishing by modifying page content\n- Keylogging\n- Redirecting to malicious sites",
+  "disclosed_at": "2025-06-15T12:00:00.000Z",
+  "bounty_amount": "500.0"
+}

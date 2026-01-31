@@ -109,7 +109,8 @@ def cmd_parse(args, config):
     parser = LLMParser(
         api_key=config.llm.api_key,
         model=config.llm.model,
-        temperature=config.llm.temperature
+        temperature=config.llm.temperature,
+        provider=config.llm.provider
     )
     
     reports_dir = Path(config.scraper.cache_dir)
@@ -226,7 +227,8 @@ def cmd_replay(args, config):
             model=config.llm.model,
             headless=config.browser.headless,
             screenshot=config.browser.screenshot,
-            timeout=config.browser.timeout
+            timeout=config.browser.timeout,
+            provider=config.llm.provider
         )
     else:
         print("📡 Using HTTP replay engine")
@@ -242,7 +244,8 @@ def cmd_replay(args, config):
     print("🧠 Validating results with LLM...")
     validator = LLMValidator(
         api_key=config.llm.api_key,
-        model=config.llm.model
+        model=config.llm.model,
+        provider=config.llm.provider
     )
     
     replay_result = validator.validate(replay_result)

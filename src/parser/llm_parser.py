@@ -68,22 +68,47 @@ Analyze this report and extract the following as JSON:
 
 
 class LLMParser:
-    """Parses bug bounty reports using Gemini LLM"""
+    """Parses bug bounty reports using Gemini or Groq LLM"""
     
     GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
     
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash",
-                 temperature: float = 0.1):
+                 temperature: float = 0.1, provider: str = "gemini"):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
+        self.provider = provider
     
-    def _call_gemini(self, prompt: str, max_retries: int = 5) -> Optional[str]:
-        """Call Gemini API with retry + exponential backoff for rate limits"""
+    def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
+        """Call LLM API (Gemini or Groq) with retry + exponential backoff"""
         import time as _time
         
-        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
+        for attempt in range(max_retries):
+            try:
+                if self.provider == "groq":
+                    return self._call_groq(prompt)
+                else:
+                    return self._call_gemini(prompt)
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    wait = (2 ** attempt) * 5
+                    logger.warning(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
+                    _time.sleep(wait)
+                    continue
+                else:
+                    logger.error(f"LLM API call failed: HTTP {e.code}")
+                    return None
+            except Exception as e:
+                logger.error(f"LLM API call failed: {e}")
+                return None
         
+        logger.error(f"LLM API: max retries ({max_retries}) exhausted")
+        return None
+    
+    def _call_gemini(self, prompt: str) -> Optional[str]:
+        """Call Gemini API"""
+        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -92,40 +117,36 @@ class LLMParser:
                 "responseMimeType": "application/json"
             }
         }
-        
-        for attempt in range(max_retries):
-            try:
-                req = urllib.request.Request(url, headers={
-                    'Content-Type': 'application/json'
-                })
-                req.data = json.dumps(payload).encode()
-                resp = urllib.request.urlopen(req, timeout=60)
-                data = json.loads(resp.read())
-                
-                # Extract text from Gemini response
-                candidates = data.get('candidates', [])
-                if candidates:
-                    parts = candidates[0].get('content', {}).get('parts', [])
-                    if parts:
-                        return parts[0].get('text', '')
-                
-                logger.error(f"Unexpected Gemini response structure: {data}")
-                return None
-                
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait = (2 ** attempt) * 5  # 5s, 10s, 20s, 40s, 80s
-                    logger.warning(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
-                    _time.sleep(wait)
-                    continue
-                else:
-                    logger.error(f"Gemini API call failed: HTTP {e.code}")
-                    return None
-            except Exception as e:
-                logger.error(f"Gemini API call failed: {e}")
-                return None
-        
-        logger.error(f"Gemini API: max retries ({max_retries}) exhausted")
+        req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        candidates = data.get('candidates', [])
+        if candidates:
+            parts = candidates[0].get('content', {}).get('parts', [])
+            if parts:
+                return parts[0].get('text', '')
+        return None
+    
+    def _call_groq(self, prompt: str) -> Optional[str]:
+        """Call Groq API (OpenAI-compatible)"""
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": self.temperature,
+            "max_tokens": 4096,
+            "response_format": {"type": "json_object"}
+        }
+        req = urllib.request.Request(self.GROQ_URL, headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.api_key}'
+        })
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        choices = data.get('choices', [])
+        if choices:
+            return choices[0].get('message', {}).get('content', '')
         return None
     
     def parse_report(self, report: dict) -> Optional[ParsedReport]:
@@ -162,7 +183,7 @@ class LLMParser:
         logger.info(f"Parsing report {report_id}: {title[:50]}...")
         
         # Call LLM
-        response_text = self._call_gemini(prompt)
+        response_text = self._call_llm(prompt)
         if not response_text:
             logger.error(f"No response from LLM for report {report_id}")
             return None

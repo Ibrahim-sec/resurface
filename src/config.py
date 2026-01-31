@@ -112,5 +112,13 @@ def load_config(config_path: str = None) -> Config:
     gemini_key = os.environ.get('GEMINI_API_KEY', '')
     if gemini_key and not config.llm.api_key:
         config.llm.api_key = gemini_key
+        config.llm.provider = 'gemini'
+    
+    groq_key = os.environ.get('GROQ_API_KEY', '')
+    if groq_key:
+        config.llm.api_key = groq_key
+        config.llm.provider = 'groq'
+        if config.llm.model.startswith('gemini'):
+            config.llm.model = 'llama-3.3-70b-versatile'
     
     return config

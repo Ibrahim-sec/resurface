@@ -60,58 +60,80 @@ Respond with JSON:
 
 
 class BrowserReplayer:
-    """Replays browser-based PoCs using Playwright + Gemini LLM"""
+    """Replays browser-based PoCs using Playwright + LLM (Gemini or Groq)"""
     
     GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
     
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash",
                  headless: bool = True, screenshot: bool = True,
-                 timeout: int = 60000, evidence_dir: str = "data/results"):
+                 timeout: int = 60000, evidence_dir: str = "data/results",
+                 provider: str = "gemini"):
         self.api_key = api_key
         self.model = model
         self.headless = headless
         self.screenshot = screenshot
         self.timeout = timeout
+        self.provider = provider
         self.evidence_dir = Path(evidence_dir)
         self.evidence_dir.mkdir(parents=True, exist_ok=True)
     
-    def _call_gemini(self, prompt: str, max_retries: int = 5) -> Optional[str]:
-        """Call Gemini API with retry"""
-        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
-        
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.1,
-                "maxOutputTokens": 2048,
-                "responseMimeType": "application/json"
-            }
-        }
-        
+    def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
+        """Call LLM API (Gemini or Groq) with retry"""
         for attempt in range(max_retries):
             try:
-                req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
-                req.data = json.dumps(payload).encode()
-                resp = urllib.request.urlopen(req, timeout=30)
-                data = json.loads(resp.read())
-                
-                candidates = data.get('candidates', [])
-                if candidates:
-                    parts = candidates[0].get('content', {}).get('parts', [])
-                    if parts:
-                        return parts[0].get('text', '')
-                return None
+                if self.provider == "groq":
+                    return self._call_groq(prompt)
+                else:
+                    return self._call_gemini_api(prompt)
             except urllib.error.HTTPError as e:
                 if e.code == 429:
                     wait = (2 ** attempt) * 5
                     logger.warning(f"Rate limited. Retrying in {wait}s...")
                     time.sleep(wait)
                     continue
-                logger.error(f"Gemini call failed: HTTP {e.code}")
+                logger.error(f"LLM call failed: HTTP {e.code}")
                 return None
             except Exception as e:
-                logger.error(f"Gemini call failed: {e}")
+                logger.error(f"LLM call failed: {e}")
                 return None
+        return None
+    
+    def _call_gemini_api(self, prompt: str) -> Optional[str]:
+        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048, "responseMimeType": "application/json"}
+        }
+        req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        candidates = data.get('candidates', [])
+        if candidates:
+            parts = candidates[0].get('content', {}).get('parts', [])
+            if parts:
+                return parts[0].get('text', '')
+        return None
+    
+    def _call_groq(self, prompt: str) -> Optional[str]:
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "max_tokens": 2048,
+            "response_format": {"type": "json_object"}
+        }
+        req = urllib.request.Request(self.GROQ_URL, headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.api_key}'
+        })
+        req.data = json.dumps(payload).encode()
+        resp = urllib.request.urlopen(req, timeout=60)
+        data = json.loads(resp.read())
+        choices = data.get('choices', [])
+        if choices:
+            return choices[0].get('message', {}).get('content', '')
         return None
     
     def _execute_browser_action(self, page, action: dict, report_id: int, 
@@ -270,7 +292,7 @@ class BrowserReplayer:
                     page_text=page_text
                 )
                 
-                response_text = self._call_gemini(prompt)
+                response_text = self._call_llm(prompt)
                 if not response_text:
                     logger.error("No LLM response, stopping replay")
                     break
