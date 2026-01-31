@@ -78,8 +78,10 @@ class LLMParser:
         self.model = model
         self.temperature = temperature
     
-    def _call_gemini(self, prompt: str) -> Optional[str]:
-        """Call Gemini API and return the text response"""
+    def _call_gemini(self, prompt: str, max_retries: int = 5) -> Optional[str]:
+        """Call Gemini API with retry + exponential backoff for rate limits"""
+        import time as _time
+        
         url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
         
         payload = {
@@ -91,27 +93,40 @@ class LLMParser:
             }
         }
         
-        try:
-            req = urllib.request.Request(url, headers={
-                'Content-Type': 'application/json'
-            })
-            req.data = json.dumps(payload).encode()
-            resp = urllib.request.urlopen(req, timeout=30)
-            data = json.loads(resp.read())
-            
-            # Extract text from Gemini response
-            candidates = data.get('candidates', [])
-            if candidates:
-                parts = candidates[0].get('content', {}).get('parts', [])
-                if parts:
-                    return parts[0].get('text', '')
-            
-            logger.error(f"Unexpected Gemini response structure: {data}")
-            return None
-            
-        except Exception as e:
-            logger.error(f"Gemini API call failed: {e}")
-            return None
+        for attempt in range(max_retries):
+            try:
+                req = urllib.request.Request(url, headers={
+                    'Content-Type': 'application/json'
+                })
+                req.data = json.dumps(payload).encode()
+                resp = urllib.request.urlopen(req, timeout=60)
+                data = json.loads(resp.read())
+                
+                # Extract text from Gemini response
+                candidates = data.get('candidates', [])
+                if candidates:
+                    parts = candidates[0].get('content', {}).get('parts', [])
+                    if parts:
+                        return parts[0].get('text', '')
+                
+                logger.error(f"Unexpected Gemini response structure: {data}")
+                return None
+                
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    wait = (2 ** attempt) * 5  # 5s, 10s, 20s, 40s, 80s
+                    logger.warning(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
+                    _time.sleep(wait)
+                    continue
+                else:
+                    logger.error(f"Gemini API call failed: HTTP {e.code}")
+                    return None
+            except Exception as e:
+                logger.error(f"Gemini API call failed: {e}")
+                return None
+        
+        logger.error(f"Gemini API: max retries ({max_retries}) exhausted")
+        return None
     
     def parse_report(self, report: dict) -> Optional[ParsedReport]:
         """

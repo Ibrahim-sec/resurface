@@ -56,8 +56,10 @@ class LLMValidator:
         self.model = model
         self.confidence_threshold = confidence_threshold
     
-    def _call_gemini(self, prompt: str) -> Optional[str]:
-        """Call Gemini API"""
+    def _call_gemini(self, prompt: str, max_retries: int = 5) -> Optional[str]:
+        """Call Gemini API with retry + exponential backoff"""
+        import time as _time
+        
         url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
         
         payload = {
@@ -69,21 +71,34 @@ class LLMValidator:
             }
         }
         
-        try:
-            req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
-            req.data = json.dumps(payload).encode()
-            resp = urllib.request.urlopen(req, timeout=30)
-            data = json.loads(resp.read())
-            
-            candidates = data.get('candidates', [])
-            if candidates:
-                parts = candidates[0].get('content', {}).get('parts', [])
-                if parts:
-                    return parts[0].get('text', '')
-            return None
-        except Exception as e:
-            logger.error(f"Gemini validation call failed: {e}")
-            return None
+        for attempt in range(max_retries):
+            try:
+                req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
+                req.data = json.dumps(payload).encode()
+                resp = urllib.request.urlopen(req, timeout=60)
+                data = json.loads(resp.read())
+                
+                candidates = data.get('candidates', [])
+                if candidates:
+                    parts = candidates[0].get('content', {}).get('parts', [])
+                    if parts:
+                        return parts[0].get('text', '')
+                return None
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    wait = (2 ** attempt) * 5
+                    logger.warning(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
+                    _time.sleep(wait)
+                    continue
+                else:
+                    logger.error(f"Gemini validation call failed: HTTP {e.code}")
+                    return None
+            except Exception as e:
+                logger.error(f"Gemini validation call failed: {e}")
+                return None
+        
+        logger.error(f"Gemini API: max retries ({max_retries}) exhausted")
+        return None
     
     def validate(self, replay_report: ReplayReport) -> ReplayReport:
         """
