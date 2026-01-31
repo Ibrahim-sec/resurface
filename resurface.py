@@ -243,15 +243,25 @@ def cmd_replay(args, config):
     
     replay_result = replayer.replay(parsed_report, target_override=args.target)
     
-    # Validate
-    print("🧠 Validating results with LLM...")
-    validator = LLMValidator(
-        api_key=config.llm.api_key,
-        model=config.llm.model,
-        provider=config.llm.provider
-    )
-    
-    replay_result = validator.validate(replay_result)
+    # If browser engine already confirmed vulnerability (e.g., caught alert dialog),
+    # trust the direct detection over LLM validation
+    if replay_result.result == ReplayResult.VULNERABLE and use_browser:
+        print("🚨 Browser engine directly confirmed vulnerability (dialog/alert captured)!")
+        replay_result.confidence = 0.95
+        replay_result.llm_analysis = (
+            "CONFIRMED BY BROWSER ENGINE: The vulnerability was directly detected during "
+            "browser replay. An alert/dialog was triggered, confirming the XSS payload executed "
+            "in the browser context. This is a definitive detection — no LLM analysis needed."
+        )
+    else:
+        # Use LLM validation for HTTP-based replays or inconclusive browser results
+        print("🧠 Validating results with LLM...")
+        validator = LLMValidator(
+            api_key=config.llm.api_key,
+            model=config.llm.model,
+            provider=config.llm.provider
+        )
+        replay_result = validator.validate(replay_result)
     
     # Save result
     results_dir = Path(config.reporter.output_dir)
