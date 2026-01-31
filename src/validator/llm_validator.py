@@ -110,7 +110,7 @@ class LLMValidator:
             "response_format": {"type": "json_object"}
         }
         req = urllib.request.Request(self.GROQ_URL, headers={
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json', 'User-Agent': 'Resurface/1.0',
             'Authorization': f'Bearer {self.api_key}'
         })
         req.data = json.dumps(payload).encode()
