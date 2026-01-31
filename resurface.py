@@ -228,7 +228,7 @@ def cmd_replay(args, config):
         replayer = BrowserReplayer(
             api_key=config.llm.api_key,
             model=config.llm.model,
-            headless=config.browser.headless,
+            headless=False if args.browser else config.browser.headless,
             screenshot=config.browser.screenshot,
             timeout=config.browser.timeout,
             provider=config.llm.provider
