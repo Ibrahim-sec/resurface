@@ -215,12 +215,26 @@ def cmd_replay(args, config):
     print(f"   Method: {parsed_report.replay_method.value}")
     print()
     
-    # Replay
-    replayer = HTTPReplayer(
-        timeout=config.engine.timeout,
-        max_retries=config.engine.max_retries,
-        follow_redirects=config.engine.follow_redirects
-    )
+    # Choose replay method
+    use_browser = parsed_report.replay_method.value == 'browser' or args.browser
+    
+    if use_browser:
+        from src.browser.browser_replayer import BrowserReplayer
+        print("🌐 Using BROWSER replay engine (watch on noVNC!)")
+        replayer = BrowserReplayer(
+            api_key=config.llm.api_key,
+            model=config.llm.model,
+            headless=config.browser.headless,
+            screenshot=config.browser.screenshot,
+            timeout=config.browser.timeout
+        )
+    else:
+        print("📡 Using HTTP replay engine")
+        replayer = HTTPReplayer(
+            timeout=config.engine.timeout,
+            max_retries=config.engine.max_retries,
+            follow_redirects=config.engine.follow_redirects
+        )
     
     replay_result = replayer.replay(parsed_report, target_override=args.target)
     
@@ -301,6 +315,8 @@ def main():
     replay_parser = subparsers.add_parser('replay', help='Replay a parsed report')
     replay_parser.add_argument('--report', '-r', required=True, help='Report ID')
     replay_parser.add_argument('--target', '-t', required=True, help='Target URL')
+    replay_parser.add_argument('--browser', '-b', action='store_true', 
+                              help='Force browser-based replay (visible on noVNC)')
     
     args = arg_parser.parse_args()
     
