@@ -27,6 +27,9 @@ BROWSER_AGENT_PROMPT = """You are an autonomous browser-based vulnerability test
 ## PoC Steps to Reproduce
 {steps_text}
 
+## Actions Taken So Far
+{actions_so_far}
+
 ## Current Browser State
 - **Current URL:** {current_url}
 - **Page Title:** {page_title}
@@ -34,27 +37,29 @@ BROWSER_AGENT_PROMPT = """You are an autonomous browser-based vulnerability test
 {page_text}
 
 ## Your Task
-Based on the current browser state and the PoC steps, provide the NEXT browser action to take.
+Based on the PoC steps and what has been done so far, provide the NEXT browser action.
 
 Respond with JSON:
 {{
-    "action": "<one of: navigate, click, type, execute_js, screenshot, wait, done>",
+    "action": "<one of: navigate, click, type, submit_form, execute_js, wait, done>",
     "target": "<CSS selector for click/type, URL for navigate, JS code for execute_js>",
     "value": "<text to type, or null>",
     "description": "<what this action does and why>",
     "step_number": <which PoC step this corresponds to>,
     "is_final_step": <true if this is the last action needed>,
-    "vulnerability_detected": <true/false/null — set true if you can already see the vuln is present>
+    "vulnerability_detected": <true/false/null — set true if you can see the vuln in page text or DIALOGS DETECTED>
 }}
 
-## Rules
+## CRITICAL RULES
 - Execute ONE action at a time
-- For XSS: navigate to the URL with the payload, then check if alert/DOM manipulation occurred
-- For CSRF: craft and submit the form
-- For IDOR: navigate with modified parameters and check the response
-- Use execute_js to check for XSS indicators (alert boxes, DOM changes, cookie access)
-- After the final step, set is_final_step to true
-- If you detect the vulnerability already, set vulnerability_detected to true
+- **For XSS via forms**: First type the payload, then SUBMIT the form (use submit_form or click the submit button). The XSS only triggers AFTER form submission!
+- **For XSS via URL**: Use navigate with the payload in the URL directly (e.g., navigate to /search?q=<script>alert(1)</script>)
+- **After submitting**: Check if "[DIALOGS DETECTED:" appears in the page text — that means alert() fired and XSS is confirmed!
+- **submit_form**: Set target to the form's CSS selector (e.g., "form", "form[action='/search.php']") to submit it
+- Do NOT keep typing the same payload repeatedly — if you already typed it, SUBMIT the form next
+- After the final check, set is_final_step to true
+- If "[DIALOGS DETECTED:" appears in page text, set vulnerability_detected to true immediately
+- Keep it under 8 actions total — be efficient
 - Return ONLY valid JSON
 """
 
@@ -136,7 +141,7 @@ class BrowserReplayer:
             return choices[0].get('message', {}).get('content', '')
         return None
     
-    def _execute_browser_action(self, page, action: dict, report_id: int, 
+    def _execute_browser_action(self, page, action: dict, report_id: int,
                                  step_num: int) -> ReplayEvidence:
         """Execute a single browser action from LLM guidance"""
         evidence = ReplayEvidence(step_number=step_num)
@@ -166,6 +171,20 @@ class BrowserReplayer:
                 page.fill(target, value, timeout=10000)
                 evidence.request_sent = f"TYPE: {target} = {value}"
                 evidence.response_received = f"Typed. Current URL: {page.url}"
+            
+            elif action_type == 'submit_form':
+                logger.info(f"  📤 Submitting form: {target}")
+                try:
+                    page.evaluate(f"document.querySelector('{target}').submit()")
+                except:
+                    # Fallback: try clicking submit button
+                    try:
+                        page.click(f"{target} [type='submit'], {target} button, input[type='submit']", timeout=5000)
+                    except:
+                        page.keyboard.press('Enter')
+                page.wait_for_load_state('domcontentloaded', timeout=10000)
+                evidence.request_sent = f"SUBMIT: {target}"
+                evidence.response_received = f"Submitted. Current URL: {page.url} | Title: {page.title()}"
                 
             elif action_type == 'execute_js':
                 logger.info(f"  📜 Executing JS: {target[:80]}...")
@@ -198,7 +217,7 @@ class BrowserReplayer:
     
     def replay(self, parsed_report: ParsedReport,
                target_override: str = None,
-               max_actions: int = 15) -> ReplayReport:
+               max_actions: int = 8) -> ReplayReport:
         """
         Replay a parsed report using LLM-driven browser automation.
         
@@ -263,6 +282,7 @@ class BrowserReplayer:
                     logger.warning(f"  Failed to load initial URL: {target_url}")
             
             # LLM-driven action loop
+            actions_history = []
             for action_num in range(max_actions):
                 # Get current page state
                 try:
@@ -280,6 +300,11 @@ class BrowserReplayer:
                 if console_messages:
                     page_text += f"\n\n[CONSOLE: {'; '.join(console_messages[-5:])}]"
                 
+                # Build action history
+                actions_so_far = "None yet" if not actions_history else "\n".join(
+                    f"{i+1}. {a}" for i, a in enumerate(actions_history)
+                )
+                
                 # Ask LLM what to do next
                 prompt = BROWSER_AGENT_PROMPT.format(
                     title=parsed_report.title,
@@ -287,6 +312,7 @@ class BrowserReplayer:
                     description=parsed_report.description,
                     target_url=target_url,
                     steps_text=steps_text,
+                    actions_so_far=actions_so_far,
                     current_url=current_url,
                     page_title=page_title,
                     page_text=page_text
@@ -310,6 +336,10 @@ class BrowserReplayer:
                 # Execute the action
                 evidence = self._execute_browser_action(page, action, report_id, action_num + 1)
                 evidence_list.append(evidence)
+                
+                # Log action for history
+                act_desc = action.get('description', action.get('action', '?'))
+                actions_history.append(f"{action.get('action','?')}: {act_desc}")
                 
                 # Check if LLM detected vulnerability
                 if action.get('vulnerability_detected'):
