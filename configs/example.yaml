@@ -1,0 +1,56 @@
+# Resurface Configuration
+
+# LLM Settings
+llm:
+  provider: "openai"          # openai | anthropic
+  model: "gpt-4o"             # Model to use for parsing & validation
+  api_key: ""                 # Set via RESURFACE_LLM_API_KEY env var
+  temperature: 0.1            # Low temp for consistent parsing
+  max_tokens: 4096
+
+# Scraper Settings
+scraper:
+  platform: "hackerone"
+  rate_limit: 2               # Requests per second
+  cache_dir: "data/reports"
+  user_agent: "Resurface/1.0 (Security Research)"
+
+# Engine Settings
+engine:
+  timeout: 30                 # Request timeout in seconds
+  max_retries: 3
+  follow_redirects: true
+  verify_ssl: true
+  proxy: ""                   # Optional proxy (e.g., http://127.0.0.1:8080 for Burp)
+
+# Browser Settings
+browser:
+  headless: true
+  timeout: 60000              # Browser timeout in ms
+  screenshot: true            # Capture screenshots as evidence
+  video: false                # Record video of browser actions
+  viewport:
+    width: 1280
+    height: 720
+
+# Validator Settings
+validator:
+  confidence_threshold: 0.7   # Minimum confidence to flag as "resurfaced"
+  evidence_capture: true
+
+# Reporter Settings
+reporter:
+  output_dir: "data/results"
+  formats:
+    - "html"
+    - "json"
+  include_evidence: true
+
+# Database
+database:
+  url: "sqlite:///data/resurface.db"
+
+# Logging
+logging:
+  level: "INFO"
+  file: "logs/resurface.log"
