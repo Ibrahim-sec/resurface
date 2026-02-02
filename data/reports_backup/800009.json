@@ -1,0 +1,14 @@
+{
+  "id": 800009,
+  "title": "HTTP Header Injection via redir.php Redirect Parameter on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 113, "name": "HTTP Response Splitting"},
+  "vulnerability_information": "## Summary\nThe redirect endpoint at `http://testphp.vulnweb.com/redir.php` accepts a `r` parameter used to construct a `Location` HTTP header. While PHP 5.6 blocks actual CRLF injection in headers (emitting a warning), the endpoint still functions as an **open redirect** — it will redirect to any arbitrary URL without validation. The CRLF attempt reveals the internal file path `/hj/var/www/redir.php` in the PHP warning, which is an additional information disclosure.\n\n## Steps to Reproduce\n\n### Open Redirect\n1. Navigate to:\n```\nhttp://testphp.vulnweb.com/redir.php?r=http://evil.com\n```\n2. The server responds with HTTP 302 and `Location: http://evil.com`, redirecting the browser to the attacker-controlled domain.\n\n### CRLF / Header Injection Attempt\n1. Send a request with CRLF characters in the redirect URL:\n```bash\ncurl -sD - 'http://testphp.vulnweb.com/redir.php?r=http://example.com%0d%0aInjected-Header:%20true'\n```\n2. Response:\n```\nHTTP/1.1 200 OK\nServer: nginx/1.19.0\nX-Powered-By: PHP/5.6.40-38+ubuntu20.04.1+deb.sury.org+1\n\nWarning: Header may not contain more than a single header, new line detected in /hj/var/www/redir.php on line 3\n```\n3. While the injection is blocked, the error message reveals the full server-side file path.\n\n## Proof of Concept\n```bash\n# Open redirect — browser will be sent to evil.com\ncurl -sD - 'http://testphp.vulnweb.com/redir.php?r=http://evil.com' 2>&1 | head -10\n# Output includes: Location: http://evil.com\n\n# Path disclosure via CRLF attempt\ncurl -s 'http://testphp.vulnweb.com/redir.php?r=http://x%0d%0ay:z'\n# Reveals: /hj/var/www/redir.php\n```\n\n## Impact\n- **Open redirect** — attacker can use the trusted domain to redirect victims to phishing pages or malware sites\n- **OAuth token theft** — if any OAuth flows use this domain, the redirect can steal authorization codes\n- **Path disclosure** — the CRLF warning reveals the full filesystem path `/hj/var/www/redir.php`, aiding further exploitation\n- **Phishing** — users trust links starting with `testphp.vulnweb.com` but end up on attacker-controlled sites\n- On older PHP versions (< 5.1.2), this would allow full HTTP response splitting, enabling cache poisoning and XSS via injected headers",
+  "disclosed_at": "2025-08-01T10:00:00.000Z",
+  "bounty_amount": "500.0"
+}

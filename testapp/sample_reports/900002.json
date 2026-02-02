@@ -1,0 +1,14 @@
+{
+  "id": 900002,
+  "title": "IDOR in User Profile Endpoint Exposes PII of All Users",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 55, "name": "Insecure Direct Object Reference (IDOR)"},
+  "vulnerability_information": "## Summary\nThe user profile endpoint at `/profile/<id>` is vulnerable to Insecure Direct Object Reference (IDOR). Any user can access any other user's profile, including sensitive PII (email, SSN, role), by simply changing the `id` path parameter.\n\n## Steps to Reproduce\n1. Log in as a regular user (user id=2)\n2. Access your own profile: `GET /profile/2`\n3. Change the `id` parameter to another user's ID: `GET /profile/1`\n4. The application returns the full profile of user 1 (admin), including their SSN and email\n5. Iterate through IDs 1-5 to enumerate all users\n\n## Proof of Concept\n```http\nGET /profile/1 HTTP/1.1\nHost: target.com\n```\n\nResponse contains:\n```json\n{\"id\": 1, \"name\": \"Alice Admin\", \"email\": \"alice@company.com\", \"role\": \"admin\", \"ssn\": \"123-45-6789\"}\n```\n\nThe response includes the admin user's SSN and full profile without any authorization check.\n\n## Impact\n- Complete exposure of all user PII (names, emails, SSNs)\n- Ability to enumerate all users in the system\n- Admin account details exposed, enabling further targeted attacks\n- Potential regulatory violation (PII exposure)",
+  "disclosed_at": "2025-07-20T10:00:00.000Z",
+  "bounty_amount": "2000.0"
+}

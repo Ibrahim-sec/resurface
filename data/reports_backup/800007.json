@@ -1,0 +1,14 @@
+{
+  "id": 800007,
+  "title": "Directory Listing and Information Disclosure via /admin/ and /images/ on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 548, "name": "Information Disclosure"},
+  "vulnerability_information": "## Summary\nMultiple directories on `http://testphp.vulnweb.com` have directory listing enabled via nginx autoindex, exposing internal file structures and sensitive files. The `/admin/` directory exposes a `create.sql` file containing the full database schema, and the `/images/` directory lists all image assets. The server also exposes version information via headers: `nginx/1.19.0` and `PHP/5.6.40`.\n\n## Steps to Reproduce\n\n### 1. Directory Listing on /admin/\n```bash\ncurl -s 'http://testphp.vulnweb.com/admin/'\n```\nResponse:\n```html\n<html>\n<head><title>Index of /admin/</title></head>\n<body>\n<h1>Index of /admin/</h1><hr><pre>\n<a href=\"../\">../</a>\n<a href=\"create.sql\">create.sql</a>    11-May-2011 10:27    523\n</pre><hr></body>\n</html>\n```\n\nThe `create.sql` file is directly downloadable and contains the full database schema.\n\n### 2. Directory Listing on /images/\n```bash\ncurl -s 'http://testphp.vulnweb.com/images/'\n```\nResponse:\n```html\n<h1>Index of /images/</h1><hr><pre>\n<a href=\"../\">../</a>\n<a href=\"logo.gif\">logo.gif</a>      11-May-2011 10:27    6660\n<a href=\"remark.gif\">remark.gif</a>  11-May-2011 10:27      79\n</pre><hr></body>\n```\n\n### 3. Server Version Disclosure\n```bash\ncurl -sI 'http://testphp.vulnweb.com/'\n```\nResponse headers:\n```\nServer: nginx/1.19.0\nX-Powered-By: PHP/5.6.40-38+ubuntu20.04.1+deb.sury.org+1\n```\n\nPHP 5.6.40 is end-of-life and contains numerous known CVEs. The full OS version (Ubuntu 20.04) is also disclosed.\n\n## Impact\n- **Database schema disclosure** — the `/admin/create.sql` file reveals the complete database structure, table names, column names, and data types, making SQL injection attacks easier to craft\n- **Sensitive file exposure** — directory listing may reveal backup files, configuration files, or other sensitive data\n- **Server fingerprinting** — exact nginx (1.19.0) and PHP (5.6.40) versions enable targeted exploitation of known CVEs\n- **Attack surface mapping** — directory listings help attackers map the application structure for further attacks\n- **PHP 5.6 EOL** — this version has not received security updates since December 2018, exposing the application to numerous unpatched vulnerabilities",
+  "disclosed_at": "2025-07-20T08:00:00.000Z",
+  "bounty_amount": "500.0"
+}

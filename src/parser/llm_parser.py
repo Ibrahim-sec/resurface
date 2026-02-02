@@ -74,22 +74,34 @@ class LLMParser:
     GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
     
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash",
-                 temperature: float = 0.1, provider: str = "gemini"):
+                 temperature: float = 0.1, provider: str = "gemini",
+                 verbose: bool = False):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.provider = provider
+        self.verbose = verbose
     
     def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
         """Call LLM API (Gemini or Groq) with retry + exponential backoff"""
         import time as _time
         
+        if self.verbose:
+            from src.utils.verbose import print_llm_prompt
+            print_llm_prompt(prompt, label="Parser")
+        
         for attempt in range(max_retries):
             try:
                 if self.provider == "groq":
-                    return self._call_groq(prompt)
+                    result = self._call_groq(prompt)
                 else:
-                    return self._call_gemini(prompt)
+                    result = self._call_gemini(prompt)
+                
+                if self.verbose and result:
+                    from src.utils.verbose import print_llm_response
+                    print_llm_response(result, label="Parser")
+                
+                return result
             except urllib.error.HTTPError as e:
                 if e.code == 429:
                     wait = (2 ** attempt) * 5

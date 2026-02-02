@@ -1,0 +1,48 @@
+# ============================================================
+# IDOR Payloads — Curated for vulnerability replay
+# ============================================================
+
+# --- Sequential integer IDs ---
+1
+2
+3
+0
+-1
+999999
+100
+1000
+
+# --- Boundary / edge case IDs ---
+2147483647
+9999999999
+00001
+
+# --- Common UUID patterns (try replacing in requests) ---
+00000000-0000-0000-0000-000000000000
+11111111-1111-1111-1111-111111111111
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+
+# --- Common parameter names to fuzz ---
+id=
+user_id=
+uid=
+account=
+account_id=
+profile_id=
+order_id=
+doc_id=
+file_id=
+customer_id=
+basket_id=
+cart_id=
+
+# --- Base64-encoded IDs (decode, increment, re-encode) ---
+MQ==
+Mg==
+Mw==
+
+# --- Hash-based IDs (common patterns) ---
+# Try MD5 of sequential integers:
+c4ca4238a0b923820dcc509a6f75849b
+c81e728d9d4c2f636f067f89cc14862c
+eccbc87e4b5ce2fe28308fd9f2a7baf3

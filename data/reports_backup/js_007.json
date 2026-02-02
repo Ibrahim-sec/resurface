@@ -1,0 +1,21 @@
+{
+  "id": 900107,
+  "title": "Broken access control — admin section accessible without admin privileges",
+  "severity_rating": "critical",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-03-25T16:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 26,
+    "name": "Improper Access Control"
+  },
+  "vulnerability_information": "## Summary\nThe Juice Shop administration panel is accessible by navigating directly to the admin path. The application only hides the admin link from the UI for non-admin users but does not enforce server-side access controls on the admin routes.\n\n## Steps to Reproduce\n1. Log in as any regular user at http://localhost:3333/#/login\n2. Navigate directly to the administration panel:\n```\nhttp://localhost:3333/#/administration\n```\n3. The administration page loads and displays:\n   - All registered user accounts with emails\n   - All customer feedback/reviews\n   - Ability to delete reviews\n   - User recycle requests\n\n## Alternative PoC — via API\n1. With any valid authentication token, send:\n```\nGET http://localhost:3333/api/Users\nAuthorization: Bearer <regular_user_token>\n```\n2. All user data is returned including admin accounts\n\n## Impact\nCritical — Any authenticated user can access the full administration panel, view all user data, and perform administrative actions like deleting feedback. This is a complete bypass of the authorization model.\n\n## Expected Behavior\nThe administration routes and API endpoints should verify that the authenticated user has admin role before granting access.\n\n## Actual Behavior\nAuthorization checks are only performed client-side (UI element visibility). Server-side endpoints serve admin data to any authenticated user."
+}

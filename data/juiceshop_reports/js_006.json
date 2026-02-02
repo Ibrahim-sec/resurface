@@ -1,0 +1,21 @@
+{
+  "id": 900106,
+  "title": "Open redirect via allowlisted URL parameter on the redirect endpoint",
+  "severity_rating": "low",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-04-18T11:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 53,
+    "name": "Open Redirect"
+  },
+  "vulnerability_information": "## Summary\nThe Juice Shop has a redirect endpoint at /redirect that accepts a `to` parameter. While the application attempts to validate the redirect target against an allowlist, it can be bypassed to redirect to arbitrary external domains.\n\n## Steps to Reproduce\n1. The redirect endpoint normally only allows specific URLs:\n```\nGET http://localhost:3333/redirect?to=https://blockchain.info/address/1AbKfgvw9psQ41NbLi8kufDQTezwG8DRZm\n```\n2. This works because blockchain.info is on the allowlist\n3. However, try the following to redirect to an external domain:\n```\nGET http://localhost:3333/redirect?to=https://evil.com?blockchain.info\n```\n4. Or try direct unvalidated URLs if the allowlist check is weak:\n```\nGET http://localhost:3333/redirect?to=http://evil.com\n```\n5. If the server responds with a 3xx redirect to the external URL, the vulnerability is confirmed\n\n## Impact\nAn attacker can craft URLs on the Juice Shop domain that redirect victims to malicious external sites. This can be used for phishing attacks since the link appears to originate from a trusted domain.\n\n## Expected Behavior\nThe redirect endpoint should strictly validate the target URL against a whitelist and reject any URLs not explicitly approved.\n\n## Actual Behavior\nThe allowlist validation can be bypassed, allowing redirects to arbitrary external domains."
+}

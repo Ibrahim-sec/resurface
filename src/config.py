@@ -5,6 +5,7 @@ import os
 import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 
 @dataclass
@@ -56,6 +57,49 @@ class ReporterConfig:
     include_evidence: bool = True
 
 
+# ──────────────────────────────────────────────
+#  Notification Config
+# ──────────────────────────────────────────────
+
+@dataclass
+class TelegramChannelConfig:
+    enabled: bool = False
+    bot_token: str = ""
+    chat_id: str = ""
+
+
+@dataclass
+class DiscordChannelConfig:
+    enabled: bool = False
+    webhook_url: str = ""
+
+
+@dataclass
+class SlackChannelConfig:
+    enabled: bool = False
+    webhook_url: str = ""
+
+
+@dataclass
+class NotificationChannelsConfig:
+    telegram: TelegramChannelConfig = field(default_factory=TelegramChannelConfig)
+    discord: DiscordChannelConfig = field(default_factory=DiscordChannelConfig)
+    slack: SlackChannelConfig = field(default_factory=SlackChannelConfig)
+
+
+@dataclass
+class NotificationConfig:
+    enabled: bool = False
+    on: list = field(default_factory=lambda: ["vulnerable", "partial"])
+    telegram: TelegramChannelConfig = field(default_factory=TelegramChannelConfig)
+    discord: DiscordChannelConfig = field(default_factory=DiscordChannelConfig)
+    slack: SlackChannelConfig = field(default_factory=SlackChannelConfig)
+
+
+# ──────────────────────────────────────────────
+#  Top-level Config
+# ──────────────────────────────────────────────
+
 @dataclass
 class Config:
     llm: LLMConfig = field(default_factory=LLMConfig)
@@ -64,6 +108,8 @@ class Config:
     browser: BrowserConfig = field(default_factory=BrowserConfig)
     validator: ValidatorConfig = field(default_factory=ValidatorConfig)
     reporter: ReporterConfig = field(default_factory=ReporterConfig)
+    notifications: NotificationConfig = field(default_factory=NotificationConfig)
+    auth: Optional[object] = None  # AuthConfig, loaded lazily from src.auth.auth_config
     database_url: str = "sqlite:///data/resurface.db"
     log_level: str = "INFO"
     base_dir: str = ""
@@ -103,6 +149,41 @@ def load_config(config_path: str = None) -> Config:
                     setattr(config.browser, k, v)
         if 'database' in data:
             config.database_url = data['database'].get('url', config.database_url)
+
+        # Auth profiles
+        if 'auth' in data:
+            from src.auth.auth_config import load_auth_config
+            config.auth = load_auth_config(data)
+
+        # Notifications
+        if 'notifications' in data:
+            nd = data['notifications']
+            config.notifications.enabled = nd.get('enabled', False)
+            config.notifications.on = nd.get('on', ["vulnerable", "partial"])
+
+            channels = nd.get('channels', {})
+
+            tg = channels.get('telegram', {})
+            if tg:
+                config.notifications.telegram = TelegramChannelConfig(
+                    enabled=tg.get('enabled', False),
+                    bot_token=tg.get('bot_token', ''),
+                    chat_id=str(tg.get('chat_id', '')),
+                )
+
+            dc = channels.get('discord', {})
+            if dc:
+                config.notifications.discord = DiscordChannelConfig(
+                    enabled=dc.get('enabled', False),
+                    webhook_url=dc.get('webhook_url', ''),
+                )
+
+            sl = channels.get('slack', {})
+            if sl:
+                config.notifications.slack = SlackChannelConfig(
+                    enabled=sl.get('enabled', False),
+                    webhook_url=sl.get('webhook_url', ''),
+                )
     
     # Environment variable overrides
     env_key = os.environ.get('RESURFACE_LLM_API_KEY', '')

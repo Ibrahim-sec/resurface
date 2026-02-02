@@ -1,0 +1,117 @@
+{
+  "id": 577612,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81Nzc2MTI=",
+  "url": "https://hackerone.com/reports/577612",
+  "title": "MSSQL injection via param Customwho in https://\u2588\u2588\u2588\u2588\u2588/News/Transcripts/Search/Sort/ and WAF bypass",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "readable_substate": "Resolved",
+  "created_at": "2019-05-11T22:00:06.207Z",
+  "submitted_at": "2019-05-11T22:00:06.207Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "bohdansec",
+    "url": "/bohdansec",
+    "profile_picture_urls": {
+      "small": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/huvtff3149eychjj1qlp363drji4/3cb67cc78dc0cba55b102dd9eca2ee89b206d3e960be830f070583d9070b69ef?response-content-disposition=inline%3B%20filename%3D%22avatar-pack.jpg%22%3B%20filename%2A%3DUTF-8%27%27avatar-pack.jpg&response-content-type=image%2Fjpeg&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQQAJ7F2VS%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172516Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEO%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQCdlrUxw8BS7P2jQ%2BkpgvyfSfyB6X0pK4Br18qlwp3KbgIgWZ0iu9s2AEaG1Dw9okSte%2BMAEDHDvR17Jp%2FWKOClnsUquwUIuP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDGve9rWkTdmeeSlUXiqPBfziyu%2FrTf7xE43rWP2fYWYy1yl%2FB3MhNx8T7kwq5IQEC3ucPQmKLGjt0CkN5VB62Tyu89VGJNhMzYKJwv4WLbWqh955vEbKGfWFzN9RwpldCh36%2BdjAuKbQmIIwCgPz8Kn%2FGnkssCxgvv%2FsPknvP7JnxvQ0HaWUY%2BaHtwnCAESBepN1YIn3tO7ACYN52zH78dM6%2BiXY%2BQ3lL7jyVep88wxplkUja3yunjGJ6XjfUdockfT8eeYSOpzuGwRWp4rdIv4Owut6Z%2F7NXKmqpZGDNbwC6QRuZC91416fpOzEvnKiEp%2BzhhGQOSvCXgGRWp7QpB1HmsG2r6EIzEKhdy2ln355ok6ulSE3OyDPAmgSpLdduxmmv8I7BtsA8%2FuUqBXSj%2Fsdc3VlDOYUZFgJr0n0AGzduX6xwFKa%2FMSOBNFQpcdpU8oKfSmIT5a2%2Bc9Bf1QGe4HMkal0ZqSug8utHfoQTru%2F85a0IyxxAYLRNtDCP1jYtJWFnbvMIYbLU34krWmvncQnuXyalTCMazaKH2ZUspf8LgV4IslFm%2FWaanWj%2FgpbIBExwMOKtgSKM6%2Fu82AcUj5iRx0PFb%2BRwb4ORQ%2Bsfk0daY8ADLWvvysrOy4H6K%2FdmY3MTgaduQJxpt9LoH3%2FeWXF7VpJeJKT1iUcvjlXzoXfVnYrl4Bbfg%2F%2BxsiabjzUdUiPex7EjQerb0KiDsEAtbWDo0vmqzbwqDTmTTDVHkJPmpRUmh4Dqxg%2BzxBNv9rmaC1asD5hViJcHqOdeZZSySZpsBAbR%2Bk%2BhE99DYjaZQYrZ3qekYLrFHlEzED1ncB4E3Tq0lTVAWHL%2B6cUYKpKk6FBlgejqpWqPIvXPTJx%2FAdKtfReIYoV074tbF3cX88wjaj4ywY6sQFh8uVBmEHTCq3iDx0%2FeMfiJPyHyeSRESFQPo7wEkCKv5MSx%2B23HWSqZW2tKfGrgexa%2BYi1H7vRoQaZcUKOexuN72D70pNLLmyid0XEIA729PwTsGhTBCKadchLVbfYXu3qx9fu9qAzIThARoG8lsyiIdNAEq6nwj6vll7YNwOaSgXM66Ubgjw6yCLUDqTkvHJSD6eZ2mrheygFj2bZRtcwWoxSSEMRIgSe3fvv%2BmtkE5Q%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=3dd788231aa7cb2b1a22df0c0af4ab417fba8c22a667823a62fec2d5b74af952"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 16064,
+    "url": "https://hackerone.com/deptofdefense",
+    "handle": "deptofdefense",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/016/064/46cd0286b1fa224aaa2cb9dfaaca9fa22b5b80b2_original.png/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1",
+      "medium": "https://profile-photos.hackerone-user-content.com/variants/000/016/064/46cd0286b1fa224aaa2cb9dfaaca9fa22b5b80b2_original.png/3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c"
+    },
+    "permissions": [],
+    "submission_state": "open",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": false,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "U.S. Dept Of Defense",
+      "twitter_handle": "DC3VDP",
+      "website": "https://bit.ly/3ntULtN",
+      "about": ""
+    }
+  },
+  "has_bounty?": false,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [],
+  "singular_disclosure_disabled": true,
+  "disclosed_at": "2019-10-10T19:13:15.046Z",
+  "bug_reporter_agreed_on_going_public_at": "2019-06-04T00:31:13.638Z",
+  "team_member_agreed_on_going_public_at": "2019-10-10T19:13:14.929Z",
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "**Summary:**\n\nMSSQL injection via param `Customwho` in https://\u2588\u2588\u2588\u2588\u2588\u2588\u2588/News/Transcripts/Search/Sort/\n\n**Description:**\n\nMSSQL injection via param `Customwho` in https://\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588/News/Transcripts/Search/Sort/\n\nThere is WAF, but we can make bypass and via global variable `@@LANGID` we can know that the base is used here - MSSQL\n\n## Impact\n\nCritical\n\n## Step-by-step Reproduction Instructions\n\nVia global variable `@@LANGID` we can find out that here is MSSQL database. \u2588\u2588\u2588\u2588\n\nhttps://\u2588\u2588\u2588\u2588\u2588/News/Transcripts/Search/Sort/?Customwho=31002/**/|/**/@@LANGID\n\nAnd if use a non-existing global variable, then we get an error. \u2588\u2588\u2588\u2588\u2588\u2588\n\nhttps://\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588/News/Transcripts/Search/Sort/?Customwho=31002/**/|/**/@@nonexisting\n\n## Suggested Mitigation/Remediation Actions\n\nUsing prepared statement\n\n## Impact\n\nWe can read and do other manipulations in the database. We can also try to make RCE",
+  "weakness": {
+    "id": 67,
+    "name": "SQL Injection"
+  },
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [],
+  "allow_singular_disclosure_at": null,
+  "vote_count": 11,
+  "voters": [
+    "tohasec",
+    "masonhck357",
+    "null_rhythm",
+    "dastan_9408",
+    "lumbridge",
+    "connell",
+    "exception",
+    "solontech",
+    "lordofthefliesonthewall",
+    "nrchy",
+    "and 1 more..."
+  ],
+  "severity": {
+    "rating": "high",
+    "author_type": "Team"
+  },
+  "structured_scope": null,
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

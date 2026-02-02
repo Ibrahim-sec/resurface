@@ -1,0 +1,14 @@
+{
+  "id": 900004,
+  "title": "Information Disclosure via Debug Endpoint Exposes API Keys and Credentials",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "critical",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 18, "name": "Information Disclosure"},
+  "vulnerability_information": "## Summary\nThe `/admin/debug` endpoint is publicly accessible and exposes sensitive configuration data including database credentials, API keys, AWS secrets, and environment variables. No authentication is required.\n\n## Steps to Reproduce\n1. Navigate to the target application\n2. Access the debug endpoint directly:\n   ```\n   GET /admin/debug\n   ```\n3. The response is a JSON object containing all internal configuration\n4. Sensitive values visible: database password, API keys, AWS secret, JWT secret\n\n## Proof of Concept\n```http\nGET /admin/debug HTTP/1.1\nHost: target.com\n```\n\nResponse:\n```json\n{\n  \"config\": {\n    \"db_host\": \"internal-db.company.local\",\n    \"db_password\": \"super_secret_p4ssw0rd!\",\n    \"api_key\": \"sk-live-abc123def456ghi789\",\n    \"aws_secret\": \"AKIAIOSFODNN7EXAMPLE\"\n  },\n  \"environment\": { ... }\n}\n```\n\n## Impact\n- Full database compromise via exposed credentials\n- Access to third-party services via leaked API keys\n- AWS infrastructure compromise via exposed IAM credentials\n- Complete application takeover using JWT signing secret\n- This is a critical severity finding due to the breadth of secrets exposed",
+  "disclosed_at": "2025-06-20T14:00:00.000Z",
+  "bounty_amount": "5000.0"
+}

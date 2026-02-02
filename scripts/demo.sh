@@ -15,55 +15,140 @@ BANNER='
 '
 echo "$BANNER"
 
-# Check for Gemini API key
-if [ -z "$GEMINI_API_KEY" ]; then
-    echo "❌ Set GEMINI_API_KEY first:"
+# ──────────────────────────────────────────────
+#  Pre-flight checks
+# ──────────────────────────────────────────────
+
+# Check for an LLM API key (support multiple providers)
+if [ -z "$GEMINI_API_KEY" ] && [ -z "$GROQ_API_KEY" ] && [ -z "$RESURFACE_LLM_API_KEY" ]; then
+    echo "❌ Set an LLM API key first:"
     echo "   export GEMINI_API_KEY='your-key-here'"
+    echo "   export GROQ_API_KEY='your-key-here'"
     exit 1
 fi
 
 TARGET="http://127.0.0.1:9999"
+USE_ASYNC="${DEMO_ASYNC:-false}"
+CONCURRENCY="${DEMO_CONCURRENCY:-5}"
 
-# Check if test app is running
+# ──────────────────────────────────────────────
+#  Step 0: Start the test app
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📦 Step 0: Starting test app..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Kill any existing testapp instance
+pkill -f "python3 testapp/app.py" 2>/dev/null || true
+sleep 1
+
+python3 testapp/app.py &
+TESTAPP_PID=$!
+sleep 2
+
+# Verify it's running
 if ! curl -s "$TARGET/health" > /dev/null 2>&1; then
-    echo "⚠️  Test app not running. Starting it..."
-    python3 testapp/app.py &
-    sleep 2
+    echo "❌ Test app failed to start!"
+    exit 1
 fi
-
-echo "🎯 Target: $TARGET"
+echo "✅ Test app running (PID: $TESTAPP_PID) at $TARGET"
 echo ""
 
-# Demo reports to test
-REPORTS=(
-    "900001:Reflected XSS"
-    "900002:IDOR User API"
-    "900003:Open Redirect"
-    "900004:Info Disclosure"
-    "900005:Path Traversal"
-)
+# Cleanup on exit
+cleanup() {
+    echo ""
+    echo "🧹 Cleaning up..."
+    kill $TESTAPP_PID 2>/dev/null || true
+}
+trap cleanup EXIT
 
-for entry in "${REPORTS[@]}"; do
-    IFS=':' read -r REPORT_ID REPORT_NAME <<< "$entry"
-    
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "📋 Report $REPORT_ID: $REPORT_NAME"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
-    # Parse
-    echo ""
-    echo "🧠 Step 1: Parsing report with LLM..."
-    python3 resurface.py parse --report "$REPORT_ID"
-    
-    echo ""
-    echo "🔄 Step 2: Replaying against target..."
-    python3 resurface.py replay --report "$REPORT_ID" --target "$TARGET"
-    
-    echo ""
-    echo ""
-    sleep 2
-done
+# ──────────────────────────────────────────────
+#  Step 1: Copy sample reports
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📋 Step 1: Loading sample reports..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+mkdir -p data/reports
+cp testapp/sample_reports/*.json data/reports/
+
+REPORT_COUNT=$(ls data/reports/*.json 2>/dev/null | wc -l)
+echo "✅ Loaded $REPORT_COUNT sample reports into data/reports/"
+echo ""
+
+# ──────────────────────────────────────────────
+#  Step 2: List reports
+# ──────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Demo complete! Check data/results/ for reports."
+echo "📋 Step 2: Listing reports..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+python3 resurface.py list
+echo ""
+
+# ──────────────────────────────────────────────
+#  Step 3: Parse all reports
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🧠 Step 3: Parsing all reports with LLM..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+python3 resurface.py parse --all
+echo ""
+
+# ──────────────────────────────────────────────
+#  Step 4: Replay all against target
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔄 Step 4: Replaying all reports against $TARGET..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+if [ "$USE_ASYNC" = "true" ]; then
+    echo "   ⚡ Using async mode (concurrency=$CONCURRENCY)"
+    python3 resurface.py replay-all --target "$TARGET" --async --concurrency "$CONCURRENCY" --notify
+else
+    python3 resurface.py replay-all --target "$TARGET" --notify
+fi
+echo ""
+
+# ──────────────────────────────────────────────
+#  Step 5: Show stats
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 Step 5: Statistics..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+python3 resurface.py stats
+echo ""
+
+# ──────────────────────────────────────────────
+#  Step 6: Generate HTML report
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📄 Step 6: Generating HTML summary report..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+python3 resurface.py export --format html
+echo ""
+
+# Also generate JSON
+python3 resurface.py export --format json
+echo ""
+
+# ──────────────────────────────────────────────
+#  Summary
+# ──────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ DEMO COMPLETE!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "📁 Outputs:"
+echo "   Reports:     data/reports/"
+echo "   Parsed:      data/parsed/"
+echo "   Results:     data/results/"
+echo "   HTML Report: data/results/summary.html"
+echo "   JSON Report: data/results/summary.json"
+echo "   Database:    data/resurface.db"
+echo ""
+echo "🔗 Test App: $TARGET (still running)"
+echo "   Press Ctrl+C to stop"
+echo ""
+
+# Keep alive so user can inspect
+wait $TESTAPP_PID 2>/dev/null || true

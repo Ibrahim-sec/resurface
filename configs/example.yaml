@@ -2,7 +2,7 @@
 
 # LLM Settings
 llm:
-  provider: "openai"          # openai | anthropic
+  provider: "openai"          # openai | anthropic | gemini | groq
   model: "gpt-4o"             # Model to use for parsing & validation
   api_key: ""                 # Set via RESURFACE_LLM_API_KEY env var
   temperature: 0.1            # Low temp for consistent parsing
@@ -46,6 +46,62 @@ reporter:
     - "json"
   include_evidence: true
 
+# ──────────────────────────────────────────────
+# Authentication Profiles
+# ──────────────────────────────────────────────
+# Configure credentials for targets that require authentication.
+# Credentials can use ${ENV_VAR} syntax or be overridden via
+# environment variables: RESURFACE_AUTH_{PROFILE_NAME}_{FIELD}
+
+auth:
+  profiles:
+    # Cookie-based login (POST form → capture Set-Cookie)
+    example_app:
+      type: "cookie"
+      domains: ["example.com", "staging.example.com"]
+      login_url: "https://example.com/login"
+      username_field: "username"
+      password_field: "password"
+      username: "testuser"
+      password: "${EXAMPLE_APP_PASSWORD}"   # Use env var for secrets
+      # extra_fields:                       # Additional form fields if needed
+      #   csrf_token: "..."
+
+    # JWT / Bearer token auth (POST JSON → extract token)
+    example_api:
+      type: "jwt"
+      domains: ["api.example.com"]
+      login_url: "https://api.example.com/auth/login"
+      body:
+        email: "researcher@test.com"
+        password: "${EXAMPLE_API_PASSWORD}"
+      token_path: "data.access_token"       # Dot-path into JSON response
+
+    # Simple API key injection (no login request needed)
+    example_apikey:
+      type: "api_key"
+      domains: ["keys.example.com"]
+      header: "X-API-Key"
+      key: "${EXAMPLE_API_KEY}"
+      # param_name: "api_key"               # Use query param instead of header
+
+    # OAuth2 client-credentials flow
+    example_oauth:
+      type: "oauth2"
+      domains: ["oauth.example.com"]
+      token_url: "https://oauth.example.com/oauth/token"
+      client_id: "${EXAMPLE_CLIENT_ID}"
+      client_secret: "${EXAMPLE_CLIENT_SECRET}"
+      scope: "read write"
+
+    # Arbitrary custom headers
+    example_custom:
+      type: "custom_header"
+      domains: ["custom.example.com"]
+      custom_headers:
+        X-Auth-Token: "${CUSTOM_AUTH_TOKEN}"
+        X-Tenant-ID: "test-tenant"
+
 # Database
 database:
   url: "sqlite:///data/resurface.db"
@@ -54,3 +110,27 @@ database:
 logging:
   level: "INFO"
   file: "logs/resurface.log"
+
+# ──────────────────────────────────────────────
+# Notification Settings
+# ──────────────────────────────────────────────
+# Sends alerts when replay finds a vulnerable or partially-fixed result.
+# Use --notify flag or set enabled: true below.
+
+notifications:
+  enabled: false
+  on: ["vulnerable", "partial"]   # Which result types trigger alerts
+
+  channels:
+    telegram:
+      enabled: false
+      bot_token: ""               # Or set env: RESURFACE_TELEGRAM_TOKEN
+      chat_id: ""                 # Or set env: RESURFACE_TELEGRAM_CHAT_ID
+
+    discord:
+      enabled: false
+      webhook_url: ""             # Or set env: RESURFACE_DISCORD_WEBHOOK
+
+    slack:
+      enabled: false
+      webhook_url: ""             # Or set env: RESURFACE_SLACK_WEBHOOK

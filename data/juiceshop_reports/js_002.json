@@ -1,0 +1,21 @@
+{
+  "id": 900102,
+  "title": "SQL Injection in login form allows authentication bypass in OWASP Juice Shop",
+  "severity_rating": "critical",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-08-20T10:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 67,
+    "name": "SQL Injection"
+  },
+  "vulnerability_information": "## Summary\nThe login endpoint of OWASP Juice Shop is vulnerable to SQL Injection. By injecting SQL syntax into the email field, an attacker can bypass authentication and log in as any user, including the administrator.\n\n## Steps to Reproduce\n1. Navigate to http://localhost:3333/#/login\n2. In the email field, enter: `' OR 1=1--`\n3. In the password field, enter any value (e.g., `anything`)\n4. Click the \"Log in\" button\n5. Observe that you are logged in as the administrator (admin@juice-sh.op)\n\n## Alternative PoC via API\n1. Send the following HTTP request:\n```\nPOST http://localhost:3333/rest/user/login\nContent-Type: application/json\n\n{\"email\": \"' OR 1=1--\", \"password\": \"anything\"}\n```\n2. The response will contain an authentication token for the admin user\n3. The response includes: `{\"authentication\": {\"token\": \"...\", \"umail\": \"admin@juice-sh.op\"}}`\n\n## Impact\nCritical — An attacker can bypass authentication entirely and gain access to any account, including administrator accounts. This allows full control over the application, access to all user data, and ability to perform privileged actions.\n\n## Expected Behavior\nThe login endpoint should use parameterized queries or prepared statements to prevent SQL injection.\n\n## Actual Behavior\nUser input is concatenated directly into the SQL query, allowing injection of arbitrary SQL commands."
+}

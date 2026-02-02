@@ -1,0 +1,14 @@
+{
+  "id": 900010,
+  "title": "Reflected XSS in Partial Search — Script Tag Filter Bypass via Event Handlers",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 60, "name": "Cross-site Scripting (XSS) - Reflected"},
+  "vulnerability_information": "## Summary\nThe search functionality at `/search-partial` attempts to filter `<script>` tags, but the fix is incomplete. While `<script>` tags are removed, other HTML tags with event handler attributes are not filtered, allowing XSS via `<img onerror=...>` and similar vectors.\n\n## Steps to Reproduce\n1. Navigate to the partial search page\n2. Confirm that `<script>` tags are filtered:\n   ```\n   /search-partial?q=<script>alert(1)</script>\n   ```\n   This should not execute (script tags are removed)\n3. Bypass the filter using an img tag:\n   ```\n   /search-partial?q=<img src=x onerror=alert(document.domain)>\n   ```\n4. The img tag is not filtered and the onerror event fires, executing JavaScript\n\n## Proof of Concept\n```http\nGET /search-partial?q=<img src=x onerror=alert(document.domain)> HTTP/1.1\nHost: target.com\n```\n\nThe response contains the unfiltered img tag which triggers the onerror handler.\n\n## Impact\n- The XSS fix is bypassable using event handler attributes\n- Same impact as original reflected XSS (session hijacking, phishing)\n- The filter gives a false sense of security",
+  "disclosed_at": "2025-10-05T09:00:00.000Z",
+  "bounty_amount": "300.0"
+}

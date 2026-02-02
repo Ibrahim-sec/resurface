@@ -1,0 +1,135 @@
+{
+  "id": 587727,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81ODc3Mjc=",
+  "url": "https://hackerone.com/reports/587727",
+  "title": "CSS injection via BB code tag \"\u2588\u2588\u2588\u2588\u2588\"",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "readable_substate": "Resolved",
+  "created_at": "2019-05-22T10:48:40.010Z",
+  "submitted_at": "2019-05-22T10:48:40.010Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "hanno",
+    "url": "/hanno",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/020/918/74da560ef66bf8cc239e219843444b441a7dfac6_original.jpg/3cb67cc78dc0cba55b102dd9eca2ee89b206d3e960be830f070583d9070b69ef"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 8936,
+    "url": "https://hackerone.com/phpbb",
+    "handle": "phpbb",
+    "profile_picture_urls": {
+      "small": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/qv48zkf423avl8lwrpzkjsh87o74/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1?response-content-disposition=inline%3B%20filename%3D%22176697.png%22%3B%20filename%2A%3DUTF-8%27%27176697.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172601Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=89f65ab57dd83a40e8a34013262f3c49784b2139bd496925f72d321b2c31e360",
+      "medium": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/qv48zkf423avl8lwrpzkjsh87o74/3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c?response-content-disposition=inline%3B%20filename%3D%22176697.png%22%3B%20filename%2A%3DUTF-8%27%27176697.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172601Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=761e06e8f2d4ac22cb59aefacc194ffa4510896a503b55d3664963895d11bce3"
+    },
+    "permissions": [],
+    "submission_state": "open",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": false,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "phpBB",
+      "twitter_handle": "phpbb",
+      "website": "https://www.phpbb.com",
+      "about": "phpBB is the world's most popular free and open source forum software."
+    }
+  },
+  "has_bounty?": false,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [
+    "CVE-2019-16108"
+  ],
+  "singular_disclosure_disabled": false,
+  "disclosed_at": "2019-09-26T14:57:09.048Z",
+  "bug_reporter_agreed_on_going_public_at": "2019-09-21T13:07:02.420Z",
+  "team_member_agreed_on_going_public_at": "2019-09-26T14:57:08.975Z",
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "The input to the \"\u2588\u2588\u2588\u2588\u2588\" BBcode tag is not properly filtered. It gets converted into a CSS style attribute for a span HTML element.\n\nQuotes (\") are removed, so there's no way to break out of the CSS style attributed. However it is possible to arbitrarily dress the resulting span element.\n\nTo illustrate this here's an example:\n\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\n\nThis will place a skull on the top of the page (by using position:fixed). I'll attach a screenshot as well.\n\nThe power of CSS pretty much allows arbitrary placement of elements across the page. This may also be used in UI redressing attacks.\n\n## Impact\n\nAttacker can arbitrarily redress page via forum posts.",
+  "weakness": {
+    "id": 72,
+    "name": "Resource Injection"
+  },
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [
+    {
+      "id": 494408,
+      "file_name": "phpbb-css-redress.png",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/494/408/a80eb1c8ed15aa1fc41925bc26ace2653deb342f/phpbb-css-redress.png?response-content-disposition=attachment%3B%20filename%3D%22phpbb-css-redress.png%22%3B%20filename%2A%3DUTF-8%27%27phpbb-css-redress.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQU5XCDDCC%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172601Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQCUT%2Be85jaQdwJX2QigUMzSN7BZCviNWpMooCVGXatE8gIhAIRmh9mIa7r8sTpqf6lZi%2FsDPzz4bM8N%2FgIwRYesL2X0KrsFCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMMDEzNjE5Mjc0ODQ5IgxqGVJ5cZz807pOrAwqjwXQpJ67g8HCWIlfAWynvZW1mbMEHwP2rUFsn2uhDSTGbq7COWHHgS7A77v0At1lDb8QyeBeMwDGlpdnix%2BN1XJl%2B%2FVqA73nHN5xOMaX%2BW9scJuRman0N%2BqholpGaszOYYcUbqFjFDwz7KlbsUbWAjDTAQ2fAug7q%2Fo2JkEkm2Mg9yL4dhqNk7cwNUKd5TnPrPJEh6x7mhPodLAjJX%2F4OXGiGicWBKLQRAWwe5lPmbZWEbfo4gvQlrn3GTNqEw4nFwWzpewNDTBA%2FnZfx2ZcapPpAA%2FE8m9z5LwhGG6V%2F1xbmAgqeWzSt68rM3yIuVorN2IsSTcNn%2FQtQiW5MNiL%2BnP28Es761q1w9zUArOHYenyR8%2BcNlve7rhBHjgKLOU5Nl%2Bl6AjOnfckzm%2FVNeC7Jio9VKNW%2BC6ncHm%2FTrS%2F%2FDn7kB1sseK3jcJ6LMdfDYL2QeyIdrkOsYBX02xbEytKR81rDltGSsMCBWsv6yaZvWSIxgXkZ2pMrqxhOC94JdDfU2G28C54OCBJtqxML%2F9aW%2B00ec4%2BDBmtT9ZIS9ItWX%2BSisvIBHXDViYM%2BLQlVAxOTyJD%2FYFfV3wqVauhfY30SdtNBhXJuc77u7%2FGYelgy6qwDih%2Fvx7heU8Br68BSDailpUl19tg4WZj%2B6eQyoCyPvNDVj3dvfLvPFe3UuH1BzJKSOz4pVPJ5efL54NbinVfZbWw4MHbqlbKT8CLWYYW5pTSHkgb1bNR46wsPlMJSK%2BBZMHMJO1mP39jCJgZOMGChAJGnRmYCcZnUaR5xwM69Hu3QuDFNLV3%2FD%2FZu8DaF9hNCYj8yHaH5RF8PviMynbwAbGnN3Jk0pV%2Bgmqx4OCFFDOgO98r0VY7Y4uE2dxg46C7MMHE%2BMsGOrABcWt65JG8uwPIAs1y2nK43NvM7ec6TXHQ7SefunyKABSQKCxsY6wjz6GTOU6ze6JovCxsENX%2FsyFMZzQUz2lNc9fCeGGGf%2FFz85bl7wfv4WO1sry1ne8tB7pXAlWOjAhmNRhU2X4XVf52XjiLxKPOCeuLaejSuh%2B1M%2FYbD1cvSzxAiYoVQ4zwP%2FfxHe%2FOaVNGqn9WrRsE8XXCTAZKdu7YiZ33ohRU4pWwA7IRNER5i7Y%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=403287a58d75e6433daa818294403545b92d0802a183401a0ea033fbf7b9ef5d",
+      "file_size": 99417,
+      "type": "image/png",
+      "moderated": null
+    }
+  ],
+  "allow_singular_disclosure_at": "2019-10-21T13:07:02.480Z",
+  "allow_singular_disclosure_after": -198217139.47215846,
+  "singular_disclosure_allowed": true,
+  "vote_count": 28,
+  "voters": [
+    "me9187",
+    "sameerphad72",
+    "bl4de",
+    "dhakal_ananda",
+    "mik317",
+    "0-1",
+    "null_rhythm",
+    "r3y",
+    "khizer47",
+    "deb0con",
+    "and 18 more..."
+  ],
+  "severity": {
+    "rating": "medium",
+    "author_type": "User"
+  },
+  "structured_scope": {
+    "databaseId": 12184,
+    "asset_type": "SOURCE_CODE",
+    "asset_identifier": "https://github.com/phpbb/phpbb",
+    "max_severity": "critical"
+  },
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

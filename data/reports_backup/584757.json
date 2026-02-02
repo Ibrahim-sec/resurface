@@ -1,0 +1,116 @@
+{
+  "id": 584757,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81ODQ3NTc=",
+  "url": "https://hackerone.com/reports/584757",
+  "title": "Null Pointer Dereference in phar_create_or_parse_filename",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "low",
+  "readable_substate": "Resolved",
+  "created_at": "2019-05-20T01:29:57.192Z",
+  "submitted_at": "2019-05-20T01:29:57.192Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "chihuahua",
+    "url": "/chihuahua",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/238/742/1d3c1a04a6af55cbe2724f60bb57e5d39d7cb59f_original.jpg/3cb67cc78dc0cba55b102dd9eca2ee89b206d3e960be830f070583d9070b69ef"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 54349,
+    "url": "https://hackerone.com/ibb",
+    "handle": "ibb",
+    "profile_picture_urls": {
+      "small": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/v0qywgoh5hm4cbhuanu8mqdtowhr/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1?response-content-disposition=inline%3B%20filename%3D%22ibb%20revision%205%20copy.png%22%3B%20filename%2A%3DUTF-8%27%27ibb%2520revision%25205%2520copy.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQUP6LEYSP%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172550Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIDMdleuIYrHP03xA6kDdt26%2B5mSi%2FnZxwUjDwApKo9sFAiEAqzbuKYR41jK%2FijOEo5saBiDWMzay%2BQqHtYyFYpziUuIquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDOpMTDg50NDLWNqOTCqPBchfPlf1pWZ71YrAGlWdcQEsmDOE5nZmK0SkuPA78eTz6Mz%2FIDczRcQ8wS8xRVxqqx38I7yZMPO4sQugn5X%2F9nyAVhmi%2FKPcjXX6kleROjK2jkRZ%2FGeIuvy3T7NfEEoqICOniffg4rgeFXBfQTBT5vjdpiXziSHsTaSZx4aemx9JGR1IDfSKR2u1i0NxhPF%2FSIr6WcOZCD1%2B6uQIMQ%2FWi0dDQ08BIqeFprAwMOOZkaEVZf8ic%2BbZEM9xNzXUwChCijunUEVvnYNKBC%2BgEAOtKwzYZxzsHY06ayiNrMHpArSJebMVbEAnWnJ17QHkP4iP16lUJlJ8IdmH%2FEtori1TdoWmn%2BIVRzl%2FVYKrNCHyQEq013oT7rMpjSdh71qkkSlEkrVhFlw0CD34y6OlSLy2BFu8NM7EDAidDnk6%2BSno7YHIBTnZB1e63EztAtcLkGxv%2FDnJHksZOxz%2BDUjwZy%2B13G9W6ReHoqfCZfySg0fQoX3t6x8Eq6KShm7aWIaA2dHsMjcK0tR%2B%2FRwStwMoU080eWElpBGevxm3HglLN%2Fg5ZhUi3OHtEmccPjmudzTytCFZhzibYjgL0r3RwwoSZ6XfoWK10BGgrEXiDAzG8GEEHBBVC79Auvzn0id7QriAb0njTn29afRcdLdzxmzbPNBpWLbFeAoDQx4DEQlk589MOmHzEFiP2430ow2cVdFBzo3aDIWVgzAdvqdBZWHDnE%2FFFI7UIi%2FarxUMFARcO38UqNQY8wVeBj1mw5Vn5%2FJgzvrorYKxjsANXchpyFZeBBV7tz%2Fc2J%2BpRS%2F9v65wk%2Bz90meOkDjX5DMEP0q7ot%2F5AYwemLVKIg3U0RjLpOf9%2BxoEg9Gx5bkE%2FhL8AQaHrv7PYm4w18b4ywY6sQFlebWi2t%2BkNRrjhebtyAItUNukeSpbCvLB%2BbsoBX6qqiOs465uIuxVa3d3Y9xeeWwocCh09CCErEQq%2FV32ypnrWuEABfdx1FB5H8xR5kXGdMcgH37WjRDoLkr8uCHcZRpAIyPfW%2BAtmyKyO%2FFlaZQZwCIqJsNKuqER%2Bh6YeReGI6Seqw4LoeuY5tU8FctENJnjRlRDgcqbyo8CnToHmmAhMZF9SuLYeGll6CiVRcal1kM%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=4a09fe767ba510464c1d37e7bca25154ee638de104287ef2a3ef30764ae8392c",
+      "medium": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/variants/v0qywgoh5hm4cbhuanu8mqdtowhr/3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c?response-content-disposition=inline%3B%20filename%3D%22ibb%20revision%205%20copy.png%22%3B%20filename%2A%3DUTF-8%27%27ibb%2520revision%25205%2520copy.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQUP6LEYSP%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172550Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIDMdleuIYrHP03xA6kDdt26%2B5mSi%2FnZxwUjDwApKo9sFAiEAqzbuKYR41jK%2FijOEo5saBiDWMzay%2BQqHtYyFYpziUuIquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDOpMTDg50NDLWNqOTCqPBchfPlf1pWZ71YrAGlWdcQEsmDOE5nZmK0SkuPA78eTz6Mz%2FIDczRcQ8wS8xRVxqqx38I7yZMPO4sQugn5X%2F9nyAVhmi%2FKPcjXX6kleROjK2jkRZ%2FGeIuvy3T7NfEEoqICOniffg4rgeFXBfQTBT5vjdpiXziSHsTaSZx4aemx9JGR1IDfSKR2u1i0NxhPF%2FSIr6WcOZCD1%2B6uQIMQ%2FWi0dDQ08BIqeFprAwMOOZkaEVZf8ic%2BbZEM9xNzXUwChCijunUEVvnYNKBC%2BgEAOtKwzYZxzsHY06ayiNrMHpArSJebMVbEAnWnJ17QHkP4iP16lUJlJ8IdmH%2FEtori1TdoWmn%2BIVRzl%2FVYKrNCHyQEq013oT7rMpjSdh71qkkSlEkrVhFlw0CD34y6OlSLy2BFu8NM7EDAidDnk6%2BSno7YHIBTnZB1e63EztAtcLkGxv%2FDnJHksZOxz%2BDUjwZy%2B13G9W6ReHoqfCZfySg0fQoX3t6x8Eq6KShm7aWIaA2dHsMjcK0tR%2B%2FRwStwMoU080eWElpBGevxm3HglLN%2Fg5ZhUi3OHtEmccPjmudzTytCFZhzibYjgL0r3RwwoSZ6XfoWK10BGgrEXiDAzG8GEEHBBVC79Auvzn0id7QriAb0njTn29afRcdLdzxmzbPNBpWLbFeAoDQx4DEQlk589MOmHzEFiP2430ow2cVdFBzo3aDIWVgzAdvqdBZWHDnE%2FFFI7UIi%2FarxUMFARcO38UqNQY8wVeBj1mw5Vn5%2FJgzvrorYKxjsANXchpyFZeBBV7tz%2Fc2J%2BpRS%2F9v65wk%2Bz90meOkDjX5DMEP0q7ot%2F5AYwemLVKIg3U0RjLpOf9%2BxoEg9Gx5bkE%2FhL8AQaHrv7PYm4w18b4ywY6sQFlebWi2t%2BkNRrjhebtyAItUNukeSpbCvLB%2BbsoBX6qqiOs465uIuxVa3d3Y9xeeWwocCh09CCErEQq%2FV32ypnrWuEABfdx1FB5H8xR5kXGdMcgH37WjRDoLkr8uCHcZRpAIyPfW%2BAtmyKyO%2FFlaZQZwCIqJsNKuqER%2Bh6YeReGI6Seqw4LoeuY5tU8FctENJnjRlRDgcqbyo8CnToHmmAhMZF9SuLYeGll6CiVRcal1kM%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=eab1c375b31ea36397e5dd3f74756bb0526289dbea58b173c9d736796993b291"
+    },
+    "permissions": [],
+    "submission_state": "open",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": true,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "Internet Bug Bounty",
+      "twitter_handle": "",
+      "website": "https://www.hackerone.com/internet-bug-bounty",
+      "about": "The Internet Bug Bounty rewards security research into vulnerabilities impacting Open Source Software Projects."
+    }
+  },
+  "has_bounty?": false,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [],
+  "singular_disclosure_disabled": false,
+  "disclosed_at": "2020-10-10T18:47:55.880Z",
+  "bug_reporter_agreed_on_going_public_at": "2020-10-10T03:51:36.457Z",
+  "team_member_agreed_on_going_public_at": "2020-10-10T18:47:55.781Z",
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "The original report is here https://bugs.php.net/bug.php?id=77396\n\n```\nDescription:\n------------\nPlease use these poc file:\nhttps://drive.google.com/file/d/1bzw-j4FtV7PEf6SW2GYmDVKtMybmbKnl/view?usp=sharing\n\nTest script:\n---------------\nUSE_ZEND_ALLOC=0 ../../php-7.1.25/sapi/cli/php -r '$phar=new PharData(file_get_contents(\"id:000005,sig:06,src:000230,op:havoc,rep:8\"));'\n\n\nActual result:\n--------------\nUSE_ZEND_ALLOC=0 ../../php-7.1.25/sapi/cli/php -r '$phar=new PharData(file_get_contents(\"id:000005,sig:06,src:000230,op:havoc,rep:8\"));'\nASAN:SIGSEGV\n=================================================================\n==78112==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f0a8ff9a746 bp 0x7ffc3694f6c0 sp 0x7ffc3694ee48 T0)\n    #0 0x7f0a8ff9a745 in strlen (/lib/x86_64-linux-gnu/libc.so.6+0x8b745)\n    #1 0x7f0a90e2c1a5 in __interceptor_strlen (/usr/lib/x86_64-linux-gnu/libasan.so.2+0x701a5)\n    #2 0x105a1fe in phar_create_or_parse_filename /home/hackyzh/Desktop/php-7.1.25/ext/phar/phar.c:1388\n    #3 0x105b94d in phar_open_or_create_filename /home/hackyzh/Desktop/php-7.1.25/ext/phar/phar.c:1328\n    #4 0x1075f65 in zim_Phar___construct /home/hackyzh/Desktop/php-7.1.25/ext/phar/phar_object.c:1195\n    #5 0x1f740b8 in ZEND_DO_FCALL_SPEC_RETVAL_UNUSED_HANDLER /home/hackyzh/Desktop/php-7.1.25/Zend/zend_vm_execute.h:970\n    #6 0x1eb6a66 in execute_ex /home/hackyzh/Desktop/php-7.1.25/Zend/zend_vm_execute.h:429\n    #7 0x1f87f14 in zend_execute /home/hackyzh/Desktop/php-7.1.25/Zend/zend_vm_execute.h:474\n    #8 0x189ed80 in zend_eval_stringl /home/hackyzh/Desktop/php-7.1.25/Zend/zend_execute_API.c:1120\n    #9 0x189f2d0 in zend_eval_stringl_ex /home/hackyzh/Desktop/php-7.1.25/Zend/zend_execute_API.c:1161\n    #10 0x1f94de8 in do_cli /home/hackyzh/Desktop/php-7.1.25/sapi/cli/php_cli.c:1024\n    #11 0x45f880 in main /home/hackyzh/Desktop/php-7.1.25/sapi/cli/php_cli.c:1381\n    #12 0x7f0a8ff2f82f in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2082f)\n    #13 0x45feb8 in _start (/home/hackyzh/Desktop/php-7.1.25/sapi/cli/php+0x45feb8)\n\nAddressSanitizer can not provide additional info.\nSUMMARY: AddressSanitizer: SEGV ??:0 strlen\n==78112==ABORTING\n```\n\n## Impact\n\nDenial of service",
+  "weakness": {
+    "id": 51,
+    "name": "NULL Pointer Dereference"
+  },
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [],
+  "allow_singular_disclosure_at": "2020-11-09T03:51:36.510Z",
+  "allow_singular_disclosure_after": -164986454.50078428,
+  "singular_disclosure_allowed": true,
+  "vote_count": 3,
+  "voters": [
+    "rook1337",
+    "alumni",
+    "yazaw"
+  ],
+  "severity": {
+    "rating": "low",
+    "author_type": "User"
+  },
+  "structured_scope": {
+    "databaseId": 84120,
+    "asset_type": "OTHER",
+    "asset_identifier": "PHP",
+    "max_severity": "none"
+  },
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

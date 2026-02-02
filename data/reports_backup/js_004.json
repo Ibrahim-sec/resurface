@@ -1,0 +1,21 @@
+{
+  "id": 900104,
+  "title": "Sensitive data exposure — user credentials visible in administration API endpoint",
+  "severity_rating": "high",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-06-05T14:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 18,
+    "name": "Information Disclosure"
+  },
+  "vulnerability_information": "## Summary\nThe Juice Shop application exposes a user administration API endpoint that returns sensitive user data including email addresses, password hashes, and roles. This endpoint does not require admin authentication and can be accessed by any authenticated user.\n\n## Steps to Reproduce\n1. Register a new account or log in as any user at http://localhost:3333\n2. Obtain your authentication token from the login response or browser storage\n3. Send the following API request:\n```\nGET http://localhost:3333/api/Users\nAuthorization: Bearer <any_valid_token>\n```\n4. The response contains an array of ALL user accounts with sensitive fields:\n   - email addresses\n   - password (hashed)\n   - role (admin/customer)\n   - creation timestamps\n   - security question answers\n\n## Impact\nHigh — Any authenticated user can enumerate all accounts in the system, including admin accounts. The exposed password hashes can be cracked offline. Combined with the email addresses, this enables targeted attacks against all users.\n\n## Expected Behavior\nThe /api/Users endpoint should either:\n- Require administrator privileges\n- Only return the currently authenticated user's data\n- Not expose password hashes or security answers\n\n## Actual Behavior\nAny authenticated user can retrieve the complete user database with sensitive fields."
+}

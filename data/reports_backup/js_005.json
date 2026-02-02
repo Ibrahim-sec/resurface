@@ -1,0 +1,21 @@
+{
+  "id": 900105,
+  "title": "Path traversal allows reading arbitrary files via the FTP serve endpoint",
+  "severity_rating": "high",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-05-20T09:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 19,
+    "name": "Path Traversal"
+  },
+  "vulnerability_information": "## Summary\nThe OWASP Juice Shop exposes an FTP directory at /ftp/ that serves files. The application attempts to restrict access to the /ftp/ directory but the path validation can be bypassed using null byte injection (URL-encoded as %2500) to traverse outside the allowed directory.\n\n## Steps to Reproduce\n1. Navigate to http://localhost:3333/ftp to see the public file listing\n2. Attempt to access a file outside the ftp directory:\n```\nGET http://localhost:3333/ftp/eastere.gg%2500.md\n```\n3. The server returns the contents of the hidden easter egg file that should not be accessible\n4. For further traversal, try:\n```\nGET http://localhost:3333/ftp/package.json%2500.md\n```\n5. This returns the application's package.json file, exposing dependency information\n\n## Impact\nAn attacker can read files outside the intended FTP directory by bypassing the file extension check with a null byte. This can expose sensitive configuration files, source code, and application secrets.\n\n## Expected Behavior\nThe application should properly validate file paths and reject any path traversal attempts. Null bytes should be stripped or rejected.\n\n## Actual Behavior\nThe application's file extension validation is bypassed by the null byte, allowing access to files with any extension outside the allowed list."
+}

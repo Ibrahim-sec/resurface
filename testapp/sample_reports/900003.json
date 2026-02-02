@@ -1,0 +1,14 @@
+{
+  "id": 900003,
+  "title": "Open Redirect via url Parameter Allows Phishing Attacks",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "medium",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 53, "name": "Open Redirect"},
+  "vulnerability_information": "## Summary\nThe `/redirect` endpoint accepts an arbitrary URL via the `url` parameter and performs a 302 redirect without any validation. This allows attackers to craft links that appear to come from the trusted domain but redirect users to malicious sites.\n\n## Steps to Reproduce\n1. Navigate to the target application\n2. Craft a URL with an external redirect target:\n   ```\n   /redirect?url=https://evil.com/phishing\n   ```\n3. The server responds with HTTP 302 and `Location: https://evil.com/phishing`\n4. The browser follows the redirect to the attacker's site\n\n## Proof of Concept\n```http\nGET /redirect?url=https://evil.com/phishing HTTP/1.1\nHost: target.com\n```\n\nResponse:\n```\nHTTP/1.1 302 Found\nLocation: https://evil.com/phishing\n```\n\n## Impact\n- Phishing attacks using the trusted domain as a stepping stone\n- Credential theft by redirecting to fake login pages\n- Malware distribution via trusted-looking URLs\n- Bypass of URL-based security filters and email scanners",
+  "disclosed_at": "2025-08-01T08:00:00.000Z",
+  "bounty_amount": "300.0"
+}

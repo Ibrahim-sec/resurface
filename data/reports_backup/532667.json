@@ -1,0 +1,148 @@
+{
+  "id": 532667,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81MzI2Njc=",
+  "url": "https://hackerone.com/reports/532667",
+  "title": "Server Side JavaScript Code Injection",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "readable_substate": "Resolved",
+  "created_at": "2019-04-09T15:23:13.508Z",
+  "submitted_at": "2019-04-09T15:23:13.508Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "phra",
+    "url": "/phra",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/201/213/71f68147b3cb0e1d6e7e39953fc2c4822d04d338_original.jpeg/c8a1698ff707a5e3e8a91a3484838363845daac68cb82c86d55c9e2d44d67b67"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 23949,
+    "url": "https://hackerone.com/nodejs-ecosystem",
+    "handle": "nodejs-ecosystem",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/000/023/949/3ea3b2ae039a8f955a4a8fe65d99fe85dc817398_original./235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1",
+      "medium": "https://profile-photos.hackerone-user-content.com/variants/000/023/949/3ea3b2ae039a8f955a4a8fe65d99fe85dc817398_original./3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c"
+    },
+    "permissions": [],
+    "submission_state": "disabled",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": true,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "Node.js third-party modules",
+      "twitter_handle": "",
+      "website": "https://nodejs.org/en/security/",
+      "about": "This program was used to handle vulnerabilities in the Node.js ecosystem."
+    }
+  },
+  "has_bounty?": true,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [],
+  "singular_disclosure_disabled": false,
+  "disclosed_at": "2019-10-03T18:17:41.756Z",
+  "bug_reporter_agreed_on_going_public_at": null,
+  "team_member_agreed_on_going_public_at": "2019-09-03T18:17:32.418Z",
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "I would like to report a Service Side JavaScript Code Injection in `fastify`.\nIt allows an attacker that can control a single property name in the serialization schema to achieve Remote Command Execution in the context of the web server.\n\n# Module\n\n**module name:** fastify\n**version:** 2.2.0\n**npm page:** `https://www.npmjs.com/package/fastify`\n\n## Module Description\n\n> An efficient server implies a lower cost of the infrastructure, a better responsiveness under load and happy users. How can you efficiently handle the resources of your server, knowing that you are serving the highest number of requests as possible, without sacrificing security validations and handy development? Enter Fastify. Fastify is a web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. It is inspired by Hapi and Express and as far as we know, it is one of the fastest web frameworks in town.\n\n## Module Stats\n\n39,119 downloads in the last week\n\n# Vulnerability\n\n## Vulnerability Description\n\n> Description about how the vulnerability was found and how it can be exploited, how it harms package users (data modification/lost, system access, other.\n\n## Steps To Reproduce:\n\n> Detailed steps to reproduce with all required references/steps/commands. If there is any exploit code or reference to the package source code this is the place where it should be put.\n\n## Patch\n\nEscape `\"`, `'` and ``` ` ``` in properties names in schema definition.\n\n## Supporting Material/References:\n\n> State all technical information about the stack where the vulnerability was found\n\n- **OS:** Kali Rolling\n- **NodeJS:** 11.9\n- **NPM:** 6.5.0\n- **fast-json-stringify:** 1.14.0\n\n# Wrap up\n\n> Select Y or N for the following statements:\n\n- I contacted the maintainer to let them know: Y (sent message to Matteo Collina)\n- I opened an issue in the related repository: N\n\n## Impact\n\nIf an attacker can control somehow the schema definition, he/she can achieve arbitrary code execution as the user running the web server.",
+  "weakness": {
+    "id": 70,
+    "name": "Code Injection"
+  },
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [
+    {
+      "id": 465338,
+      "file_name": "poc-fast-json-stringify.js",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/465/338/26bb244a589abb4bcfefb84b7fa411b7c0660f76/poc-fast-json-stringify.js?response-content-disposition=attachment%3B%20filename%3D%22poc-fast-json-stringify.js%22%3B%20filename%2A%3DUTF-8%27%27poc-fast-json-stringify.js&response-content-type=text%2Fplain&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQURYNL2KD%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172333Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIC2cFyXRbVcxW%2BbIRR5r9DlVvKBV1%2FdoUnSHL6HLwnzRAiEA87dV7%2FG3TFhFFi%2BKgLqH4kVskCw3RrqzKzLFGDCFapcquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDPxvfKLuBvAymGNmrSqPBR%2Bc7RWd4WQQGNGnE7yXX2wM1TJuR5Att4UHI9SxlsRbVvs2MX4lrva5whBaEie58efn1kun8QR1Z473DG0KK7iZ4aSXZ2EZ03GfB90JDxx0icvpiSQVjlMkgDqhT3Fsfy7lxjaecMG3iPzIW3imd0ntwnL%2BBH%2BfgSy5k7FST6ptrvcp2cdhN2vL2VNuktg8ljYdq2XpepVAITToimWslPp3J0zdse0o4Z0zdm9Zsu1mQ%2FWfbeRibtV02xvZ7Mh1PggoUrHADxncmPMBsP%2BA5%2BVeW4vIwa0dQ3BfPTtNy0aMQiBsnFpWFymXlq3VCLIr3bQr0q3sb0eHiIfw%2BAYdb23F0EBUOPFMIUUyjsKd%2Fks5MfvgUYHkJHTPiCMtqi009RDA5RaafpGuwPv0vBBRrIFpnzrCIV2FVT8Tj7TwBlnHcNdjEHQPdETVycvXEKv6wfLLnOdk1CZqyjDcn%2BDisafnyXiUjHOON%2BKuvC%2Bi%2Fvhb56svZ6KnBHYTRG6dxfC6hTDPZB9D%2FNCmCCkzdlV5DgR2gzZvuUhpeN0i0%2B%2BC7ELemMw4c61JLC8CA7dtHVNlWcps7GcTtdFKuJA8fiL2EoYMNIMf5LZBT5Qu9FROvgX82ZVxqE9seKPO2i%2B67v4%2B9%2B%2F9rXfWxs2n2qohsvIGJK%2Bk0w1krL9Hx2jyFiRmMa%2FA0bURJ7QtkcUD1k6AOlulm6l8z5CDm8iyrG0WPtDzk7JQtwObiJy72qhgstMKIa%2Fu763J%2FSDhU29Zkjp1l95p4BGnRREckh%2FImjMFgjAh7%2FJ6IWIwvLJ4%2B2mc45HUhWhDf4b8aSC6Ipw8cElltiNz7Pj48xRpUl7ifj43gJQOOZK%2BF1MWPJ9Xp1qWW2wLZXgwkdD4ywY6sQG6ohMlkh1YpNvF0uMqH4bMVlo3UGDwj7KIOyixMoOXZjRkHTViud8%2BzgiVQ3VuGD19e4QW7eMcaQhUB41OSDSTgw8e7N9C%2F7v1rtyexDOBtNz4nsfvlOq1KXVJj8r0yJn%2BHjuuqIVRkrZJn1U5tM0EwgLAg2WlldK5nRMnGHiuKMgYGUQ90Jg6GQOixXqlHGNuVWU0MpTz9hjabUn2XAUkX3ta1sNRaO%2BiQzt4VzDlnlc%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=76215d4923321a337fbbe55be9aeea1f8c5e764af4929574f9a335acf7fa740a",
+      "file_size": 2861,
+      "type": "text/plain",
+      "moderated": null
+    },
+    {
+      "id": 465339,
+      "file_name": "poc-fastify.js",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/465/339/93f50fa838e2f110e76965f37c5b485ab16aba63/poc-fastify.js?response-content-disposition=attachment%3B%20filename%3D%22poc-fastify.js%22%3B%20filename%2A%3DUTF-8%27%27poc-fastify.js&response-content-type=text%2Fplain&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQURYNL2KD%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172333Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIC2cFyXRbVcxW%2BbIRR5r9DlVvKBV1%2FdoUnSHL6HLwnzRAiEA87dV7%2FG3TFhFFi%2BKgLqH4kVskCw3RrqzKzLFGDCFapcquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDPxvfKLuBvAymGNmrSqPBR%2Bc7RWd4WQQGNGnE7yXX2wM1TJuR5Att4UHI9SxlsRbVvs2MX4lrva5whBaEie58efn1kun8QR1Z473DG0KK7iZ4aSXZ2EZ03GfB90JDxx0icvpiSQVjlMkgDqhT3Fsfy7lxjaecMG3iPzIW3imd0ntwnL%2BBH%2BfgSy5k7FST6ptrvcp2cdhN2vL2VNuktg8ljYdq2XpepVAITToimWslPp3J0zdse0o4Z0zdm9Zsu1mQ%2FWfbeRibtV02xvZ7Mh1PggoUrHADxncmPMBsP%2BA5%2BVeW4vIwa0dQ3BfPTtNy0aMQiBsnFpWFymXlq3VCLIr3bQr0q3sb0eHiIfw%2BAYdb23F0EBUOPFMIUUyjsKd%2Fks5MfvgUYHkJHTPiCMtqi009RDA5RaafpGuwPv0vBBRrIFpnzrCIV2FVT8Tj7TwBlnHcNdjEHQPdETVycvXEKv6wfLLnOdk1CZqyjDcn%2BDisafnyXiUjHOON%2BKuvC%2Bi%2Fvhb56svZ6KnBHYTRG6dxfC6hTDPZB9D%2FNCmCCkzdlV5DgR2gzZvuUhpeN0i0%2B%2BC7ELemMw4c61JLC8CA7dtHVNlWcps7GcTtdFKuJA8fiL2EoYMNIMf5LZBT5Qu9FROvgX82ZVxqE9seKPO2i%2B67v4%2B9%2B%2F9rXfWxs2n2qohsvIGJK%2Bk0w1krL9Hx2jyFiRmMa%2FA0bURJ7QtkcUD1k6AOlulm6l8z5CDm8iyrG0WPtDzk7JQtwObiJy72qhgstMKIa%2Fu763J%2FSDhU29Zkjp1l95p4BGnRREckh%2FImjMFgjAh7%2FJ6IWIwvLJ4%2B2mc45HUhWhDf4b8aSC6Ipw8cElltiNz7Pj48xRpUl7ifj43gJQOOZK%2BF1MWPJ9Xp1qWW2wLZXgwkdD4ywY6sQG6ohMlkh1YpNvF0uMqH4bMVlo3UGDwj7KIOyixMoOXZjRkHTViud8%2BzgiVQ3VuGD19e4QW7eMcaQhUB41OSDSTgw8e7N9C%2F7v1rtyexDOBtNz4nsfvlOq1KXVJj8r0yJn%2BHjuuqIVRkrZJn1U5tM0EwgLAg2WlldK5nRMnGHiuKMgYGUQ90Jg6GQOixXqlHGNuVWU0MpTz9hjabUn2XAUkX3ta1sNRaO%2BiQzt4VzDlnlc%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=4513945e03198134c0bd79ec2843193b7c555e321ec6b703dcfb68bcce4bf8f8",
+      "file_size": 2008,
+      "type": "text/plain",
+      "moderated": null
+    },
+    {
+      "id": 465341,
+      "file_name": "proof.png",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/465/341/04882000450ebc5083fc5289a7c7b0a62a87a26c/proof.png?response-content-disposition=attachment%3B%20filename%3D%22proof.png%22%3B%20filename%2A%3DUTF-8%27%27proof.png&response-content-type=image%2Fpng&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQURYNL2KD%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172333Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIC2cFyXRbVcxW%2BbIRR5r9DlVvKBV1%2FdoUnSHL6HLwnzRAiEA87dV7%2FG3TFhFFi%2BKgLqH4kVskCw3RrqzKzLFGDCFapcquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDPxvfKLuBvAymGNmrSqPBR%2Bc7RWd4WQQGNGnE7yXX2wM1TJuR5Att4UHI9SxlsRbVvs2MX4lrva5whBaEie58efn1kun8QR1Z473DG0KK7iZ4aSXZ2EZ03GfB90JDxx0icvpiSQVjlMkgDqhT3Fsfy7lxjaecMG3iPzIW3imd0ntwnL%2BBH%2BfgSy5k7FST6ptrvcp2cdhN2vL2VNuktg8ljYdq2XpepVAITToimWslPp3J0zdse0o4Z0zdm9Zsu1mQ%2FWfbeRibtV02xvZ7Mh1PggoUrHADxncmPMBsP%2BA5%2BVeW4vIwa0dQ3BfPTtNy0aMQiBsnFpWFymXlq3VCLIr3bQr0q3sb0eHiIfw%2BAYdb23F0EBUOPFMIUUyjsKd%2Fks5MfvgUYHkJHTPiCMtqi009RDA5RaafpGuwPv0vBBRrIFpnzrCIV2FVT8Tj7TwBlnHcNdjEHQPdETVycvXEKv6wfLLnOdk1CZqyjDcn%2BDisafnyXiUjHOON%2BKuvC%2Bi%2Fvhb56svZ6KnBHYTRG6dxfC6hTDPZB9D%2FNCmCCkzdlV5DgR2gzZvuUhpeN0i0%2B%2BC7ELemMw4c61JLC8CA7dtHVNlWcps7GcTtdFKuJA8fiL2EoYMNIMf5LZBT5Qu9FROvgX82ZVxqE9seKPO2i%2B67v4%2B9%2B%2F9rXfWxs2n2qohsvIGJK%2Bk0w1krL9Hx2jyFiRmMa%2FA0bURJ7QtkcUD1k6AOlulm6l8z5CDm8iyrG0WPtDzk7JQtwObiJy72qhgstMKIa%2Fu763J%2FSDhU29Zkjp1l95p4BGnRREckh%2FImjMFgjAh7%2FJ6IWIwvLJ4%2B2mc45HUhWhDf4b8aSC6Ipw8cElltiNz7Pj48xRpUl7ifj43gJQOOZK%2BF1MWPJ9Xp1qWW2wLZXgwkdD4ywY6sQG6ohMlkh1YpNvF0uMqH4bMVlo3UGDwj7KIOyixMoOXZjRkHTViud8%2BzgiVQ3VuGD19e4QW7eMcaQhUB41OSDSTgw8e7N9C%2F7v1rtyexDOBtNz4nsfvlOq1KXVJj8r0yJn%2BHjuuqIVRkrZJn1U5tM0EwgLAg2WlldK5nRMnGHiuKMgYGUQ90Jg6GQOixXqlHGNuVWU0MpTz9hjabUn2XAUkX3ta1sNRaO%2BiQzt4VzDlnlc%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=8a7f0231b71956d9c7bea81c967d40109ba58dc3ad52ece2748fb94c161ff8c0",
+      "file_size": 108983,
+      "type": "image/png",
+      "moderated": null
+    }
+  ],
+  "allow_singular_disclosure_at": "2019-10-03T18:17:32.893Z",
+  "allow_singular_disclosure_after": -199753560.77080885,
+  "singular_disclosure_allowed": true,
+  "vote_count": 10,
+  "voters": [
+    "yxw21",
+    "bl4de",
+    "mik317",
+    "eveeez",
+    "0x08",
+    "armansameer",
+    "d4vinci",
+    "fingerling",
+    "yoflow",
+    "herlock-momo"
+  ],
+  "severity": {
+    "rating": "high",
+    "author_type": "User"
+  },
+  "structured_scope": {
+    "databaseId": 4647,
+    "asset_type": "SOURCE_CODE",
+    "asset_identifier": "fastify",
+    "max_severity": "critical"
+  },
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

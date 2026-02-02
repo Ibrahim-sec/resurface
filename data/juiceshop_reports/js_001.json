@@ -1,0 +1,21 @@
+{
+  "id": 900101,
+  "title": "Reflected XSS via search query parameter in OWASP Juice Shop",
+  "severity_rating": "medium",
+  "state": "disclosed",
+  "substate": "resolved",
+  "visibility": "full",
+  "disclosed_at": "2025-09-15T12:00:00Z",
+  "team": {
+    "handle": "owasp-juice-shop",
+    "name": "OWASP Juice Shop"
+  },
+  "reporter": {
+    "username": "resurface_researcher"
+  },
+  "weakness": {
+    "id": 61,
+    "name": "Cross-site Scripting (XSS) - Reflected"
+  },
+  "vulnerability_information": "## Summary\nThe OWASP Juice Shop application is vulnerable to Reflected Cross-Site Scripting (XSS) via the search functionality. User input in the search query is reflected directly in the DOM without proper sanitization.\n\n## Steps to Reproduce\n1. Navigate to the Juice Shop application at http://localhost:3333\n2. Click on the search icon in the top navigation bar\n3. Enter the following payload in the search box: `<iframe src=\"javascript:alert('xss')\">`\n4. Submit the search query\n5. Observe that the payload is reflected in the search results area and executes JavaScript\n\n## Alternative PoC via URL\n1. Navigate directly to: `http://localhost:3333/#/search?q=<iframe src=\"javascript:alert('xss')\">`\n2. The XSS payload executes in the browser context\n\n## Impact\nAn attacker can craft a malicious URL containing a JavaScript payload in the search parameter. When a victim clicks the link, the JavaScript executes in their browser session, potentially allowing session hijacking, cookie theft, or phishing attacks.\n\n## Expected Behavior\nThe search input should be properly sanitized and HTML-encoded before being rendered in the DOM.\n\n## Actual Behavior\nThe search input is reflected into the page without encoding, allowing arbitrary HTML/JavaScript execution."
+}

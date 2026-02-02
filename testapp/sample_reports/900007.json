@@ -1,0 +1,14 @@
+{
+  "id": 900007,
+  "title": "Stored XSS via Comment Feature Allows Persistent Script Injection",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "resurface-testapp", "name": "Resurface Test App"},
+  "reporter": {"username": "demo_hacker"},
+  "weakness": {"id": 62, "name": "Cross-site Scripting (XSS) - Stored"},
+  "vulnerability_information": "## Summary\nThe comment functionality at `/comment` is vulnerable to Stored Cross-Site Scripting (XSS). User-submitted comments are stored without sanitization and rendered directly into the HTML page, allowing persistent script injection that executes for all users who view the comments.\n\n## Steps to Reproduce\n1. Navigate to the comment page at `/comment`\n2. Submit a new comment with the following payload in the text field:\n   ```\n   <script>alert('XSS')</script>\n   ```\n3. The comment is stored and the page redirects back to `/comment`\n4. On the comment listing page, the stored script executes in every visitor's browser\n\n## Proof of Concept\nStep 1 — Post malicious comment:\n```http\nPOST /comment HTTP/1.1\nHost: target.com\nContent-Type: application/x-www-form-urlencoded\n\nuser=attacker&text=<script>alert(document.cookie)</script>\n```\n\nStep 2 — View comments page (the stored XSS fires):\n```http\nGET /comment HTTP/1.1\nHost: target.com\n```\n\nThe response HTML contains the unescaped script tag which executes automatically.\n\n## Impact\n- Persistent script execution for all users viewing the comments\n- Session hijacking of admin accounts\n- Defacement of the comments page\n- Worm-like propagation (XSS can auto-post more malicious comments)\n- Stored XSS is typically higher severity than reflected due to persistence",
+  "disclosed_at": "2025-08-15T09:00:00.000Z",
+  "bounty_amount": "1500.0"
+}

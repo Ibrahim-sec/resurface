@@ -1,0 +1,116 @@
+{
+  "id": 561805,
+  "global_id": "Z2lkOi8vaGFja2Vyb25lL1JlcG9ydC81NjE4MDU=",
+  "url": "https://hackerone.com/reports/561805",
+  "title": "W3 Total Cache plugin multiple vulnerabilities",
+  "state": "Closed",
+  "substate": "resolved",
+  "readable_substate": "Resolved",
+  "created_at": "2019-05-02T19:36:39.569Z",
+  "submitted_at": "2019-05-02T19:36:39.569Z",
+  "is_member_of_team?": false,
+  "is_organization_group_member?": false,
+  "is_triager?": false,
+  "reporter": {
+    "disabled": false,
+    "username": "funt0m",
+    "url": "/funt0m",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/ScNko5xuYutxV7SJ2DDNijhf/3cb67cc78dc0cba55b102dd9eca2ee89b206d3e960be830f070583d9070b69ef"
+    },
+    "is_me?": false,
+    "cleared": false,
+    "verified": false,
+    "hackerone_triager": false,
+    "hacker_mediation": false
+  },
+  "team": {
+    "id": 13291,
+    "url": "https://hackerone.com/nextcloud",
+    "handle": "nextcloud",
+    "profile_picture_urls": {
+      "small": "https://profile-photos.hackerone-user-content.com/variants/hsgut1vi1cv8housqai9cm9383yx/235acf2ba808c3a51a94888fb977392c26f8fb0ccf77a81a4546c5e4065c06f1",
+      "medium": "https://profile-photos.hackerone-user-content.com/variants/hsgut1vi1cv8housqai9cm9383yx/3f1ab5c6a9b6dadada1e6c8121700b884388bd0a43471fee1897a38ce57d0b2c"
+    },
+    "permissions": [],
+    "submission_state": "open",
+    "default_currency": "usd",
+    "awards_miles": false,
+    "offers_bounties": true,
+    "state": "public_mode",
+    "only_cleared_hackers": false,
+    "pentest_feature_enabled?": false,
+    "pentest_retesting_ends_at": null,
+    "profile": {
+      "name": "Nextcloud",
+      "twitter_handle": "nextclouders",
+      "website": "https://nextcloud.com",
+      "about": "Access, share and protect your files, calendars, contacts, communication & more at home and in your enterprise."
+    }
+  },
+  "has_bounty?": false,
+  "can_view_team": true,
+  "can_view_report": true,
+  "is_external_bug": false,
+  "is_published": false,
+  "is_participant": false,
+  "has_collaborators": false,
+  "submitted_by_team_member": false,
+  "submitted_with_assistant": false,
+  "stage": 4,
+  "public": true,
+  "visibility": "full",
+  "cve_ids": [],
+  "singular_disclosure_disabled": false,
+  "disclosed_at": "2019-07-28T17:48:06.275Z",
+  "bug_reporter_agreed_on_going_public_at": "2019-06-28T17:47:59.816Z",
+  "team_member_agreed_on_going_public_at": null,
+  "comments_closed?": false,
+  "facebook_team?": false,
+  "team_private?": false,
+  "vulnerability_information": "W3 Total Cache plugin (version <= 0.9.4.1) on the https://nextcloud.com has multiple vulnerabilities.\nSee the screenshot.png\n\n## Impact\n\nRemote Command Execution, Unauthenticated Security Token Bypass, Unauthenticated Arbitrary File Read etc.",
+  "original_report_id": null,
+  "original_report_url": null,
+  "attachments": [
+    {
+      "id": 482937,
+      "file_name": "screenshot.png",
+      "expiring_url": "https://hackerone-us-west-2-production-attachments.s3.us-west-2.amazonaws.com/000/482/937/4e3035dda12af76e5577c5d8c73b8b0ec4cfb4e8/screenshot.png?response-content-disposition=attachment%3B%20filename%3D%22screenshot.png%22%3B%20filename%2A%3DUTF-8%27%27screenshot.png&response-content-type=image%2Fx-ms-bmp&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAQGK6FURQUP6LEYSP%2F20260131%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260131T172404Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIDMdleuIYrHP03xA6kDdt26%2B5mSi%2FnZxwUjDwApKo9sFAiEAqzbuKYR41jK%2FijOEo5saBiDWMzay%2BQqHtYyFYpziUuIquwUIuf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARADGgwwMTM2MTkyNzQ4NDkiDOpMTDg50NDLWNqOTCqPBchfPlf1pWZ71YrAGlWdcQEsmDOE5nZmK0SkuPA78eTz6Mz%2FIDczRcQ8wS8xRVxqqx38I7yZMPO4sQugn5X%2F9nyAVhmi%2FKPcjXX6kleROjK2jkRZ%2FGeIuvy3T7NfEEoqICOniffg4rgeFXBfQTBT5vjdpiXziSHsTaSZx4aemx9JGR1IDfSKR2u1i0NxhPF%2FSIr6WcOZCD1%2B6uQIMQ%2FWi0dDQ08BIqeFprAwMOOZkaEVZf8ic%2BbZEM9xNzXUwChCijunUEVvnYNKBC%2BgEAOtKwzYZxzsHY06ayiNrMHpArSJebMVbEAnWnJ17QHkP4iP16lUJlJ8IdmH%2FEtori1TdoWmn%2BIVRzl%2FVYKrNCHyQEq013oT7rMpjSdh71qkkSlEkrVhFlw0CD34y6OlSLy2BFu8NM7EDAidDnk6%2BSno7YHIBTnZB1e63EztAtcLkGxv%2FDnJHksZOxz%2BDUjwZy%2B13G9W6ReHoqfCZfySg0fQoX3t6x8Eq6KShm7aWIaA2dHsMjcK0tR%2B%2FRwStwMoU080eWElpBGevxm3HglLN%2Fg5ZhUi3OHtEmccPjmudzTytCFZhzibYjgL0r3RwwoSZ6XfoWK10BGgrEXiDAzG8GEEHBBVC79Auvzn0id7QriAb0njTn29afRcdLdzxmzbPNBpWLbFeAoDQx4DEQlk589MOmHzEFiP2430ow2cVdFBzo3aDIWVgzAdvqdBZWHDnE%2FFFI7UIi%2FarxUMFARcO38UqNQY8wVeBj1mw5Vn5%2FJgzvrorYKxjsANXchpyFZeBBV7tz%2Fc2J%2BpRS%2F9v65wk%2Bz90meOkDjX5DMEP0q7ot%2F5AYwemLVKIg3U0RjLpOf9%2BxoEg9Gx5bkE%2FhL8AQaHrv7PYm4w18b4ywY6sQFlebWi2t%2BkNRrjhebtyAItUNukeSpbCvLB%2BbsoBX6qqiOs465uIuxVa3d3Y9xeeWwocCh09CCErEQq%2FV32ypnrWuEABfdx1FB5H8xR5kXGdMcgH37WjRDoLkr8uCHcZRpAIyPfW%2BAtmyKyO%2FFlaZQZwCIqJsNKuqER%2Bh6YeReGI6Seqw4LoeuY5tU8FctENJnjRlRDgcqbyo8CnToHmmAhMZF9SuLYeGll6CiVRcal1kM%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=045b032e1cd368704c8238cb9f31a1c20459364d1fabb8801a0e413684ecf109",
+      "file_size": 3697958,
+      "type": "image/x-ms-bmp",
+      "moderated": null
+    }
+  ],
+  "allow_singular_disclosure_at": "2019-07-28T17:47:59.915Z",
+  "allow_singular_disclosure_after": -205544165.02338699,
+  "singular_disclosure_allowed": true,
+  "vote_count": 3,
+  "voters": [
+    "ali",
+    "cryptographer",
+    "funt0m"
+  ],
+  "structured_scope": {
+    "databaseId": 56,
+    "asset_type": "URL",
+    "asset_identifier": "nextcloud.com",
+    "max_severity": "critical"
+  },
+  "abilities": {
+    "assignable_team_members": [],
+    "assignable_team_member_groups": []
+  },
+  "is_exploit_agent_supported?": false,
+  "summaries": [
+    {
+      "category": "team",
+      "can_view?": true,
+      "can_create?": false
+    },
+    {
+      "category": "researcher",
+      "can_view?": true,
+      "can_create?": false
+    }
+  ]
+}

