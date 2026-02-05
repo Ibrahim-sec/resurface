@@ -1,0 +1,283 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-authentication-bypass-via-encryption-oracle",
+    "category": "logic-flaws",
+    "title": "Authentication bypass via encryption oracle",
+    "description": "This lab contains a logic flaw that exposes an encryption oracle to users. To solve the lab, exploit this flaw to gain access to the admin panel and delete the usercarlos.",
+    "solution_steps": [
+      "Log in with the \"Stay logged in\" option enabled and post a comment. Study the corresponding requests and responses using Burp's manual testing tools. Observe that the stay-logged-in cookie is encrypted.",
+      "Notice that when you try and submit a comment using an invalid email address, the response sets an encrypted notification cookie before redirecting you to the blog post.",
+      "Notice that the error message reflects your input from the email parameter in cleartext: Invalid email address: your-invalid-email Deduce that this must be decrypted from the notification cookie. Send the POST /post/comment and the subsequent GET /post?postId=x request (containing the notification cookie) to Burp Repeater.",
+      "In Repeater, observe that you can use the email parameter of the POST request to encrypt arbitrary data and reflect the corresponding ciphertext in the Set-Cookie header. Likewise, you can use the notification cookie in the GET request to decrypt arbitrary ciphertext and reflect the output in the error message. For simplicity, double-click the tab for each request and rename the tabs encrypt and decrypt respectively.",
+      "In the decrypt request, copy your stay-logged-in cookie and paste it into the notification cookie. Send the request. Instead of the error message, the response now contains the decrypted stay-logged-in cookie, for example: wiener:1598530205184 This reveals that the cookie should be in the format username:timestamp . Copy the timestamp to your clipboard.",
+      "Go to the encrypt request and change the email parameter to administrator:your-timestamp . Send the request and then copy the new notification cookie from the response.",
+      "Decrypt this new cookie and observe that the 23-character \" Invalid email address: \" prefix is automatically added to any value you pass in using the email parameter. Send the notification cookie to Burp Decoder.",
+      "In Decoder, URL-decode and Base64-decode the cookie.",
+      "In Burp Repeater, switch to the message editor's \"Hex\" tab. Select the first 23 bytes, then right-click and select \"Delete selected bytes\".",
+      "Re-encode the data and copy the result into the notification cookie of the decrypt request. When you send the request, observe that an error message indicates that a block-based encryption algorithm is used and that the input length must be a multiple of 16. You need to pad the \" Invalid email address: \" prefix with enough bytes so that the number of bytes you will remove is a multiple of 16.",
+      "In Burp Repeater, go back to the encrypt request and add 9 characters to the start of the intended cookie value, for example: xxxxxxxxxadministrator:your-timestamp Encrypt this input and use the decrypt request to test that it can be successfully decrypted.",
+      "Send the new ciphertext to Decoder, then URL and Base64-decode it. This time, delete 32 bytes from the start of the data. Re-encode the data and paste it into the notification parameter in the decrypt request. Check the response to confirm that your input was successfully decrypted and, crucially, no longer contains the \" Invalid email address: \" prefix. You should only see administrator:your-timestamp .",
+      "From the proxy history, send the GET / request to Burp Repeater. Delete the session cookie entirely, and replace the stay-logged-in cookie with the ciphertext of your self-made cookie. Send the request. Observe that you are now logged in as the administrator and have access to the admin panel.",
+      "Using Burp Repeater, browse to /admin and notice the option for deleting users. Browse to /admin/delete?username=carlos to solve the lab."
+    ],
+    "solution": "1. Log in with the \"Stay logged in\" option enabled and post a comment. Study the corresponding requests and responses using Burp's manual testing tools. Observe that the stay-logged-in cookie is encrypted.\n2. Notice that when you try and submit a comment using an invalid email address, the response sets an encrypted notification cookie before redirecting you to the blog post.\n3. Notice that the error message reflects your input from the email parameter in cleartext: Invalid email address: your-invalid-email Deduce that this must be decrypted from the notification cookie. Send the POST /post/comment and the subsequent GET /post?postId=x request (containing the notification cookie) to Burp Repeater.\n4. In Repeater, observe that you can use the email parameter of the POST request to encrypt arbitrary data and reflect the corresponding ciphertext in the Set-Cookie header. Likewise, you can use the notification cookie in the GET request to decrypt arbitrary ciphertext and reflect the output in the error message. For simplicity, double-click the tab for each request and rename the tabs encrypt and decrypt respectively.\n5. In the decrypt request, copy your stay-logged-in cookie and paste it into the notification cookie. Send the request. Instead of the error message, the response now contains the decrypted stay-logged-in cookie, for example: wiener:1598530205184 This reveals that the cookie should be in the format username:timestamp . Copy the timestamp to your clipboard.\n6. Go to the encrypt request and change the email parameter to administrator:your-timestamp . Send the request and then copy the new notification cookie from the response.\n7. Decrypt this new cookie and observe that the 23-character \" Invalid email address: \" prefix is automatically added to any value you pass in using the email parameter. Send the notification cookie to Burp Decoder.\n8. In Decoder, URL-decode and Base64-decode the cookie.\n9. In Burp Repeater, switch to the message editor's \"Hex\" tab. Select the first 23 bytes, then right-click and select \"Delete selected bytes\".\n10. Re-encode the data and copy the result into the notification cookie of the decrypt request. When you send the request, observe that an error message indicates that a block-based encryption algorithm is used and that the input length must be a multiple of 16. You need to pad the \" Invalid email address: \" prefix with enough bytes so that the number of bytes you will remove is a multiple of 16.\n11. In Burp Repeater, go back to the encrypt request and add 9 characters to the start of the intended cookie value, for example: xxxxxxxxxadministrator:your-timestamp Encrypt this input and use the decrypt request to test that it can be successfully decrypted.\n12. Send the new ciphertext to Decoder, then URL and Base64-decode it. This time, delete 32 bytes from the start of the data. Re-encode the data and paste it into the notification parameter in the decrypt request. Check the response to confirm that your input was successfully decrypted and, crucially, no longer contains the \" Invalid email address: \" prefix. You should only see administrator:your-timestamp .\n13. From the proxy history, send the GET / request to Burp Repeater. Delete the session cookie entirely, and replace the stay-logged-in cookie with the ciphertext of your self-made cookie. Send the request. Observe that you are now logged in as the administrator and have access to the admin panel.\n14. Using Burp Repeater, browse to /admin and notice the option for deleting users. Browse to /admin/delete?username=carlos to solve the lab.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "stay-logged-in",
+      "notification",
+      "email",
+      "Invalid email address: your-invalid-email",
+      "POST /post/comment",
+      "GET /post?postId=x",
+      "POST",
+      "Set-Cookie",
+      "encrypt",
+      "decrypt",
+      "wiener:1598530205184",
+      "username:timestamp",
+      "administrator:your-timestamp"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-authentication-bypass-via-flawed-state-machine",
+    "category": "logic-flaws",
+    "title": "Authentication bypass via flawed state machine",
+    "description": "This lab makes flawed assumptions about the sequence of events in the login process. To solve the lab, exploit this flaw to bypass the lab's authentication, access the admin interface, and delete the usercarlos.",
+    "solution_steps": [
+      "With Burp running, complete the login process and notice that you need to select your role before you are taken to the home page.",
+      "Use the content discovery tool to identify the /admin path.",
+      "Try browsing to /admin directly from the role selection page and observe that this doesn't work.",
+      "Log out and then go back to the login page. In Burp, turn on proxy intercept then log in.",
+      "Forward the POST /login request. The next request is GET /role-selector . Drop this request and then browse to the lab's home page. Observe that your role has defaulted to the administrator role and you have access to the admin panel.",
+      "Delete carlos to solve the lab."
+    ],
+    "solution": "1. With Burp running, complete the login process and notice that you need to select your role before you are taken to the home page.\n2. Use the content discovery tool to identify the /admin path.\n3. Try browsing to /admin directly from the role selection page and observe that this doesn't work.\n4. Log out and then go back to the login page. In Burp, turn on proxy intercept then log in.\n5. Forward the POST /login request. The next request is GET /role-selector . Drop this request and then browse to the lab's home page. Observe that your role has defaulted to the administrator role and you have access to the admin panel.\n6. Delete carlos to solve the lab.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "/admin",
+      "POST /login",
+      "GET /role-selector",
+      "administrator"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-bypassing-access-controls-using-email-address-parsing-discrepancies",
+    "category": "logic-flaws",
+    "title": "Bypassing access controls using email address parsing discrepancies",
+    "description": "This lab validates email addresses to prevent attackers from registering addresses from unauthorized domains. There is a parser discrepancy in the validation logic and library used to parse email addresses.",
+    "solution_steps": [
+      "Open the lab and click Register .",
+      "Attempt to register an account with the email foo@exploit-server.net .",
+      "Notice that the application blocks the request and displays an error message stating that the email domain must be ginandjuice.shop . This indicates the server enforces a domain check during registration."
+    ],
+    "solution": "1. Open the lab and click Register .\n2. Attempt to register an account with the email foo@exploit-server.net .\n3. Notice that the application blocks the request and displays an error message stating that the email domain must be ginandjuice.shop . This indicates the server enforces a domain check during registration.",
+    "payloads": [
+      "carlos",
+      "foo@exploit-server.net",
+      "ginandjuice.shop",
+      "=?iso-8859-1?q?=61=62=63?=foo@ginandjuice.shop",
+      "abcfoo@ginandjuice.shop",
+      "=?utf-8?q?=61=62=63?=foo@ginandjuice.shop",
+      "=?utf-7?q?&AGEAYgBj-?=foo@ginandjuice.shop",
+      "=?utf-7?q?attacker&AEA-[YOUR-EXPLOIT-SERVER_ID]&ACA-?=@ginandjuice.shop",
+      "attacker@[YOUR-EXPLOIT-SERVER-ID] ?=@ginandjuice.shop",
+      "@ginandjuice.shop",
+      "attacker@[YOUR-EXPLOIT-SERVER-ID]"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-excessive-trust-in-client-side-controls",
+    "category": "logic-flaws",
+    "title": "Excessive trust in client-side controls",
+    "description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".",
+    "solution_steps": [
+      "With Burp running, log in and attempt to buy the leather jacket. The order is rejected because you don't have enough store credit.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the order process. Notice that when you add an item to your cart, the corresponding request contains a price parameter. Send the POST /cart request to Burp Repeater.",
+      "In Burp Repeater, change the price to an arbitrary integer and send the request. Refresh the cart and confirm that the price has changed based on your input.",
+      "Repeat this process to set the price to any amount less than your available store credit.",
+      "Complete the order to solve the lab."
+    ],
+    "solution": "1. With Burp running, log in and attempt to buy the leather jacket. The order is rejected because you don't have enough store credit.\n2. In Burp, go to \"Proxy\" > \"HTTP history\" and study the order process. Notice that when you add an item to your cart, the corresponding request contains a price parameter. Send the POST /cart request to Burp Repeater.\n3. In Burp Repeater, change the price to an arbitrary integer and send the request. Refresh the cart and confirm that the price has changed based on your input.\n4. Repeat this process to set the price to any amount less than your available store credit.\n5. Complete the order to solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "price",
+      "POST /cart"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-flawed-enforcement-of-business-rules",
+    "category": "logic-flaws",
+    "title": "Flawed enforcement of business rules",
+    "description": "This lab has a logic flaw in its purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".",
+    "solution_steps": [
+      "Log in and notice that there is a coupon code, NEWCUST5 .",
+      "At the bottom of the page, sign up to the newsletter. You receive another coupon code, SIGNUP30 .",
+      "Add the leather jacket to your cart.",
+      "Go to the checkout and apply both of the coupon codes to get a discount on your order.",
+      "Try applying the codes more than once. Notice that if you enter the same code twice in a row, it is rejected because the coupon has already been applied. However, if you alternate between the two codes, you can bypass this control.",
+      "Reuse the two codes enough times to reduce your order total to less than your remaining store credit. Complete the order to solve the lab."
+    ],
+    "solution": "1. Log in and notice that there is a coupon code, NEWCUST5 .\n2. At the bottom of the page, sign up to the newsletter. You receive another coupon code, SIGNUP30 .\n3. Add the leather jacket to your cart.\n4. Go to the checkout and apply both of the coupon codes to get a discount on your order.\n5. Try applying the codes more than once. Notice that if you enter the same code twice in a row, it is rejected because the coupon has already been applied. However, if you alternate between the two codes, you can bypass this control.\n6. Reuse the two codes enough times to reduce your order total to less than your remaining store credit. Complete the order to solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "NEWCUST5",
+      "SIGNUP30"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-high-level",
+    "category": "logic-flaws",
+    "title": "High-level logic vulnerability",
+    "description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".",
+    "solution_steps": [
+      "With Burp running, log in and add a cheap item to your cart.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the corresponding HTTP messages. Notice that the quantity is determined by a parameter in the POST /cart request.",
+      "Go to the \"Intercept\" tab and turn on interception. Add another item to your cart and go to the intercepted POST /cart request in Burp.",
+      "Change the quantity parameter to an arbitrary integer, then forward any remaining requests. Observe that the quantity in the cart was successfully updated based on your input.",
+      "Repeat this process, but request a negative quantity this time. Check that this is successfully deducted from the cart quantity.",
+      "Request a suitable negative quantity to remove more units from the cart than it currently contains. Confirm that you have successfully forced the cart to contain a negative quantity of the product. Go to your cart and notice that the total price is now also a negative amount.",
+      "Add the leather jacket to your cart as normal. Add a suitable negative quantity of the another item to reduce the total price to less than your remaining store credit.",
+      "Place the order to solve the lab."
+    ],
+    "solution": "1. With Burp running, log in and add a cheap item to your cart.\n2. In Burp, go to \"Proxy\" > \"HTTP history\" and study the corresponding HTTP messages. Notice that the quantity is determined by a parameter in the POST /cart request.\n3. Go to the \"Intercept\" tab and turn on interception. Add another item to your cart and go to the intercepted POST /cart request in Burp.\n4. Change the quantity parameter to an arbitrary integer, then forward any remaining requests. Observe that the quantity in the cart was successfully updated based on your input.\n5. Repeat this process, but request a negative quantity this time. Check that this is successfully deducted from the cart quantity.\n6. Request a suitable negative quantity to remove more units from the cart than it currently contains. Confirm that you have successfully forced the cart to contain a negative quantity of the product. Go to your cart and notice that the total price is now also a negative amount.\n7. Add the leather jacket to your cart as normal. Add a suitable negative quantity of the another item to reduce the total price to less than your remaining store credit.\n8. Place the order to solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "POST /cart",
+      "quantity"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-inconsistent-handling-of-exceptional-input",
+    "category": "logic-flaws",
+    "title": "Inconsistent handling of exceptional input",
+    "description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its account registration process to gain access to administrative functionality. To solve the lab, access the admin panel and delete the usercarlos.",
+    "solution": "You can use the link in the lab banner to access an email client connected to your own private mail server. The client will display all messages sent to\n@YOUR-EMAIL-ID.web-security-academy.net\nand any arbitrary subdomains. Your unique email ID is displayed in the email client.",
+    "payloads": [
+      "carlos",
+      "@YOUR-EMAIL-ID.web-security-academy.net",
+      "/admin",
+      "DontWannaCry",
+      "very-long-string@YOUR-EMAIL-ID.web-security-academy.net",
+      "very-long-string",
+      "dontwannacry.com",
+      "very-long-string@dontwannacry.com.YOUR-EMAIL-ID.web-security-academy.net",
+      "@dontwannacry.com"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-inconsistent-security-controls",
+    "category": "logic-flaws",
+    "title": "Inconsistent security controls",
+    "description": "This lab's flawed logic allows arbitrary users to access administrative functionality that should only be available to company employees. To solve the lab, access the admin panel and delete the usercarlos.",
+    "solution_steps": [
+      "Open the lab then go to the \"Target\" > \"Site map\" tab in Burp. Right-click on the lab domain and select \"Engagement tools\" > \"Discover content\" to open the content discovery tool.",
+      "Click \"Session is not running\" to start the content discovery. After a short while, look at the \"Site map\" tab in the dialog. Notice that it discovered the path /admin .",
+      "Try and browse to /admin . Although you don't have access, the error message indicates that DontWannaCry users do.",
+      "Go to the account registration page. Notice the message telling DontWannaCry employees to use their company email address. Register with an arbitrary email address in the format: anything@your-email-id.web-security-academy.net You can find your email domain name by clicking the \"Email client\" button.",
+      "Go to the email client and click the link in the confirmation email to complete the registration.",
+      "Log in using your new account and go to the \"My account\" page. Notice that you have the option to change your email address. Change your email address to an arbitrary @dontwannacry.com address.",
+      "Notice that you now have access to the admin panel, where you can delete carlos to solve the lab."
+    ],
+    "solution": "1. Open the lab then go to the \"Target\" > \"Site map\" tab in Burp. Right-click on the lab domain and select \"Engagement tools\" > \"Discover content\" to open the content discovery tool.\n2. Click \"Session is not running\" to start the content discovery. After a short while, look at the \"Site map\" tab in the dialog. Notice that it discovered the path /admin .\n3. Try and browse to /admin . Although you don't have access, the error message indicates that DontWannaCry users do.\n4. Go to the account registration page. Notice the message telling DontWannaCry employees to use their company email address. Register with an arbitrary email address in the format: anything@your-email-id.web-security-academy.net You can find your email domain name by clicking the \"Email client\" button.\n5. Go to the email client and click the link in the confirmation email to complete the registration.\n6. Log in using your new account and go to the \"My account\" page. Notice that you have the option to change your email address. Change your email address to an arbitrary @dontwannacry.com address.\n7. Notice that you now have access to the admin panel, where you can delete carlos to solve the lab.",
+    "payloads": [
+      "carlos",
+      "/admin",
+      "DontWannaCry",
+      "anything@your-email-id.web-security-academy.net",
+      "@dontwannacry.com"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-infinite-money",
+    "category": "logic-flaws",
+    "title": "Infinite money logic flaw",
+    "description": "This lab has a logic flaw in its purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".",
+    "solution_steps": [
+      "With Burp running, log in and sign up for the newsletter to obtain a coupon code, SIGNUP30 . Notice that you can buy $10 gift cards and redeem them from the My account page.",
+      "Add a gift card to your basket and proceed to the checkout. Apply the coupon code to get a 30% discount. Complete the order and copy the gift card code to your clipboard.",
+      "Go to your account page and redeem the gift card. Observe that this entire process has added $3 to your store credit. Now you need to try and automate this process.",
+      "Study the proxy history and notice that you redeem your gift card by supplying the code in the gift-card parameter of the POST /gift-card request.",
+      "Click Settings in the top toolbar. The Settings dialog opens.",
+      "Click Sessions . In the Session handling rules panel, click Add . The Session handling rule editor dialog opens.",
+      "In the dialog, go to the Scope tab. Under URL scope , select Include all URLs .",
+      "Go back to the Details tab. Under Rule actions , click Add > Run a macro . Under Select macro , click Add again to open the Macro Recorder .",
+      "Select the following sequence of requests: POST /cart\nPOST /cart/coupon\nPOST /cart/checkout\nGET /cart/order-confirmation?order-confirmed=true\nPOST /gift-card Then, click OK . The Macro Editor opens.",
+      "In the list of requests, select GET /cart/order-confirmation?order-confirmed=true . Click Configure item . In the dialog that opens, click Add to create a custom parameter. Name the parameter gift-card and highlight the gift card code at the bottom of the response. Click OK twice to go back to the Macro Editor .",
+      "Select the POST /gift-card request and click Configure item again. In the Parameter handling section, use the drop-down menus to specify that the gift-card parameter should be derived from the prior response (response 4). Click OK .",
+      "In the Macro Editor , click Test macro . Look at the response to GET /cart/order-confirmation?order-confirmation=true and note the gift card code that was generated. Look at the POST /gift-card request. Make sure that the gift-card parameter matches and confirm that it received a 302 response. Keep clicking OK until you get back to the main Burp window.",
+      "Send the GET /my-account request to Burp Intruder. Make sure that Sniper attack is selected.",
+      "In the Payloads side panel, under Payload configuration , select the payload type Null payloads . Choose to generate 412 payloads.",
+      "Click on Resource pool to open the Resource pool side panel. Add the attack to a resource pool with the Maximum concurrent requests set to 1 . Start the attack.",
+      "When the attack finishes, you will have enough store credit to buy the jacket and solve the lab."
+    ],
+    "solution": "1. With Burp running, log in and sign up for the newsletter to obtain a coupon code, SIGNUP30 . Notice that you can buy $10 gift cards and redeem them from the My account page.\n2. Add a gift card to your basket and proceed to the checkout. Apply the coupon code to get a 30% discount. Complete the order and copy the gift card code to your clipboard.\n3. Go to your account page and redeem the gift card. Observe that this entire process has added $3 to your store credit. Now you need to try and automate this process.\n4. Study the proxy history and notice that you redeem your gift card by supplying the code in the gift-card parameter of the POST /gift-card request.\n5. Click Settings in the top toolbar. The Settings dialog opens.\n6. Click Sessions . In the Session handling rules panel, click Add . The Session handling rule editor dialog opens.\n7. In the dialog, go to the Scope tab. Under URL scope , select Include all URLs .\n8. Go back to the Details tab. Under Rule actions , click Add > Run a macro . Under Select macro , click Add again to open the Macro Recorder .\n9. Select the following sequence of requests: POST /cart\nPOST /cart/coupon\nPOST /cart/checkout\nGET /cart/order-confirmation?order-confirmed=true\nPOST /gift-card Then, click OK . The Macro Editor opens.\n10. In the list of requests, select GET /cart/order-confirmation?order-confirmed=true . Click Configure item . In the dialog that opens, click Add to create a custom parameter. Name the parameter gift-card and highlight the gift card code at the bottom of the response. Click OK twice to go back to the Macro Editor .\n11. Select the POST /gift-card request and click Configure item again. In the Parameter handling section, use the drop-down menus to specify that the gift-card parameter should be derived from the prior response (response 4). Click OK .\n12. In the Macro Editor , click Test macro . Look at the response to GET /cart/order-confirmation?order-confirmation=true and note the gift card code that was generated. Look at the POST /gift-card request. Make sure that the gift-card parameter matches and confirm that it received a 302 response. Keep clicking OK until you get back to the main Burp window.\n13. Send the GET /my-account request to Burp Intruder. Make sure that Sniper attack is selected.\n14. In the Payloads side panel, under Payload configuration , select the payload type Null payloads . Choose to generate 412 payloads.\n15. Click on Resource pool to open the Resource pool side panel. Add the attack to a resource pool with the Maximum concurrent requests set to 1 . Start the attack.\n16. When the attack finishes, you will have enough store credit to buy the jacket and solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "SIGNUP30",
+      "gift-card",
+      "POST /gift-card",
+      "POST /cart\nPOST /cart/coupon\nPOST /cart/checkout\nGET /cart/order-confirmation?order-confirmed=true\nPOST /gift-card",
+      "GET /cart/order-confirmation?order-confirmed=true",
+      "GET /cart/order-confirmation?order-confirmation=true",
+      "GET /my-account"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-insufficient-workflow-validation",
+    "category": "logic-flaws",
+    "title": "Insufficient workflow validation",
+    "description": "This lab makes flawed assumptions about the sequence of events in the purchasing workflow. To solve the lab, exploit this flaw to buy a \"Lightweight l33t leather jacket\".",
+    "solution_steps": [
+      "With Burp running, log in and buy any item that you can afford with your store credit.",
+      "Study the proxy history. Observe that when you place an order, the POST /cart/checkout request redirects you to an order confirmation page. Send GET /cart/order-confirmation?order-confirmation=true to Burp Repeater.",
+      "Add the leather jacket to your basket.",
+      "In Burp Repeater, resend the order confirmation request. Observe that the order is completed without the cost being deducted from your store credit and the lab is solved."
+    ],
+    "solution": "1. With Burp running, log in and buy any item that you can afford with your store credit.\n2. Study the proxy history. Observe that when you place an order, the POST /cart/checkout request redirects you to an order confirmation page. Send GET /cart/order-confirmation?order-confirmation=true to Burp Repeater.\n3. Add the leather jacket to your basket.\n4. In Burp Repeater, resend the order confirmation request. Observe that the order is completed without the cost being deducted from your store credit and the lab is solved.",
+    "payloads": [
+      "wiener:peter",
+      "POST /cart/checkout",
+      "GET /cart/order-confirmation?order-confirmation=true"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-low-level",
+    "category": "logic-flaws",
+    "title": "Low-level logic flaw",
+    "description": "This lab doesn't adequately validate user input. You can exploit a logic flaw in its purchasing workflow to buy items for an unintended price. To solve the lab, buy a \"Lightweight l33t leather jacket\".",
+    "solution": "You will need to use Burp Intruder (or Turbo Intruder) to solve this lab.\nTo make sure the price increases in predictable increments, we recommend configuring your attack to only send one request at a time. In Burp Intruder, you can do this from the resource pool settings using the\nMaximum concurrent requests\noption.",
+    "payloads": [
+      "wiener:peter",
+      "POST /cart",
+      "quantity",
+      "-$1221.96"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-weak-isolation-on-dual-use-endpoint",
+    "category": "logic-flaws",
+    "title": "Weak isolation on dual-use endpoint",
+    "description": "This lab makes a flawed assumption about the user's privilege level based on their input. As a result, you can exploit the logic of its account management features to gain access to arbitrary users' accounts. To solve the lab, access theadministratoraccount and delete the usercarlos.",
+    "solution_steps": [
+      "With Burp running, log in and access your account page.",
+      "Change your password.",
+      "Study the POST /my-account/change-password request in Burp Repeater.",
+      "Notice that if you remove the current-password parameter entirely, you are able to successfully change your password without providing your current one.",
+      "Observe that the user whose password is changed is determined by the username parameter. Set username=administrator and send the request again.",
+      "Log out and notice that you can now successfully log in as the administrator using the password you just set.",
+      "Go to the admin panel and delete carlos to solve the lab."
+    ],
+    "solution": "1. With Burp running, log in and access your account page.\n2. Change your password.\n3. Study the POST /my-account/change-password request in Burp Repeater.\n4. Notice that if you remove the current-password parameter entirely, you are able to successfully change your password without providing your current one.\n5. Observe that the user whose password is changed is determined by the username parameter. Set username=administrator and send the request again.\n6. Log out and notice that you can now successfully log in as the administrator using the password you just set.\n7. Go to the admin panel and delete carlos to solve the lab.",
+    "payloads": [
+      "administrator",
+      "carlos",
+      "wiener:peter",
+      "POST /my-account/change-password",
+      "current-password",
+      "username",
+      "username=administrator"
+    ]
+  }
+]

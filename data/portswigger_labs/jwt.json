@@ -1,0 +1,211 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/jwt/algorithm-confusion/lab-jwt-authentication-bypass-via-algorithm-confusion",
+    "category": "jwt",
+    "title": "JWT authentication bypass via algorithm confusion",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. It uses a robust RSA key pair to sign and verify tokens. However, due to implementation flaws, this mechanism is vulnerable to algorithm confusion attacks.",
+    "solution": "You can assume that the server stores its public key as an X.509 PEM file.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "/jwks.json",
+      "keys",
+      "GET /admin",
+      "HS256",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/algorithm-confusion/lab-jwt-authentication-bypass-via-algorithm-confusion-with-no-exposed-key",
+    "category": "jwt",
+    "title": "JWT authentication bypass via algorithm confusion with no exposed key",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. It uses a robust RSA key pair to sign and verify tokens. However, due to implementation flaws, this mechanism is vulnerable to algorithm confusion attacks.",
+    "solution": "You can assume that the server stores its public key as an X.509 PEM file.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "jwt_forgery.py",
+      "GET /my-account",
+      "administrator",
+      "docker run --rm -it portswigger/sig2n <token1> <token2>",
+      "/my-account",
+      "/login",
+      "HS256",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-flawed-signature-verification",
+    "category": "jwt",
+    "title": "JWT authentication bypass via flawed signature verification",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. The server is insecurely configured to accept unsigned JWTs.",
+    "solution_steps": [
+      "In the lab, log in to your own account.",
+      "In Burp, go to the Proxy > HTTP history tab and look at the post-login GET /my-account request. Observe that your session cookie is a JWT.",
+      "Double-click the payload part of the token to view its decoded JSON form in the Inspector panel. Notice that the sub claim contains your username. Send this request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Select the payload of the JWT again. In the Inspector panel, change the value of the sub claim to administrator , then click Apply changes .",
+      "Select the header of the JWT, then use the Inspector to change the value of the alg parameter to none . Click Apply changes .",
+      "In the message editor, remove the signature from the JWT, but remember to leave the trailing dot after the payload.",
+      "Send the request and observe that you have successfully accessed the admin panel.",
+      "In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab."
+    ],
+    "solution": "1. In the lab, log in to your own account.\n2. In Burp, go to the Proxy > HTTP history tab and look at the post-login GET /my-account request. Observe that your session cookie is a JWT.\n3. Double-click the payload part of the token to view its decoded JSON form in the Inspector panel. Notice that the sub claim contains your username. Send this request to Burp Repeater.\n4. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n5. Select the payload of the JWT again. In the Inspector panel, change the value of the sub claim to administrator , then click Apply changes .\n6. Select the header of the JWT, then use the Inspector to change the value of the alg parameter to none . Click Apply changes .\n7. In the message editor, remove the signature from the JWT, but remember to leave the trailing dot after the payload.\n8. Send the request and observe that you have successfully accessed the admin panel.\n9. In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "none",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jku-header-injection",
+    "category": "jwt",
+    "title": "JWT authentication bypass via jku header injection",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. The server supports thejkuparameter in the JWT header. However, it fails to check whether the provided URL belongs to a trusted domain before fetching the key.",
+    "solution_steps": [
+      "In Burp, load the JWT Editor extension from the BApp store.",
+      "In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Go to the JWT Editor Keys tab in Burp's main tab bar.",
+      "Click New RSA Key .",
+      "In the dialog, click Generate to automatically generate a new key pair, then click OK to save the key. Note that you don't need to select a key size as this will automatically be updated later.",
+      "In the browser, go to the exploit server.",
+      "Replace the contents of the Body section with an empty JWK Set as follows: {\n    \"keys\": [\n\n    ]\n}",
+      "Back on the JWT Editor Keys tab, right-click on the entry for the key that you just generated, then select Copy Public Key as JWK .",
+      "Paste the JWK into the keys array on the exploit server, then store the exploit. The result should look something like this: {\n    \"keys\": [\n        {\n            \"kty\": \"RSA\",\n            \"e\": \"AQAB\",\n            \"kid\": \"893d8f0b-061f-42c2-a4aa-5056e12b8ae7\",\n            \"n\": \"yy1wpYmffgXBxhAUJzHHocCuJolwDqql75ZWuCQ_cb33K2vh9mk6GPM9gNN4Y_qTVX67WhsN3JvaFYw\"\n        }\n    ]\n}"
+    ],
+    "solution": "1. In Burp, load the JWT Editor extension from the BApp store.\n2. In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.\n3. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n4. Go to the JWT Editor Keys tab in Burp's main tab bar.\n5. Click New RSA Key .\n6. In the dialog, click Generate to automatically generate a new key pair, then click OK to save the key. Note that you don't need to select a key size as this will automatically be updated later.\n7. In the browser, go to the exploit server.\n8. Replace the contents of the Body section with an empty JWK Set as follows: {\n    \"keys\": [\n\n    ]\n}\n9. Back on the JWT Editor Keys tab, right-click on the entry for the key that you just generated, then select Copy Public Key as JWK .\n10. Paste the JWK into the keys array on the exploit server, then store the exploit. The result should look something like this: {\n    \"keys\": [\n        {\n            \"kty\": \"RSA\",\n            \"e\": \"AQAB\",\n            \"kid\": \"893d8f0b-061f-42c2-a4aa-5056e12b8ae7\",\n            \"n\": \"yy1wpYmffgXBxhAUJzHHocCuJolwDqql75ZWuCQ_cb33K2vh9mk6GPM9gNN4Y_qTVX67WhsN3JvaFYw\"\n        }\n    ]\n}",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "{\n    \"keys\": [\n\n    ]\n}",
+      "keys",
+      "{\n    \"keys\": [\n        {\n            \"kty\": \"RSA\",\n            \"e\": \"AQAB\",\n            \"kid\": \"893d8f0b-061f-42c2-a4aa-5056e12b8ae7\",\n            \"n\": \"yy1wpYmffgXBxhAUJzHHocCuJolwDqql75ZWuCQ_cb33K2vh9mk6GPM9gNN4Y_qTVX67WhsN3JvaFYw\"\n        }\n    ]\n}",
+      "GET /admin",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jwk-header-injection",
+    "category": "jwt",
+    "title": "JWT authentication bypass via jwk header injection",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. The server supports thejwkparameter in the JWT header. This is sometimes used to embed the correct verification key directly in the token. However, it fails to check whether the provided key came from a trusted source.",
+    "solution_steps": [
+      "In Burp, load the JWT Editor extension from the BApp store.",
+      "In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Go to the JWT Editor Keys tab in Burp's main tab bar.",
+      "Click New RSA Key .",
+      "In the dialog, click Generate to automatically generate a new key pair, then click OK to save the key. Note that you don't need to select a key size as this will automatically be updated later.",
+      "Go back to the GET /admin request in Burp Repeater and switch to the extension-generated JSON Web Token tab.",
+      "In the payload, change the value of the sub claim to administrator .",
+      "At the bottom of the JSON Web Token tab, click Attack , then select Embedded JWK . When prompted, select your newly generated RSA key and click OK .",
+      "In the header of the JWT, observe that a jwk parameter has been added containing your public key.",
+      "Send the request. Observe that you have successfully accessed the admin panel.",
+      "In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab."
+    ],
+    "solution": "1. In Burp, load the JWT Editor extension from the BApp store.\n2. In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.\n3. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n4. Go to the JWT Editor Keys tab in Burp's main tab bar.\n5. Click New RSA Key .\n6. In the dialog, click Generate to automatically generate a new key pair, then click OK to save the key. Note that you don't need to select a key size as this will automatically be updated later.\n7. Go back to the GET /admin request in Burp Repeater and switch to the extension-generated JSON Web Token tab.\n8. In the payload, change the value of the sub claim to administrator .\n9. At the bottom of the JSON Web Token tab, click Attack , then select Embedded JWK . When prompted, select your newly generated RSA key and click OK .\n10. In the header of the JWT, observe that a jwk parameter has been added containing your public key.\n11. Send the request. Observe that you have successfully accessed the admin panel.\n12. In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "GET /admin",
+      "JSON Web Token",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-kid-header-path-traversal",
+    "category": "jwt",
+    "title": "JWT authentication bypass via kid header path traversal",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. In order to verify the signature, the server uses thekidparameter in JWT header to fetch the relevant key from its filesystem.",
+    "solution_steps": [
+      "In Burp, load the JWT Editor extension from the BApp store.",
+      "In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Go to the JWT Editor Keys tab in Burp's main tab bar.",
+      "Click New Symmetric Key .",
+      "In the dialog, click Generate to generate a new key in JWK format. Note that you don't need to select a key size as this will automatically be updated later.",
+      "Replace the generated value for the k property with a Base64-encoded null byte ( AA== ). Note that this is just a workaround because the JWT Editor extension won't allow you to sign tokens using an empty string.",
+      "Click OK to save the key."
+    ],
+    "solution": "1. In Burp, load the JWT Editor extension from the BApp store.\n2. In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.\n3. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n4. Go to the JWT Editor Keys tab in Burp's main tab bar.\n5. Click New Symmetric Key .\n6. In the dialog, click Generate to generate a new key in JWK format. Note that you don't need to select a key size as this will automatically be updated later.\n7. Replace the generated value for the k property with a Base64-encoded null byte ( AA== ). Note that this is just a workaround because the JWT Editor extension won't allow you to sign tokens using an empty string.\n8. Click OK to save the key.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "/dev/null",
+      "GET /my-account",
+      "administrator",
+      "AA==",
+      "GET /admin",
+      "../../../../../../../dev/null",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-unverified-signature",
+    "category": "jwt",
+    "title": "JWT authentication bypass via unverified signature",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. Due to implementation flaws, the server doesn't verify the signature of any JWTs that it receives.",
+    "solution_steps": [
+      "In the lab, log in to your own account.",
+      "In Burp, go to the Proxy > HTTP history tab and look at the post-login GET /my-account request. Observe that your session cookie is a JWT.",
+      "Double-click the payload part of the token to view its decoded JSON form in the Inspector panel. Notice that the sub claim contains your username. Send this request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Select the payload of the JWT again. In the Inspector panel, change the value of the sub claim from wiener to administrator , then click Apply changes .",
+      "Send the request again. Observe that you have successfully accessed the admin panel.",
+      "In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab."
+    ],
+    "solution": "1. In the lab, log in to your own account.\n2. In Burp, go to the Proxy > HTTP history tab and look at the post-login GET /my-account request. Observe that your session cookie is a JWT.\n3. Double-click the payload part of the token to view its decoded JSON form in the Inspector panel. Notice that the sub claim contains your username. Send this request to Burp Repeater.\n4. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n5. Select the payload of the JWT again. In the Inspector panel, change the value of the sub claim from wiener to administrator , then click Apply changes .\n6. Send the request again. Observe that you have successfully accessed the admin panel.\n7. In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ). Send the request to this endpoint to solve the lab.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "wiener",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-weak-signing-key",
+    "category": "jwt",
+    "title": "JWT authentication bypass via weak signing key",
+    "description": "This lab uses a JWT-based mechanism for handling sessions. It uses an extremely weak secret key to both sign and verify tokens. This can be easily brute-forced using awordlist of common secrets.",
+    "solution_steps": [
+      "In Burp, load the JWT Editor extension from the BApp store.",
+      "In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.",
+      "In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.",
+      "Copy the JWT and brute-force the secret. You can do this using hashcat as follows: hashcat -a 0 -m 16500 <YOUR-JWT> /path/to/jwt.secrets.list If you're using hashcat, this outputs the JWT, followed by the secret. If everything worked correctly, this should reveal that the weak secret is secret1 ."
+    ],
+    "solution": "1. In Burp, load the JWT Editor extension from the BApp store.\n2. In the lab, log in to your own account and send the post-login GET /my-account request to Burp Repeater.\n3. In Burp Repeater, change the path to /admin and send the request. Observe that the admin panel is only accessible when logged in as the administrator user.\n4. Copy the JWT and brute-force the secret. You can do this using hashcat as follows: hashcat -a 0 -m 16500 <YOUR-JWT> /path/to/jwt.secrets.list If you're using hashcat, this outputs the JWT, followed by the secret. If everything worked correctly, this should reveal that the weak secret is secret1 .",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "administrator",
+      "hashcat -a 0 -m 16500 <YOUR-JWT> /path/to/jwt.secrets.list",
+      "secret1",
+      "--show",
+      "GET /admin",
+      "Sign",
+      "Don't modify header",
+      "/admin/delete?username=carlos"
+    ]
+  }
+]

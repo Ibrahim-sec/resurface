@@ -90,12 +90,13 @@ class BrowserUseReplayer:
 
     MAX_ACTIONS = 15
 
-    # Playbooks loaded from src/prompts/playbooks/*.md
+    # Playbooks loaded from src/prompts/playbooks/*.md and labs/*.md
     _playbook_cache: dict = None
+    _lab_playbook_cache: dict = None
 
     @classmethod
     def _load_playbooks(cls) -> dict:
-        """Load playbooks from markdown files."""
+        """Load category playbooks from markdown files."""
         if cls._playbook_cache is not None:
             return cls._playbook_cache
 
@@ -104,7 +105,7 @@ class BrowserUseReplayer:
 
         if playbook_dir.exists():
             for md_file in playbook_dir.glob("*.md"):
-                vuln_type = md_file.stem  # e.g., "xss_reflected"
+                vuln_type = md_file.stem
                 try:
                     cls._playbook_cache[vuln_type] = md_file.read_text()
                 except Exception as e:
@@ -113,8 +114,44 @@ class BrowserUseReplayer:
         return cls._playbook_cache
 
     @classmethod
-    def get_playbook(cls, vuln_type: str) -> str:
-        """Get playbook for a vulnerability type."""
+    def _load_lab_playbooks(cls) -> dict:
+        """Load per-lab playbooks from labs/ subdirectory."""
+        if cls._lab_playbook_cache is not None:
+            return cls._lab_playbook_cache
+
+        cls._lab_playbook_cache = {}
+        lab_dir = Path(__file__).parent.parent / "prompts" / "playbooks" / "labs"
+
+        if lab_dir.exists():
+            for md_file in lab_dir.glob("*.md"):
+                if md_file.stem == "INDEX":
+                    continue
+                # Store by filename stem (e.g., "ssrf_basic_ssrf_against_local_server")
+                cls._lab_playbook_cache[md_file.stem.lower()] = md_file.read_text()
+
+        return cls._lab_playbook_cache
+
+    @classmethod
+    def get_playbook(cls, vuln_type: str, title: str = None) -> str:
+        """Get playbook for a vulnerability type, with optional title matching for lab-specific playbooks."""
+        # Try lab-specific playbook first if title provided
+        if title:
+            lab_playbooks = cls._load_lab_playbooks()
+            # Normalize title for matching
+            import re
+            title_slug = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")
+            
+            # Search for matching lab playbook
+            for key, content in lab_playbooks.items():
+                if title_slug in key or key in title_slug:
+                    return content
+                # Also try partial match on significant words
+                title_words = set(title_slug.split("_")) - {"a", "the", "in", "on", "to", "for", "with", "via", "using"}
+                key_words = set(key.split("_")) - {"a", "the", "in", "on", "to", "for", "with", "via", "using"}
+                if len(title_words & key_words) >= 3:
+                    return content
+
+        # Fallback to category playbook
         playbooks = cls._load_playbooks()
         return playbooks.get(vuln_type, playbooks.get("generic", ""))
 
@@ -178,9 +215,9 @@ class BrowserUseReplayer:
             if s.payload: steps += f"   Payload: {s.payload}\n"
             if s.expected_behavior: steps += f"   Expected: {s.expected_behavior}\n"
 
-        # Look up playbook for this vuln type
+        # Look up playbook for this vuln type (try lab-specific first)
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.get_playbook(vuln_key)
+        playbook = self.get_playbook(vuln_key, title=report.title)
         if not playbook:
             playbook = (
                 "STRATEGY: Follow the steps provided and test for the described vulnerability.\n"
@@ -241,9 +278,9 @@ class BrowserUseReplayer:
 
     def _build_blind_prompt(self, report: ParsedReport, target_url: str) -> str:
         """Build task prompt for blind mode (no URLs or step details)."""
-        # Look up playbook for this vuln type
+        # Look up playbook for this vuln type (try lab-specific first)
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.get_playbook(vuln_key)
+        playbook = self.get_playbook(vuln_key, title=report.title)
         if not playbook:
             playbook = (
                 "STRATEGY: Explore the application and test for the described vulnerability type.\n"

