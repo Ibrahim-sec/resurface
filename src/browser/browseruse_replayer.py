@@ -92,13 +92,20 @@ class BrowserUseReplayer:
 
     PLAYBOOKS = {
         "privilege_escalation": (
-            "STRATEGY: Test if the registration/user API accepts unauthorized role manipulation.\n"
-            "1. Use make_request to POST to the registration API with an extra 'role':'admin' field\n"
-            "2. Use a SIMPLE password you will remember (e.g. 'test123') — you MUST use the EXACT same password to login later\n"
-            "3. Read the API response — if it contains 'role\":\"admin' the vuln is CONFIRMED\n"
-            "4. Login with the EXACT email and password you just registered with\n"
-            "5. Navigate to the admin page to verify access\n"
-            "6. Call report_vulnerability as soon as you have evidence (API accepting role=admin IS enough)\n"
+            "STRATEGY: Test if profile update or registration APIs accept unauthorized role manipulation.\n\n"
+            "CRITICAL: READ RESPONSE BODIES! Update email first and check if response shows 'roleid' or 'role' fields.\n\n"
+            "Step 1 - RECON: Log in, update email, READ the response for role field names (roleid, role, isAdmin).\n\n"
+            "Step 2 - ATTACK with JSON (try this first!):\n"
+            "  make_request(url='/my-account/change-email', method='POST',\n"
+            "    headers={'Content-Type': 'application/json'},\n"
+            "    body='{\"email\": \"test@test.com\", \"roleid\": 2}')\n\n"
+            "Step 3 - TRY MULTIPLE VALUES (role IDs are often numeric):\n"
+            "  - 'roleid': 2 (admin is often 2)\n"
+            "  - 'roleid': 1 or 0\n"
+            "  - 'role': 'admin'\n"
+            "  - 'isAdmin': true\n\n"
+            "Step 4 - VERIFY: Navigate to /admin. If still denied, re-read last response — did roleid change?\n\n"
+            "AVOID: Only using form-urlencoded (try JSON!), only trying string values (try numeric!), not reading responses.\n"
         ),
         "xss_reflected": (
             "STRATEGY: Find input fields that reflect user input in the page.\n"
