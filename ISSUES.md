@@ -4,17 +4,17 @@
 
 ## Critical Bugs
 
-### 1. `capture_dom` tool broken
+### 1. `capture_dom` tool broken — ✅ FIXED
 - **Error:** `'Page' object has no attribute 'content'`
 - **Location:** `src/browser/browseruse_replayer.py:929`
 - **Impact:** Agent can't capture DOM snapshots for evidence
-- **Fix:** Update to use correct Playwright API (`page.content()` might need async)
+- **Fix:** Use JS eval `document.documentElement.outerHTML` instead of `page.content()`
 
-### 2. Screenshot capture fails in `report_vulnerability`
+### 2. Screenshot capture fails in `report_vulnerability` — ✅ FIXED
 - **Error:** `Page.screenshot() got an unexpected keyword argument 'path'`
 - **Location:** `src/browser/browseruse_replayer.py:616`
 - **Impact:** No screenshots saved with findings
-- **Fix:** Check browser-use/Playwright API for correct screenshot params
+- **Fix:** browser-use `screenshot()` returns base64 string — decode and write to file
 
 ### 3. Groq tool calling incompatible with instructor
 - **Error:** Groq wraps tool params in `{"type": "string", "value": "..."}` instead of just the value
