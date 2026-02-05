@@ -36,9 +36,10 @@ This lab contains a reflected XSS vulnerability in the search functionality but 
 - `<iframe src="https://YOUR-LAB-ID.web-security-academy.net/?search=%22%3E%3Cbody%20onresize=print()%3E" onload=this.style.width='100px'>`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: xss_reflected
-
+- Payload reflected in response without encoding
+- `<script>` tags rendered as HTML elements
+- JavaScript alert/print executes in browser
+- DOM shows injected elements
+- No WAF block or sanitization
 ---
 *Source: PortSwigger Web Security Academy*

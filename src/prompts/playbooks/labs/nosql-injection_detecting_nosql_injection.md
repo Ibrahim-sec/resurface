@@ -24,9 +24,10 @@ The product category filter for this lab is powered by a MongoDB NoSQL database.
 - `Gifts'||1||'`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: nosql
-
+- NoSQL operator injection works ($ne, $regex)
+- Boolean conditions change response
+- Data extracted via injection
+- Authentication bypassed
+- Query logic manipulated
 ---
 *Source: PortSwigger Web Security Academy*

@@ -20,9 +20,10 @@ You should try solving this lab using only the documentation. However, if you ge
 - `<#assign ex="freemarker.template.utility.Execute"?new()> ${ ex("rm /home/carlos/morale.txt") }`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: ssti
-
+- Template expression evaluated (7*7=49)
+- Server-side code execution confirmed
+- OS command output visible
+- Template engine identified
+- File read/write or RCE achieved
 ---
 *Source: PortSwigger Web Security Academy*

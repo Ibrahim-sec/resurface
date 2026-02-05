@@ -37,9 +37,10 @@ The user management functions for this lab are powered by a hidden GraphQL endpo
 - `/api?query=mutation+%7B%0A%09deleteOrganizationUser%28input%3A%7Bid%3A+3%7D%29+%7B%0A%09%09user+%7B%0A%09%09%09id%0A%09%09%7D%0A%09%7D%0A%7D`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: graphql
-
+- Introspection query returns schema
+- Hidden fields/queries discovered
+- Authorization bypass via GraphQL
+- Batching bypasses rate limits
+- Sensitive data exposed via queries
 ---
 *Source: PortSwigger Web Security Academy*

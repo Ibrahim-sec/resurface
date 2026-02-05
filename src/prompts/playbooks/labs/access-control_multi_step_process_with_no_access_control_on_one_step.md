@@ -18,9 +18,10 @@ This lab has an admin panel with a flawed multi-step process for changing a user
 - `carlos`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: broken_access_control
-
+- Unauthorized resource accessed
+- Other user's data visible
+- Admin functionality available to regular user
+- IDOR allows accessing other records
+- Horizontal/vertical privilege escalation
 ---
 *Source: PortSwigger Web Security Academy*

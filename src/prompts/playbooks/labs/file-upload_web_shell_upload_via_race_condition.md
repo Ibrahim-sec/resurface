@@ -52,9 +52,10 @@ function checkFileType($fileName) {
 - `POST`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: file_upload
-
+- Malicious file uploaded successfully
+- Web shell accessible via URL
+- Code execution confirmed
+- File extension restriction bypassed
+- Content-Type validation bypassed
 ---
 *Source: PortSwigger Web Security Academy*

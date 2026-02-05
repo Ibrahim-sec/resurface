@@ -19,9 +19,10 @@ This lab has a "Check stock" feature that parses XML input but does not display 
 - `&xxe;`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: xxe
-
+- External entity resolved
+- Local file contents returned (/etc/passwd)
+- DNS/HTTP callback received (blind XXE)
+- DTD fetched from external server
+- Error messages reveal file contents
 ---
 *Source: PortSwigger Web Security Academy*

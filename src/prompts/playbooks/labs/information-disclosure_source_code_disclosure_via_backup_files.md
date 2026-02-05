@@ -19,9 +19,10 @@ This lab leaks its source code via backup files in a hidden directory. To solve 
 - `/backup/ProductTemplate.java.bak`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: info_disclosure
-
+- Sensitive data exposed in response
+- Error messages reveal internal details
+- Debug endpoints accessible
+- Source code or credentials leaked
+- Stack traces or version info visible
 ---
 *Source: PortSwigger Web Security Academy*

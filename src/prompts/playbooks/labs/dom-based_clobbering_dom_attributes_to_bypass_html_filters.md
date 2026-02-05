@@ -22,9 +22,10 @@ This lab uses the HTMLJanitor library, which is vulnerable to DOM clobbering. To
 - `onfocus`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: xss_dom
-
+- DOM sink receives tainted source data
+- JavaScript executes via DOM manipulation
+- URL fragment or hash value exploited
+- postMessage handler vulnerable
+- Client-side code processes attacker input
 ---
 *Source: PortSwigger Web Security Academy*

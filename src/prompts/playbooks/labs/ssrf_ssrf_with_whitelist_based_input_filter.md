@@ -24,9 +24,10 @@ This lab has a stock check feature which fetches data from an internal system.
 - `http://localhost:80%2523@stock.weliketoshop.net/admin/delete?username=carlos`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: ssrf
-
+- Internal IP/port responds through application
+- Cloud metadata endpoint accessed (169.254.169.254)
+- DNS lookup to attacker server received
+- Internal services enumerated
+- Localhost/127.0.0.1 accessible
 ---
 *Source: PortSwigger Web Security Academy*

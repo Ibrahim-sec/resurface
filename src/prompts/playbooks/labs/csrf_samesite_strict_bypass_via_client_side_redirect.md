@@ -22,9 +22,10 @@ You cannot register an email address that is already taken by another user. If y
 - `/post/foo`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: csrf
-
+- State-changing action performed without user consent
+- No CSRF token required or token bypassable
+- Forged request accepted by server
+- Victim's account modified via attacker page
+- SameSite cookie restrictions bypassed
 ---
 *Source: PortSwigger Web Security Academy*

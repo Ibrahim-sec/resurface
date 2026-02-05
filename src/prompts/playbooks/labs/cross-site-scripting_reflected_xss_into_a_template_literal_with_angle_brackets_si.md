@@ -17,9 +17,10 @@ This lab contains a reflected cross-site scripting vulnerability in the search b
 - `${alert(1)}`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: xss_reflected
-
+- Payload reflected in response without encoding
+- `<script>` tags rendered as HTML elements
+- JavaScript alert/print executes in browser
+- DOM shows injected elements
+- No WAF block or sanitization
 ---
 *Source: PortSwigger Web Security Academy*

@@ -18,9 +18,10 @@ This lab stores user chat logs directly on the server's file system, and retriev
 - `1.txt`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: broken_access_control
-
+- Unauthorized resource accessed
+- Other user's data visible
+- Admin functionality available to regular user
+- IDOR allows accessing other records
+- Horizontal/vertical privilege escalation
 ---
 *Source: PortSwigger Web Security Academy*

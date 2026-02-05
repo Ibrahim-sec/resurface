@@ -21,9 +21,10 @@ The user management functions for this lab are powered by a GraphQL endpoint. Th
 - `getUser`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: graphql
-
+- Introspection query returns schema
+- Hidden fields/queries discovered
+- Authorization bypass via GraphQL
+- Batching bypasses rate limits
+- Sensitive data exposed via queries
 ---
 *Source: PortSwigger Web Security Academy*

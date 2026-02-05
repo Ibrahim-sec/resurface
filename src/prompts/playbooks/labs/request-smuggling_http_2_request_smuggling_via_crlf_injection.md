@@ -33,9 +33,10 @@ search=x`
 - `POST`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: request_smuggling
-
+- Request desync between front/back-end
+- Subsequent request poisoned
+- Other user's request captured
+- Cache poisoned via smuggling
+- Access controls bypassed
 ---
 *Source: PortSwigger Web Security Academy*

@@ -25,9 +25,10 @@ This lab makes a flawed assumption about the user's privilege level based on the
 - `username=administrator`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: logic_flaw
-
+- Business logic bypassed or manipulated
+- Workflow steps skipped or reordered
+- Price/quantity manipulation successful
+- Negative or extreme values accepted
+- State machine or validation violated
 ---
 *Source: PortSwigger Web Security Academy*

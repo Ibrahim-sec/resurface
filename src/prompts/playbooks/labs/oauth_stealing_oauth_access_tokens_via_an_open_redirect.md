@@ -47,9 +47,10 @@ window.location = '/?'+document.location.hash.substr(1)
 - `/exploit`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: oauth
-
+- OAuth token stolen via redirect manipulation
+- Account linked to attacker's OAuth
+- Authorization code intercepted
+- Token leakage via referrer
+- CSRF in OAuth flow exploited
 ---
 *Source: PortSwigger Web Security Academy*

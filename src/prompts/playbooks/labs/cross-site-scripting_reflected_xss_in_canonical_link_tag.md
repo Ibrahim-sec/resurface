@@ -19,9 +19,10 @@ This lab reflects user input in a canonical link tag and escapes angle brackets.
 - `https://YOUR-LAB-ID.web-security-academy.net/?%27accesskey=%27x%27onclick=%27alert(1)`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: xss_reflected
-
+- Payload reflected in response without encoding
+- `<script>` tags rendered as HTML elements
+- JavaScript alert/print executes in browser
+- DOM shows injected elements
+- No WAF block or sanitization
 ---
 *Source: PortSwigger Web Security Academy*

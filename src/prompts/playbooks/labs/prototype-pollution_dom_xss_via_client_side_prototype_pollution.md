@@ -25,9 +25,10 @@ This lab is vulnerable to DOM XSS via client-side prototype pollution. To solve 
 - `/?__proto__[transport_url]=data:,alert(1);`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: prototype_pollution
-
+- __proto__ or constructor.prototype modified
+- Pollution affects application behavior
+- XSS triggered via polluted property
+- Server-side pollution causes RCE
+- Gadget chain executes
 ---
 *Source: PortSwigger Web Security Academy*

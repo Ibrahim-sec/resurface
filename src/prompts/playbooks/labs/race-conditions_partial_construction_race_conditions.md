@@ -25,9 +25,10 @@ You may need to experiment with different ways of lining up the race window to s
 - `Forbidden`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: race_condition
-
+- Concurrent requests bypass rate limits
+- Duplicate transactions or actions occur
+- TOCTOU (time-of-check-time-of-use) exploited
+- Business constraints violated via timing
+- Resource limits exceeded through parallelism
 ---
 *Source: PortSwigger Web Security Academy*

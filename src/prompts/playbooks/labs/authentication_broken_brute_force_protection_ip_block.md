@@ -17,9 +17,10 @@ Advanced users may want to solve this lab by using a macro or the Turbo Intruder
 - `password`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: auth_bypass
-
+- Access granted without valid credentials
+- Session token accepted for different user
+- Admin panel accessible
+- Authentication step skipped
+- User context changed to target account
 ---
 *Source: PortSwigger Web Security Academy*

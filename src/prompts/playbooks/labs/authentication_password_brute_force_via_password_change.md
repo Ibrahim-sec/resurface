@@ -28,9 +28,10 @@ This lab's password change functionality makes it vulnerable to brute-force atta
 - `username=carlos&current-password=§incorrect-password§&new-password-1=123&new-password-2=abc`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: auth_bypass
-
+- Access granted without valid credentials
+- Session token accepted for different user
+- Admin panel accessible
+- Authentication step skipped
+- User context changed to target account
 ---
 *Source: PortSwigger Web Security Academy*

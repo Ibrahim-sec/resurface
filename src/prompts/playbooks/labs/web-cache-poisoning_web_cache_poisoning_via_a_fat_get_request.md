@@ -35,9 +35,10 @@ X-Cache-Key: /js/geolocate.js?callback=setCountryCookie
 arbitraryFunction({"country" : "United Kingdom"})`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: cache_poisoning
-
+- Unkeyed input reflected in cached response
+- X-Cache: hit with poisoned content
+- Victim receives attacker-controlled response
+- XSS executes via cached response
+- Cache key manipulation successful
 ---
 *Source: PortSwigger Web Security Academy*

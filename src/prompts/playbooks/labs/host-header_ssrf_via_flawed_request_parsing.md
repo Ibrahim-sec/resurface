@@ -36,9 +36,10 @@ Host: BURP-COLLABORATOR-SUBDOMAIN`
 - `Set-Cookie`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: host_header
-
+- Host header reflected in response
+- Password reset link poisoned
+- Internal services accessed via Host manipulation
+- Cache poisoned via Host header
+- Routing changed to attacker server
 ---
 *Source: PortSwigger Web Security Academy*

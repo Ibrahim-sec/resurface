@@ -24,9 +24,10 @@ This lab uses a serialization-based session mechanism and is vulnerable to privi
 - `/admin/delete?username=carlos`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: deserialization
-
+- Serialized payload processed without error
+- Code execution via gadget chain
+- File created/deleted on server
+- Out-of-band callback received
+- Server behavior indicates deserialization
 ---
 *Source: PortSwigger Web Security Academy*

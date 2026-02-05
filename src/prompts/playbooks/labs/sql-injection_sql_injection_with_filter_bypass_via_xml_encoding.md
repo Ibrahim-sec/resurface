@@ -23,9 +23,10 @@ extension to do this.
 - `<storeId><@hex_entities>1 UNION SELECT username || '~' || password FROM users</@hex_entities></storeId>`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: sqli
-
+- SQL syntax errors reveal injection point
+- UNION SELECT returns additional data
+- Boolean conditions change response
+- Time delays confirm blind injection
+- Database contents extracted
 ---
 *Source: PortSwigger Web Security Academy*

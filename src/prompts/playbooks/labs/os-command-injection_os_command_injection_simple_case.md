@@ -17,9 +17,10 @@ This lab contains an OS command injection vulnerability in the product stock che
 - `1|whoami`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: rce
-
+- Command output visible in response
+- Time delay confirms blind execution
+- DNS/HTTP callback received at external server
+- File created, modified, or deleted
+- System information extracted (whoami, id)
 ---
 *Source: PortSwigger Web Security Academy*

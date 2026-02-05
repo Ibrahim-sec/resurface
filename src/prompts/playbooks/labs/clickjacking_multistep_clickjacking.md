@@ -71,9 +71,10 @@ This lab has some account functionality that is protected by a CSRF token and al
 - `$opacity`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: clickjacking
-
+- Target page frameable (no X-Frame-Options)
+- Victim clicks hidden element
+- Action performed via UI redressing
+- Frame buster bypassed
+- CSP frame-ancestors missing
 ---
 *Source: PortSwigger Web Security Academy*

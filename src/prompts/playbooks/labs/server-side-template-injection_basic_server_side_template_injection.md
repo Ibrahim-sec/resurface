@@ -29,9 +29,10 @@ This lab is vulnerable to server-side template injection due to the unsafe const
 - `https://YOUR-LAB-ID.web-security-academy.net/?message=<%25+system("rm+/home/carlos/morale.txt")+%25>`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: ssti
-
+- Template expression evaluated (7*7=49)
+- Server-side code execution confirmed
+- OS command output visible
+- Template engine identified
+- File read/write or RCE achieved
 ---
 *Source: PortSwigger Web Security Academy*

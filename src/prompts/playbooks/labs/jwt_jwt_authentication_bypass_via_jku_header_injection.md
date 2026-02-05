@@ -57,9 +57,10 @@ This lab uses a JWT-based mechanism for handling sessions. The server supports t
 - `/admin/delete?username=carlos`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: jwt
-
+- JWT accepted with modified claims
+- Algorithm confusion attack works
+- Signature verification bypassed
+- User context changed via JWT manipulation
+- Admin access achieved with forged token
 ---
 *Source: PortSwigger Web Security Academy*

@@ -18,9 +18,10 @@ This lab contains a debug page that discloses sensitive information about the ap
 - `/cgi-bin/phpinfo.php`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: info_disclosure
-
+- Sensitive data exposed in response
+- Error messages reveal internal details
+- Debug endpoints accessible
+- Source code or credentials leaked
+- Stack traces or version info visible
 ---
 *Source: PortSwigger Web Security Academy*

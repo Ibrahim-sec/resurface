@@ -17,9 +17,10 @@ This lab contains a path traversal vulnerability in the display of product image
 - `../../../etc/passwd`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: path_traversal
-
+- File outside webroot accessed
+- /etc/passwd or similar file contents returned
+- Directory traversal sequences not filtered
+- Null byte or encoding bypass works
+- Sensitive configuration files exposed
 ---
 *Source: PortSwigger Web Security Academy*

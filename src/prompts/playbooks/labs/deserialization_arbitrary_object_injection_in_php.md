@@ -23,9 +23,10 @@ to a filename to retrieve an editor-generated backup file.
 - `O:14:"CustomTemplate":1:{s:14:"lock_file_path";s:23:"/home/carlos/morale.txt";}`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: deserialization
-
+- Serialized payload processed without error
+- Code execution via gadget chain
+- File created/deleted on server
+- Out-of-band callback received
+- Server behavior indicates deserialization
 ---
 *Source: PortSwigger Web Security Academy*

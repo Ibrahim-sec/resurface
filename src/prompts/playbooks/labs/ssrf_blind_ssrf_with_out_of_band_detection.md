@@ -13,9 +13,10 @@ This site uses analytics software which fetches the URL specified in the Referer
 4. You should see some DNS and HTTP interactions that were initiated by the application as the result of your payload.
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: ssrf
-
+- Internal IP/port responds through application
+- Cloud metadata endpoint accessed (169.254.169.254)
+- DNS lookup to attacker server received
+- Internal services enumerated
+- Localhost/127.0.0.1 accessible
 ---
 *Source: PortSwigger Web Security Academy*

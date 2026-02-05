@@ -39,9 +39,10 @@ This lab contains a SQL injection vulnerability. The application uses a tracking
 - `TrackingId=ogAZZfxtOKUELbuJ' AND CAST((SELECT 1) AS int)--`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: sqli
-
+- SQL syntax errors reveal injection point
+- UNION SELECT returns additional data
+- Boolean conditions change response
+- Time delays confirm blind injection
+- Database contents extracted
 ---
 *Source: PortSwigger Web Security Academy*

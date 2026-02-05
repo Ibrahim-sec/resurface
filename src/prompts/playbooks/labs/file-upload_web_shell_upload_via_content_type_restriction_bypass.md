@@ -30,9 +30,10 @@ This lab contains a vulnerable image upload function. It attempts to prevent use
 - `GET /files/avatars/<YOUR-IMAGE>`
 
 ### Indicators of Success
-- Check for changes in application behavior
-- Look for error messages or data exposure
-- Verify the vulnerability type: file_upload
-
+- Malicious file uploaded successfully
+- Web shell accessible via URL
+- Code execution confirmed
+- File extension restriction bypassed
+- Content-Type validation bypassed
 ---
 *Source: PortSwigger Web Security Academy*
