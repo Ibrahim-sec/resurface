@@ -609,7 +609,11 @@ class BrowserUseReplayer:
                 page = await browser.get_current_page()
                 if page:
                     screenshot_path = self.evidence_dir / f"{rid}_vuln_{vuln_type}_{int(time.time())}.png"
-                    screenshot_data = await page.screenshot(path=str(screenshot_path))
+                    # browser-use screenshot() returns base64 string, not bytes
+                    import base64
+                    b64_data = await page.screenshot(format='png')
+                    screenshot_data = base64.b64decode(b64_data)
+                    screenshot_path.write_bytes(screenshot_data)
                     logger.info(f"  📸 Vulnerability screenshot saved: {screenshot_path.name}")
                     findings[-1]["screenshot"] = str(screenshot_path)
             except Exception as e:
@@ -914,7 +918,10 @@ class BrowserUseReplayer:
                 page = await browser.get_current_page()
                 if not page:
                     return "ERROR: No active page"
-                html = await page.content()
+                # Use JavaScript to get HTML since browser-use Page doesn't have content()
+                html = await page.evaluate("document.documentElement.outerHTML")
+                if not html:
+                    return "ERROR: Could not retrieve page HTML"
                 # Save full HTML to file
                 dom_path = self.evidence_dir / f"{rid}_dom_{int(time.time())}.html"
                 dom_path.write_text(html, encoding="utf-8")
