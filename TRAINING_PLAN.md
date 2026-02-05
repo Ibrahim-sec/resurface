@@ -33,6 +33,7 @@ Deploy and test against additional targets:
 - **bWAPP** — Buggy Web Application
 - **HackTheBox/TryHackMe practice boxes** (if accessible)
 - **Mutillidae** — OWASP Mutillidae II
+- **PortSwigger Web Security Academy** — High priority
 
 For each platform:
 1. Deploy via Docker
@@ -45,31 +46,31 @@ For each platform:
 For each test run, classify results:
 
 ### False Positive Patterns to Watch
-- [ ] Network intercept DATA_LEAK triggering on normal API responses (already fixed once for XSS)
-- [ ] Agent claiming vuln found but no actual evidence (dialog, network, visual)
+- [ ] Network intercept DATA_LEAK triggering on normal API responses
+- [ ] Agent claiming vuln found but no actual evidence
 - [ ] AUTH_SUCCESS triggering on non-login API calls
-- [ ] LLM hallucinating findings in `found_vulnerability` without real evidence
+- [ ] LLM hallucinating findings without real evidence
 
 ### False Negative Patterns to Watch
 - [ ] Agent clicking endlessly without typing payloads
 - [ ] Agent can't navigate to the right page (login, search, etc.)
 - [ ] Agent stuck in toggle loops (search bar open/close)
 - [ ] Force-type selectors don't match the target app's DOM
-- [ ] Agent gives up too early (done_hunting=true before testing everything)
+- [ ] Agent gives up too early (done_hunting=true before testing)
 
 ### Fix Categories
-1. **Prompt improvements** — better attack playbook, stronger typing emphasis
-2. **Safety net tuning** — adjust nudge/force-type thresholds per app type
-3. **Network intercept refinement** — tighter URL/body matching per vuln type
-4. **App-specific selectors** — add common input selectors for each platform
-5. **Multi-step strategies** — teach agent to login first, then explore
-6. **Evidence validation** — cross-check LLM claims against actual dialog/network data
+1. **Prompt improvements** — Edit `src/prompts/playbooks/*.md`
+2. **Safety net tuning** — Adjust nudge/force-type thresholds
+3. **Network intercept refinement** — Tighter URL/body matching
+4. **App-specific selectors** — Add common input selectors
+5. **Multi-step strategies** — Teach agent to login first, then explore
+6. **Evidence validation** — Cross-check LLM claims against actual data
 
 ## Phase 5: Benchmark Everything
 After fixes, run full benchmark:
 ```bash
 # All reports, all modes
-python3 resurface.py benchmark --modes http no-llm vision-blind
+python3 resurface.py benchmark --modes http no-llm browser-use browser-use-blind
 
 # Hunt mode against each app
 python3 resurface.py hunt --target http://localhost:3333 --max-actions 30
@@ -77,15 +78,15 @@ python3 resurface.py hunt --target http://localhost:4444 --max-actions 30 --auth
 ```
 
 Build final comparison matrix for FYP:
-- Replay mode: easy vs hard × http vs no-llm vs vision-blind
+- Replay mode: easy vs hard × http vs no-llm vs browser-use-blind
 - Hunt mode: findings per app, false positive rate, cost per finding
 - Human baseline: how long would manual testing take?
 
 ## Code Quality Notes
-- **vision_browser_replayer.py is ~2000 lines** — DO NOT add more features there
-- Extract hunt logic into a separate file if it grows (e.g., `src/browser/hunt_agent.py`)
-- Extract prompts into a separate `src/prompts/` directory
-- Keep the main replayer focused on replay, not discovery
+- **browseruse_replayer.py is ~1285 lines** — Keep it focused on replay
+- **Prompts are in src/prompts/** — Edit markdown files, not Python code
+- **Structured output via instructor** — Use Pydantic models for LLM responses
+- **Retries via tenacity** — Don't write manual retry loops
 
 ## Success Criteria
 - Hunt mode finds ≥3 real vulns on Juice Shop in one run
@@ -93,3 +94,4 @@ Build final comparison matrix for FYP:
 - False positive rate < 10% across all platforms
 - No false negatives on known-vulnerable endpoints
 - Agent types payloads within first 5 actions consistently
+- instructor integration works end-to-end (no JSON parsing errors)

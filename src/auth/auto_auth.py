@@ -576,7 +576,7 @@ class AutoAuth:
                         page.goto(f"{base}{path}", timeout=self.timeout, wait_until='domcontentloaded')
                         time.sleep(1)
                         break
-                    except:
+                    except Exception:
                         continue
 
         # LLM-driven action loop for registration
@@ -586,7 +586,7 @@ class AutoAuth:
                 url = page.url
                 title = page.title()
                 page_text = page.inner_text('body')[:3000]
-            except:
+            except Exception:
                 break
 
             actions_so_far = "None yet" if not actions_history else "\n".join(
@@ -669,7 +669,7 @@ class AutoAuth:
                     if page.url != url:
                         result['success'] = True
                         return result
-                except:
+                except Exception:
                     pass
                 break
 
@@ -680,7 +680,7 @@ class AutoAuth:
             final_url = page.url
             if '/dashboard' in final_url or '/home' in final_url or '/profile' in final_url:
                 result['success'] = True
-        except:
+        except Exception:
             pass
 
         return result
@@ -712,7 +712,7 @@ class AutoAuth:
                         page.goto(f"{base}{path}", timeout=self.timeout, wait_until='domcontentloaded')
                         time.sleep(1)
                         break
-                    except:
+                    except Exception:
                         continue
 
         # LLM-driven action loop for login
@@ -722,7 +722,7 @@ class AutoAuth:
                 url = page.url
                 title = page.title()
                 page_text = page.inner_text('body')[:3000]
-            except:
+            except Exception:
                 break
 
             actions_so_far = "None yet" if not actions_history else "\n".join(
@@ -798,7 +798,7 @@ class AutoAuth:
                     if final_url != url and '/login' not in final_url.lower():
                         result['success'] = True
                         return result
-                except:
+                except Exception:
                     pass
                 break
 
@@ -809,7 +809,7 @@ class AutoAuth:
             final_text = page.inner_text('body')[:2000].lower()
             if 'logout' in final_text or 'sign out' in final_text:
                 result['success'] = True
-        except:
+        except Exception:
             pass
 
         return result
@@ -909,7 +909,7 @@ class AutoAuth:
                 page_text = page.inner_text('body')[:2000]
                 url = page.url
                 title = page.title()
-            except:
+            except Exception:
                 page_text = ""
                 url = ""
                 title = ""
@@ -983,7 +983,7 @@ class AutoAuth:
                 # Clear field first, then fill
                 try:
                     page.fill(target, value, timeout=10000)
-                except:
+                except Exception:
                     # Fallback: click then type
                     page.click(target, timeout=5000)
                     page.keyboard.press('Control+a')
@@ -1002,7 +1002,7 @@ class AutoAuth:
                         page.evaluate(f"document.querySelector('{target}').submit()")
                     else:
                         page.evaluate("document.querySelector('form').submit()")
-                except:
+                except Exception:
                     try:
                         selector = f"{target} " if target else ""
                         page.click(
@@ -1012,11 +1012,11 @@ class AutoAuth:
                             f"{selector}input[type='submit']",
                             timeout=5000,
                         )
-                    except:
+                    except Exception:
                         page.keyboard.press('Enter')
                 try:
                     page.wait_for_load_state('domcontentloaded', timeout=10000)
-                except:
+                except Exception:
                     pass
                 return True
 

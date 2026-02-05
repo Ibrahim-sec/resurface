@@ -159,14 +159,14 @@ class HTTPReplayer:
                 evidence.status_code = e.code
                 try:
                     error_body = e.read().decode('utf-8', errors='replace')
-                except:
+                except Exception:
                     error_body = str(e)
 
                 response_headers_str = ""
                 try:
                     for k, v in e.headers.items():
                         response_headers_str += f"{k}: {v}\n"
-                except:
+                except Exception:
                     pass
 
                 evidence.response_received = f"HTTP {e.code}\n{response_headers_str}\n{error_body[:5000]}"

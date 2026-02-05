@@ -1,175 +1,45 @@
 """
-LLM-powered report parser — extracts structured PoC steps from raw reports
+LLM-powered report parser — extracts structured PoC steps from raw reports.
+
+Uses instructor for guaranteed Pydantic structured output.
 """
-import json
-import urllib.request
 from typing import Optional
 from datetime import datetime
 from loguru import logger
 
 from src.models import (
-    ParsedReport, PoC_Step, VulnType, ReplayMethod
+    ParsedReport, PoC_Step, VulnType, ReplayMethod, LLMParsedReport
 )
-
-
-PARSE_PROMPT = """You are a cybersecurity expert analyzing a disclosed bug bounty report. Your job is to extract structured, reproducible information from the report.
-
-## Report Details
-- **Title:** {title}
-- **Platform:** HackerOne
-- **Program:** {team}
-- **Severity:** {severity}
-- **Weakness Category:** {weakness}
-
-## Report Content
-{vulnerability_information}
-
----
-
-## Your Task
-Analyze this report and extract the following as JSON:
-
-{{
-    "vuln_type": "<one of: xss_reflected, xss_stored, xss_dom, idor, ssrf, open_redirect, csrf, sqli, info_disclosure, path_traversal, rce, auth_bypass, privilege_escalation, unknown>",
-    "target_url": "<the main URL/endpoint being targeted, or null>",
-    "target_domain": "<the target domain, or null>",
-    "description": "<brief description of the vulnerability in 1-2 sentences>",
-    "impact": "<what an attacker could achieve>",
-    "requires_auth": <true/false - does the PoC need authentication?>,
-    "auth_details": "<what kind of auth is needed, or null>",
-    "replay_method": "<http or browser - does this need a real browser or just HTTP requests?>",
-    "confidence": <0.0 to 1.0 - how confident are you that the PoC steps are complete and reproducible?>,
-    "steps": [
-        {{
-            "order": 1,
-            "description": "<what to do in this step>",
-            "method": "<HTTP method: GET/POST/PUT/DELETE or null for browser actions>",
-            "url": "<full URL for this step, or null>",
-            "headers": {{}},
-            "params": {{}},
-            "body": "<request body if POST, or null>",
-            "payload": "<the actual exploit payload if any, or null>",
-            "expected_behavior": "<what should happen if the vulnerability exists>",
-            "browser_action": "<for browser-based: describe the browser action, or null>"
-        }}
-    ]
-}}
-
-## Rules
-- Extract EXACT URLs, payloads, and parameters from the report
-- If the report mentions specific endpoints, include them verbatim
-- If steps are unclear or missing, set confidence lower
-- For XSS: always include the exact payload
-- For IDOR: include the parameter that needs to be changed and what values to use
-- For SSRF: include the callback/target URL pattern
-- If the report has multiple PoCs, use the most impactful one
-- Return ONLY valid JSON, no markdown or explanation
-"""
+from src.llm import LLMClient
+from src.prompts import load_prompt, format_prompt
 
 
 class LLMParser:
-    """Parses bug bounty reports using Gemini or Groq LLM"""
+    """Parses bug bounty reports using LLM with structured output."""
     
-    GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-    
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash",
-                 temperature: float = 0.1, provider: str = "gemini",
-                 verbose: bool = False):
-        self.api_key = api_key
-        self.model = model
-        self.temperature = temperature
-        self.provider = provider
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "llama-4-scout-17b-16e-instruct",
+        temperature: float = 0.1,
+        provider: str = "groq",
+        verbose: bool = False,
+    ):
+        self.client = LLMClient(
+            api_key=api_key,
+            model=model,
+            provider=provider,
+            temperature=temperature,
+            max_tokens=4096,
+            verbose=verbose,
+        )
         self.verbose = verbose
-    
-    def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
-        """Call LLM API (Gemini or Groq) with retry + exponential backoff"""
-        import time as _time
-        
-        if self.verbose:
-            from src.utils.verbose import print_llm_prompt
-            print_llm_prompt(prompt, label="Parser")
-        
-        for attempt in range(max_retries):
-            try:
-                if self.provider == "groq":
-                    result = self._call_groq(prompt)
-                else:
-                    result = self._call_gemini(prompt)
-                
-                if self.verbose and result:
-                    from src.utils.verbose import print_llm_response
-                    print_llm_response(result, label="Parser")
-                
-                return result
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait = (2 ** attempt) * 5
-                    logger.warning(f"Rate limited (429). Retrying in {wait}s... (attempt {attempt+1}/{max_retries})")
-                    _time.sleep(wait)
-                    continue
-                else:
-                    logger.error(f"LLM API call failed: HTTP {e.code}")
-                    return None
-            except Exception as e:
-                logger.error(f"LLM API call failed: {e}")
-                return None
-        
-        logger.error(f"LLM API: max retries ({max_retries}) exhausted")
-        return None
-    
-    def _call_gemini(self, prompt: str) -> Optional[str]:
-        """Call Gemini API"""
-        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": self.temperature,
-                "maxOutputTokens": 4096,
-                "responseMimeType": "application/json"
-            }
-        }
-        req = urllib.request.Request(url, headers={'Content-Type': 'application/json'})
-        req.data = json.dumps(payload).encode()
-        resp = urllib.request.urlopen(req, timeout=60)
-        data = json.loads(resp.read())
-        candidates = data.get('candidates', [])
-        if candidates:
-            parts = candidates[0].get('content', {}).get('parts', [])
-            if parts:
-                return parts[0].get('text', '')
-        return None
-    
-    def _call_groq(self, prompt: str) -> Optional[str]:
-        """Call Groq API (OpenAI-compatible)"""
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": self.temperature,
-            "max_tokens": 4096,
-            "response_format": {"type": "json_object"}
-        }
-        req = urllib.request.Request(self.GROQ_URL, headers={
-            'Content-Type': 'application/json', 'User-Agent': 'Resurface/1.0',
-            'Authorization': f'Bearer {self.api_key}'
-        })
-        req.data = json.dumps(payload).encode()
-        resp = urllib.request.urlopen(req, timeout=60)
-        data = json.loads(resp.read())
-        choices = data.get('choices', [])
-        if choices:
-            return choices[0].get('message', {}).get('content', '')
-        return None
     
     def parse_report(self, report: dict) -> Optional[ParsedReport]:
         """
         Parse a raw HackerOne report into structured PoC steps.
         
-        Args:
-            report: Raw HackerOne report dict (from .json endpoint)
-        
-        Returns:
-            ParsedReport with extracted PoC steps, or None on failure
+        Uses instructor for guaranteed valid Pydantic output.
         """
         report_id = report.get('id', 0)
         title = report.get('title', 'Unknown')
@@ -183,92 +53,59 @@ class LLMParser:
             logger.warning(f"Report {report_id} has insufficient content ({len(vuln_info)} chars)")
             return None
         
-        # Build prompt
-        prompt = PARSE_PROMPT.format(
+        # Load and format prompt template
+        prompt = format_prompt(
+            "parse_report",
             title=title,
             team=team,
             severity=severity,
             weakness=weakness_name,
-            vulnerability_information=vuln_info[:8000]  # Limit to avoid token overflow
+            vulnerability_information=vuln_info[:8000]
         )
         
         logger.info(f"Parsing report {report_id}: {title[:50]}...")
         
-        # Call LLM
-        response_text = self._call_llm(prompt)
-        if not response_text:
+        # Use instructor for structured output
+        parsed = self.client.call_structured(
+            prompt=prompt,
+            response_model=LLMParsedReport,
+            label="Parser"
+        )
+        
+        if not parsed:
             logger.error(f"No response from LLM for report {report_id}")
             return None
         
-        # Parse JSON response
-        try:
-            # Clean response — sometimes LLM wraps in markdown code blocks
-            text = response_text.strip()
-            if text.startswith('```'):
-                text = text.split('\n', 1)[1]  # Remove first line
-                text = text.rsplit('```', 1)[0]  # Remove last ```
-            
-            parsed = json.loads(text)
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse LLM JSON for report {report_id}: {e}")
-            logger.debug(f"Raw LLM response: {response_text[:500]}")
-            return None
-        
-        # Convert to ParsedReport
-        try:
-            vuln_type = VulnType(parsed.get('vuln_type', 'unknown'))
-        except ValueError:
-            vuln_type = VulnType.UNKNOWN
-        
-        try:
-            replay_method = ReplayMethod(parsed.get('replay_method', 'http'))
-        except ValueError:
-            replay_method = ReplayMethod.HTTP
-        
-        steps = []
-        for s in parsed.get('steps', []):
-            steps.append(PoC_Step(
-                order=s.get('order', 0),
-                description=s.get('description', ''),
-                method=s.get('method'),
-                url=s.get('url'),
-                headers=s.get('headers', {}),
-                params=s.get('params', {}),
-                body=s.get('body'),
-                payload=s.get('payload'),
-                expected_behavior=s.get('expected_behavior'),
-                browser_action=s.get('browser_action')
-            ))
-        
+        # Convert LLMParsedReport to ParsedReport
         result = ParsedReport(
             report_id=report_id,
             title=title,
-            vuln_type=vuln_type,
+            vuln_type=parsed.vuln_type,
             severity=severity,
-            target_url=parsed.get('target_url'),
-            target_domain=parsed.get('target_domain'),
+            target_url=parsed.target_url,
+            target_domain=parsed.target_domain,
             weakness=weakness_name,
-            description=parsed.get('description', ''),
-            impact=parsed.get('impact', ''),
-            steps=steps,
-            replay_method=replay_method,
-            requires_auth=parsed.get('requires_auth', False),
-            auth_details=parsed.get('auth_details'),
+            description=parsed.description,
+            impact=parsed.impact,
+            steps=parsed.steps,
+            replay_method=parsed.replay_method,
+            requires_auth=parsed.requires_auth,
+            auth_details=parsed.auth_details,
             original_report_text=vuln_info,
             parsed_at=datetime.now(),
-            confidence=parsed.get('confidence', 0.0)
+            confidence=parsed.confidence,
         )
         
         logger.info(
-            f"Parsed report {report_id}: type={vuln_type.value}, "
-            f"steps={len(steps)}, method={replay_method.value}, "
+            f"Parsed report {report_id}: type={result.vuln_type}, "
+            f"steps={len(result.steps)}, method={result.replay_method}, "
             f"confidence={result.confidence}"
         )
         
         return result
     
     def parse_batch(self, reports: list[dict], delay: float = 1.0) -> list[ParsedReport]:
-        """Parse multiple reports with rate limiting"""
+        """Parse multiple reports with rate limiting."""
         import time
         
         results = []

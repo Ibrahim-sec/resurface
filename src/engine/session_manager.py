@@ -7,14 +7,12 @@ Supports template substitution: steps can reference {{csrf_token}}, {{session_id
 """
 import json
 import re
-import time
-import urllib.request
-import urllib.error
-from http.cookiejar import CookieJar, Cookie
+from http.cookiejar import CookieJar
 from typing import Optional
 from loguru import logger
 
 from src.models import SessionState
+from src.llm import LLMClient
 
 
 # ---------------------------------------------------------------------------
@@ -84,92 +82,30 @@ class SessionManager:
     - Manual value injection
     """
 
-    GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
     def __init__(
         self,
         api_key: str = "",
-        model: str = "gemini-2.0-flash",
-        provider: str = "gemini",
+        model: str = "llama-4-scout-17b-16e-instruct",
+        provider: str = "groq",
         auto_extract: bool = True,
     ):
         self.api_key = api_key
-        self.model = model
-        self.provider = provider
         self.auto_extract = auto_extract
         self.state = SessionState()
         self._cookie_jar = CookieJar()
-
-    # ------------------------------------------------------------------
-    # LLM communication
-    # ------------------------------------------------------------------
-    def _call_llm(self, prompt: str, max_retries: int = 5) -> Optional[str]:
-        if not self.api_key:
-            return None
-        for attempt in range(max_retries):
-            try:
-                if self.provider == "groq":
-                    return self._call_groq(prompt)
-                else:
-                    return self._call_gemini(prompt)
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait = (2 ** attempt) * 5
-                    logger.warning(f"Rate limited (429). Retrying in {wait}s...")
-                    time.sleep(wait)
-                    continue
-                logger.error(f"LLM call failed: HTTP {e.code}")
-                return None
-            except Exception as e:
-                logger.error(f"LLM call failed: {e}")
-                return None
-        return None
-
-    def _call_gemini(self, prompt: str) -> Optional[str]:
-        url = self.GEMINI_URL.format(model=self.model) + f"?key={self.api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.1,
-                "maxOutputTokens": 2048,
-                "responseMimeType": "application/json",
-            },
-        }
-        req = urllib.request.Request(url, headers={"Content-Type": "application/json"})
-        req.data = json.dumps(payload).encode()
-        resp = urllib.request.urlopen(req, timeout=60)
-        data = json.loads(resp.read())
-        candidates = data.get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                return parts[0].get("text", "")
-        return None
-
-    def _call_groq(self, prompt: str) -> Optional[str]:
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1,
-            "max_tokens": 2048,
-            "response_format": {"type": "json_object"},
-        }
-        req = urllib.request.Request(
-            self.GROQ_URL,
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "Resurface/1.0",
-                "Authorization": f"Bearer {self.api_key}",
-            },
-        )
-        req.data = json.dumps(payload).encode()
-        resp = urllib.request.urlopen(req, timeout=60)
-        data = json.loads(resp.read())
-        choices = data.get("choices", [])
-        if choices:
-            return choices[0].get("message", {}).get("content", "")
-        return None
+        
+        # Initialize LLM client if API key provided
+        if api_key:
+            self.client = LLMClient(
+                api_key=api_key,
+                model=model,
+                provider=provider,
+                temperature=0.1,
+                max_tokens=2048,
+                verbose=False,
+            )
+        else:
+            self.client = None
 
     # ------------------------------------------------------------------
     # Cookie management
@@ -236,7 +172,7 @@ class SessionManager:
         self._regex_extract(response_body)
 
         # LLM-based extraction for deeper analysis
-        if not self.auto_extract or not self.api_key:
+        if not self.auto_extract or not self.client:
             return
 
         existing = (
@@ -253,18 +189,8 @@ class SessionManager:
             existing_values=existing,
         )
 
-        raw = self._call_llm(prompt)
-        if not raw:
-            return
-
-        try:
-            text = raw.strip()
-            if text.startswith("```"):
-                text = text.split("\n", 1)[1]
-                text = text.rsplit("```", 1)[0]
-            parsed = json.loads(text)
-        except json.JSONDecodeError:
-            logger.warning("Session manager: invalid JSON from LLM extraction")
+        parsed = self.client.call_json(prompt, label="Session Extract")
+        if not parsed:
             return
 
         # Process extracted values

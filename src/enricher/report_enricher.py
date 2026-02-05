@@ -10,14 +10,13 @@ Pipeline:  Raw Report → Parser → Enricher → Browser Agent
                               4. Post-failure refinement (learn from failed attempts)
 """
 import json
-import time
-import urllib.request
-import urllib.parse
+import httpx
 from typing import Optional
 from dataclasses import dataclass, field
 from loguru import logger
 
 from src.models import ParsedReport, PoC_Step, VulnType
+from src.llm import LLMClient
 
 
 # ── Data Models ──────────────────────────────────────────────────────
@@ -164,63 +163,22 @@ class ReportEnricher:
     pre-flight recon, and post-failure refinement.
     """
 
-    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
     def __init__(
         self,
         api_key: str,
-        model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: str = "llama-4-scout-17b-16e-instruct",
         provider: str = "groq",
         verbose: bool = False,
     ):
-        self.api_key = api_key
-        self.model = model
-        self.provider = provider
+        self.client = LLMClient(
+            api_key=api_key,
+            model=model,
+            provider=provider,
+            temperature=0.3,
+            max_tokens=4096,
+            verbose=verbose,
+        )
         self.verbose = verbose
-
-    # ── LLM Call ─────────────────────────────────────────────────────
-
-    def _call_llm(self, prompt: str) -> Optional[str]:
-        """Call Groq API for enrichment (fast + free)."""
-        if self.verbose:
-            logger.debug(f"  📝 Enricher prompt ({len(prompt)} chars)")
-
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.3,
-            "max_tokens": 4096,
-            "response_format": {"type": "json_object"},
-        }
-
-        for attempt in range(3):
-            try:
-                req = urllib.request.Request(
-                    self.GROQ_URL,
-                    headers={
-                        "Content-Type": "application/json",
-                        "Authorization": f"Bearer {self.api_key}",
-                    },
-                )
-                req.data = json.dumps(payload).encode()
-                resp = urllib.request.urlopen(req, timeout=30)
-                data = json.loads(resp.read())
-                content = data["choices"][0]["message"]["content"]
-                if self.verbose:
-                    logger.debug(f"  📝 Enricher response ({len(content)} chars)")
-                return content
-            except urllib.error.HTTPError as e:
-                if e.code == 429:
-                    wait = (2 ** attempt) * 3
-                    logger.warning(f"  Enricher rate limited, waiting {wait}s...")
-                    time.sleep(wait)
-                    continue
-                logger.error(f"  Enricher LLM error: HTTP {e.code}")
-                return None
-            except Exception as e:
-                logger.error(f"  Enricher LLM error: {e}")
-                return None
-        return None
 
     # ── Pre-flight Recon ─────────────────────────────────────────────
 
@@ -235,22 +193,21 @@ class ReportEnricher:
 
         # Check target is alive
         try:
-            req = urllib.request.Request(target_url, method="GET")
-            req.add_header("User-Agent", "Resurface/2.0")
-            resp = urllib.request.urlopen(req, timeout=10)
-            result.target_alive = True
-            result.status_code = resp.status
-            result.notes = f"Target alive ({resp.status})"
-            logger.info(f"  ✈️  Preflight: target alive ({resp.status})")
-        except urllib.error.HTTPError as e:
+            with httpx.Client(timeout=10, verify=False) as client:
+                resp = client.get(target_url, headers={"User-Agent": "Resurface/2.0"})
+                result.target_alive = True
+                result.status_code = resp.status_code
+                result.notes = f"Target alive ({resp.status_code})"
+                logger.info(f"  ✈️  Preflight: target alive ({resp.status_code})")
+        except httpx.HTTPStatusError as e:
             result.target_alive = True  # Server responded, just with error
-            result.status_code = e.code
-            if e.code in (401, 403):
+            result.status_code = e.response.status_code
+            if e.response.status_code in (401, 403):
                 result.auth_required = True
-                result.notes = f"Target responds with {e.code} (auth required)"
+                result.notes = f"Target responds with {e.response.status_code} (auth required)"
             else:
-                result.notes = f"Target responds with {e.code}"
-            logger.info(f"  ✈️  Preflight: target responded {e.code}")
+                result.notes = f"Target responds with {e.response.status_code}"
+            logger.info(f"  ✈️  Preflight: target responded {e.response.status_code}")
         except Exception as e:
             result.notes = f"Target unreachable: {e}"
             logger.warning(f"  ✈️  Preflight: target unreachable — {e}")
@@ -269,30 +226,29 @@ class ReportEnricher:
                 vuln_url = target_url.rstrip("/") + vuln_url
 
             try:
-                req = urllib.request.Request(vuln_url, method="GET")
-                req.add_header("User-Agent", "Resurface/2.0")
-                resp = urllib.request.urlopen(req, timeout=10)
-                result.endpoint_exists = True
-                result.endpoint_status = resp.status
-                logger.info(f"  ✈️  Preflight: endpoint exists ({resp.status})")
-            except urllib.error.HTTPError as e:
-                result.endpoint_status = e.code
-                if e.code == 404:
+                with httpx.Client(timeout=10, verify=False) as client:
+                    resp = client.get(vuln_url, headers={"User-Agent": "Resurface/2.0"})
+                    result.endpoint_exists = True
+                    result.endpoint_status = resp.status_code
+                    logger.info(f"  ✈️  Preflight: endpoint exists ({resp.status_code})")
+            except httpx.HTTPStatusError as e:
+                result.endpoint_status = e.response.status_code
+                if e.response.status_code == 404:
                     result.endpoint_exists = False
                     result.notes += f" | Endpoint {vuln_url} → 404 (may be removed)"
                     logger.info(f"  ✈️  Preflight: endpoint 404")
-                elif e.code in (401, 403):
+                elif e.response.status_code in (401, 403):
                     result.endpoint_exists = True
                     result.auth_required = True
-                    result.notes += f" | Endpoint needs auth ({e.code})"
-                    logger.info(f"  ✈️  Preflight: endpoint needs auth ({e.code})")
-                elif e.code == 405:
+                    result.notes += f" | Endpoint needs auth ({e.response.status_code})"
+                    logger.info(f"  ✈️  Preflight: endpoint needs auth ({e.response.status_code})")
+                elif e.response.status_code == 405:
                     result.endpoint_exists = True  # Exists but wrong method
                     result.notes += f" | Endpoint exists (405 — try POST)"
                     logger.info(f"  ✈️  Preflight: endpoint exists (405)")
                 else:
                     result.endpoint_exists = True
-                    result.notes += f" | Endpoint → {e.code}"
+                    result.notes += f" | Endpoint → {e.response.status_code}"
             except Exception as e:
                 result.notes += f" | Endpoint check failed: {e}"
 
@@ -340,7 +296,7 @@ class ReportEnricher:
         if pf.notes:
             preflight_text += f"- Notes: {pf.notes}\n"
 
-        # Call LLM
+        # Call LLM via unified client
         prompt = ENRICH_PROMPT.format(
             vuln_type=report.vuln_type.value,
             title=report.title,
@@ -350,42 +306,36 @@ class ReportEnricher:
             preflight_text=preflight_text,
         )
 
-        response = self._call_llm(prompt)
+        data = self.client.call_json(prompt, label="Enricher")
 
         # Parse LLM response
         enriched = EnrichedReport(original=report, preflight=preflight_result)
 
-        if response:
-            try:
-                data = json.loads(response)
+        if data:
+            # Parse strategies
+            for s in data.get("strategies", []):
+                enriched.strategies.append(AttackStrategy(
+                    name=s.get("name", "Unknown"),
+                    description=s.get("description", ""),
+                    steps=s.get("steps", []),
+                    payloads=s.get("payloads", []),
+                    fallback_note=s.get("fallback_note", ""),
+                    priority=s.get("priority", 1),
+                ))
 
-                # Parse strategies
-                for s in data.get("strategies", []):
-                    enriched.strategies.append(AttackStrategy(
-                        name=s.get("name", "Unknown"),
-                        description=s.get("description", ""),
-                        steps=s.get("steps", []),
-                        payloads=s.get("payloads", []),
-                        fallback_note=s.get("fallback_note", ""),
-                        priority=s.get("priority", 1),
-                    ))
+            enriched.payload_variants = data.get("payload_variants", [])
+            enriched.inferred_endpoints = data.get("inferred_endpoints", [])
 
-                enriched.payload_variants = data.get("payload_variants", [])
-                enriched.inferred_endpoints = data.get("inferred_endpoints", [])
+            # Build the enriched prompt for the agent
+            enriched.enriched_prompt = self._build_enriched_prompt(
+                report, enriched, target_url, preflight_result
+            )
 
-                # Build the enriched prompt for the agent
-                enriched.enriched_prompt = self._build_enriched_prompt(
-                    report, enriched, target_url, preflight_result
-                )
-
-                logger.info(
-                    f"  🧪 Enriched: {len(enriched.strategies)} strategies, "
-                    f"{len(enriched.payload_variants)} payloads, "
-                    f"{len(enriched.inferred_endpoints)} endpoints"
-                )
-            except json.JSONDecodeError as e:
-                logger.warning(f"  🧪 Enricher JSON parse failed: {e}")
-                enriched.enriched_prompt = ""  # Fall back to original prompt
+            logger.info(
+                f"  🧪 Enriched: {len(enriched.strategies)} strategies, "
+                f"{len(enriched.payload_variants)} payloads, "
+                f"{len(enriched.inferred_endpoints)} endpoints"
+            )
         else:
             logger.warning("  🧪 Enrichment LLM call failed — using original prompt")
 
@@ -425,50 +375,47 @@ class ReportEnricher:
             failure_log=failure_log[:3000],
         )
 
-        response = self._call_llm(prompt)
+        data = self.client.call_json(prompt, label="Enricher Refine")
 
-        if response:
-            try:
-                data = json.loads(response)
+        if data:
+            # Replace strategies with refined ones
+            enriched.strategies = []
+            for s in data.get("strategies", []):
+                enriched.strategies.append(AttackStrategy(
+                    name=s.get("name", "Unknown"),
+                    description=s.get("description", ""),
+                    steps=s.get("steps", []),
+                    payloads=s.get("payloads", []),
+                    fallback_note=s.get("fallback_note", ""),
+                    priority=s.get("priority", 1),
+                ))
 
-                # Replace strategies with refined ones
-                enriched.strategies = []
-                for s in data.get("strategies", []):
-                    enriched.strategies.append(AttackStrategy(
-                        name=s.get("name", "Unknown"),
-                        description=s.get("description", ""),
-                        steps=s.get("steps", []),
-                        payloads=s.get("payloads", []),
-                        fallback_note=s.get("fallback_note", ""),
-                        priority=s.get("priority", 1),
-                    ))
+            # Merge new payloads (keep old ones too)
+            new_payloads = data.get("payload_variants", [])
+            enriched.payload_variants = list(set(enriched.payload_variants + new_payloads))
 
-                # Merge new payloads (keep old ones too)
-                new_payloads = data.get("payload_variants", [])
-                enriched.payload_variants = list(set(enriched.payload_variants + new_payloads))
+            new_endpoints = data.get("inferred_endpoints", [])
+            enriched.inferred_endpoints = list(set(enriched.inferred_endpoints + new_endpoints))
 
-                new_endpoints = data.get("inferred_endpoints", [])
-                enriched.inferred_endpoints = list(set(enriched.inferred_endpoints + new_endpoints))
+            # Rebuild prompt with lessons learned
+            lessons = data.get("lessons_learned", "")
+            observations = data.get("key_observations", "")
 
-                # Rebuild prompt with lessons learned
-                lessons = data.get("lessons_learned", "")
-                observations = data.get("key_observations", "")
+            enriched.enriched_prompt = self._build_enriched_prompt(
+                enriched.original, enriched, target_url, enriched.preflight,
+                extra_context=(
+                    f"\n## LESSONS FROM PREVIOUS FAILURE (Attempt #{enriched.attempt_number - 1})\n"
+                    f"{lessons}\n{observations}\n"
+                    f"DO NOT repeat these mistakes. Try a different approach.\n"
+                ),
+            )
 
-                enriched.enriched_prompt = self._build_enriched_prompt(
-                    enriched.original, enriched, target_url, enriched.preflight,
-                    extra_context=(
-                        f"\n## LESSONS FROM PREVIOUS FAILURE (Attempt #{enriched.attempt_number - 1})\n"
-                        f"{lessons}\n{observations}\n"
-                        f"DO NOT repeat these mistakes. Try a different approach.\n"
-                    ),
-                )
-
-                logger.info(
-                    f"  🔄 Refined: {len(enriched.strategies)} new strategies, "
-                    f"attempt #{enriched.attempt_number}"
-                )
-            except json.JSONDecodeError:
-                logger.warning("  🔄 Refinement JSON parse failed")
+            logger.info(
+                f"  🔄 Refined: {len(enriched.strategies)} new strategies, "
+                f"attempt #{enriched.attempt_number}"
+            )
+        else:
+            logger.warning("  🔄 Refinement LLM call failed")
 
         return enriched
 

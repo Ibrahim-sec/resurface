@@ -492,7 +492,7 @@ class AuthManager:
             try:
                 err_body = e.read().decode('utf-8', errors='replace')[:500]
                 log_lines.append(f"  body: {err_body}")
-            except:
+            except Exception:
                 pass
         except Exception as e:
             log_lines.append(f"  error: {e}")
@@ -603,7 +603,7 @@ class AuthManager:
             try:
                 err_body = e.read().decode('utf-8', errors='replace')[:500]
                 log_lines.append(f"  body: {err_body}")
-            except:
+            except Exception:
                 pass
         except Exception as e:
             log_lines.append(f"  error: {e}")

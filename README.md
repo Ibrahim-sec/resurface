@@ -26,6 +26,7 @@ Resurface parses disclosed bug bounty reports, autonomously replays them against
                            │
                     ┌──────▼──────┐
                     │   Parser    │  LLM extracts vuln type, steps, payloads
+                    │ (instructor)│  Guaranteed Pydantic output
                     └──────┬──────┘
                            │
                     ┌──────▼──────┐
@@ -35,25 +36,25 @@ Resurface parses disclosed bug bounty reports, autonomously replays them against
               ┌────────────┼────────────┐
               │            │            │
        ┌──────▼──────┐ ┌──▼───┐ ┌──────▼──────┐
-       │ Recon Agent  │ │ HTTP │ │ Browser-Use │
-       │ (Phase 1)    │ │      │ │  (Phase 2)  │
-       │ Learn site   │ │      │ │ 13 tools    │
-       └──────┬───────┘ └──┬───┘ └──────┬──────┘
-              │            │            │
-              │   ┌────────▼────────┐   │
-              └──▶│   Site Cache    │◀──┘
-                  └────────┬────────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Validator  │  LLM or regex baseline
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-       ┌──────▼──────┐ ┌──▼───┐ ┌──────▼──────┐
-       │  Evidence   │ │ JSON │ │   HTML      │
-       │   Chain     │ │      │ │  Reports    │
-       └─────────────┘ └──────┘ └─────────────┘
+       │ Recon Agent │ │ HTTP │ │ Browser-Use │
+       │ (Phase 1)   │ │      │ │  (Phase 2)  │
+       │ Learn site  │ │      │ │ 13 tools    │
+       └──────┬──────┘ └──┬───┘ └──────┬──────┘
+              │           │            │
+              │  ┌────────▼────────┐   │
+              └─▶│   Site Cache    │◀──┘
+                 └────────┬────────┘
+                          │
+                   ┌──────▼──────┐
+                   │  Validator  │  LLM (instructor) or regex baseline
+                   └──────┬──────┘
+                          │
+             ┌────────────┼────────────┐
+             │            │            │
+      ┌──────▼──────┐ ┌──▼───┐ ┌──────▼──────┐
+      │  Evidence   │ │ JSON │ │   HTML      │
+      │   Chain     │ │      │ │  Reports    │
+      └─────────────┘ └──────┘ └─────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -84,9 +85,6 @@ python3 resurface.py replay --report 900102 --target http://localhost:3333
 # Parallel replay (multiple browsers)
 python3 resurface.py parallel-replay --target http://localhost:3333 -c 3
 
-# Auto-generate reports from a target
-python3 resurface.py generate --target http://localhost:3333
-
 # Autonomous hunt (no reports needed)
 python3 resurface.py hunt --target http://localhost:3333
 
@@ -104,7 +102,7 @@ python3 resurface.py replay-all --target http://localhost:3333 --no-llm
 | `scrape` | Scrape disclosed reports from HackerOne |
 | `list` | List available reports |
 | `parse` | Parse reports with LLM (or regex with `--no-llm`) |
-| `replay` | Replay a single report (`--browser`, `--blind`, `--enrich`, `--recon`, `--cloud`) |
+| `replay` | Replay a single report (`--browser`, `--blind`, `--enrich`, `--recon`) |
 | `replay-all` | Replay all reports (`--async`, `--parallel`) |
 | `parallel-replay` | Multiple browser agents concurrently (`-c 3`) |
 | `recon` | LLM-powered site reconnaissance (Phase 1) |
@@ -128,35 +126,78 @@ The browser-use agent has 13 tools available during replay:
 | `make_request` | HTTP requests with cookie sync (like Burp Repeater) |
 | `check_response` | Analyze response for vuln indicators |
 | `auto_login` | One-click auth from config profile |
-| `capture_dom` | Snapshot page HTML |
+| `capture_dom` | Snapshot page HTML as evidence |
 | `get_payloads` | Curated payloads by vuln type |
 | `mutate_payload` | Generate WAF bypass variants |
 | `test_bypass` | Test bypass payload, get blocked/not-blocked verdict |
 | `checkpoint` / `chain_status` | Multi-step exploit chain tracking |
 
-## 🔬 Two-Phase Replay
+## 🔧 Tech Stack
 
-**Phase 1 — Recon** (cheap, uses Groq):
-- LLM agent explores the target
-- Maps pages, forms, APIs, auth flows
-- No payloads injected — observation only
-- Results cached in SiteCache
+| Component | Technology |
+|-----------|------------|
+| **LLM Abstraction** | LiteLLM (unified API for all providers) |
+| **Structured Output** | instructor (guaranteed Pydantic models) |
+| **Retry Logic** | tenacity (exponential backoff) |
+| **Data Validation** | Pydantic v2 |
+| **Browser Automation** | browser-use v0.11.7 (DOM-indexed) |
+| **HTTP Client** | httpx (async) |
+| **LLM (browser)** | Claude Sonnet 4 via Anthropic API |
+| **LLM (text/recon)** | Groq free tier (Llama 4 Scout) |
+| **Storage** | SQLite + JSON files |
+| **Config** | YAML + pydantic-settings |
 
-**Phase 2 — Attack** (accurate, uses Claude):
-- Agent has full site knowledge from Phase 1
-- Goes directly to relevant pages
-- Executes exploit chain with checkpoint tracking
-- Auto-generates evidence chain with screenshots
+## 📁 Project Structure
+
+```
+resurface/
+├── resurface.py              # CLI entry point (17 commands)
+├── src/
+│   ├── llm/                  # Unified LLM client
+│   │   ├── __init__.py
+│   │   └── client.py         # LiteLLM + instructor + tenacity
+│   ├── prompts/              # Extracted prompt templates
+│   │   ├── __init__.py       # Prompt loader
+│   │   ├── parse_report.md
+│   │   ├── validate_result.md
+│   │   ├── mutation_analysis.md
+│   │   └── playbooks/        # Per-vuln-type strategies
+│   ├── models.py             # Pydantic models + structured output schemas
+│   ├── browser/              # Browser automation
+│   │   ├── browseruse_replayer.py
+│   │   ├── recon_agent.py
+│   │   └── site_cache.py
+│   ├── engine/               # Replay engines
+│   │   ├── http_replayer.py
+│   │   ├── mutation_engine.py
+│   │   └── session_manager.py
+│   ├── parser/               # Report parsing
+│   ├── validator/            # Result validation
+│   ├── enricher/             # Attack plan generation
+│   ├── evidence/             # Evidence chain + reports
+│   ├── chain/                # Multi-step exploit chains
+│   ├── payloads/             # Curated payload library
+│   └── auth/                 # Authentication management
+├── configs/
+│   ├── config.yaml           # Main config (gitignored)
+│   └── config.example.yaml   # Template
+├── data/
+│   ├── reports/              # Vulnerability reports
+│   ├── results/              # Replay results + screenshots
+│   └── payloads/             # Payload files
+└── docs/
+    └── FYP-PLAN.md           # FYP documentation
+```
 
 ## 📊 Results
 
 ### Juice Shop (10 easy + 8 hard reports)
 
-| Mode | Easy (10) | Hard (8) |
-|------|-----------|----------|
-| HTTP + no-LLM (regex) | 0 vulnerable | 0/8 |
-| HTTP + LLM | 7 vulnerable, 2 fixed, 1 partial | 0/8 inconclusive |
-| Browser-Use + Blind | — | **8/8 vulnerable (100%)** |
+| Mode | Easy (10) | Hard (8) | Cost |
+|------|-----------|----------|------|
+| HTTP + no-LLM (regex) | 0 vulnerable | 0/8 inconclusive | $0 |
+| HTTP + LLM | 7 vulnerable, 2 fixed, 1 partial | 0/8 inconclusive | ~$0.01 |
+| Browser-Use + Blind | — | **8/8 vulnerable (100%)** | ~$0.46 |
 
 The hard reports contain NO URLs, NO payloads, NO steps — just a vulnerability type and description. Only the LLM-driven browser agent can solve them.
 
@@ -174,26 +215,6 @@ The hard reports contain NO URLs, NO payloads, NO steps — just a vulnerability
 | Path Traversal | ✅ | ✅ | ✅ |
 | Open Redirect | ✅ | ✅ | ✅ |
 
-## 🛡️ WAF Bypass Pipeline
-
-When a payload is blocked:
-1. **Heuristic detection** — checks for 403, stripped payloads, WAF signatures
-2. **LLM analysis** — identifies what specific filter blocked the payload
-3. **Variant generation** — produces bypass payloads (encoding tricks, tag alternatives, case manipulation)
-4. **Automated testing** — tests each variant via HTTP
-5. **Browser confirmation** — successful bypass used in browser for full exploitation
-
-## 🛠️ Tech Stack
-
-- **Python 3.11+** (venv at `/root/resurface/venv`)
-- **Browser Automation**: browser-use v0.11.7 (DOM-indexed, CDP)
-- **LLM (browser)**: Claude Sonnet 4 via Anthropic API
-- **LLM (text/recon)**: Groq free tier (Llama 4 Scout)
-- **HTTP**: httpx (async)
-- **Browser**: Google Chrome + Xvfb (headless with VNC viewing)
-- **Storage**: SQLite + JSON files
-- **Config**: YAML
-
 ## ⚖️ Ethical Use
 
 This tool is designed for:
@@ -208,5 +229,5 @@ MIT
 
 ## 👤 Author
 
-Ibrahim — Bug Bounty Hunter & Cybersecurity Researcher
+Ibrahim — Bug Bounty Hunter & Cybersecurity Researcher  
 Final Year Project — 2026

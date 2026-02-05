@@ -1,12 +1,15 @@
 # Core
 httpx>=0.27.0
-click>=8.1.0
 pydantic>=2.0.0
 pyyaml>=6.0
 
-# LLM
-openai>=1.0.0
+# CLI
+argparse  # stdlib, but explicit
+
+# LLM - Unified via LiteLLM
+litellm>=1.30.0
 anthropic>=0.30.0
+groq>=0.5.0
 
 # Scraping
 beautifulsoup4>=4.12.0
@@ -14,7 +17,7 @@ selectolax>=0.3.0
 
 # Browser Automation
 playwright>=1.40.0
-browser-use>=0.1.0
+browser-use>=0.11.7
 
 # Storage
 sqlalchemy>=2.0.0
@@ -23,8 +26,9 @@ sqlalchemy>=2.0.0
 jinja2>=3.1.0
 rich>=13.0.0
 
-# Dashboard
+# Dashboard (optional)
 streamlit>=1.30.0
+plotly>=5.18.0
 
 # Utilities
 python-dotenv>=1.0.0

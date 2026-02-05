@@ -1,0 +1,102 @@
+# Resurface Configuration Example
+# Copy this to config.yaml and fill in your API keys
+
+# LLM Settings
+llm:
+  provider: "groq"  # Options: groq, gemini, anthropic, openai
+  model: "llama-4-scout-17b-16e-instruct"  # Model name for the provider
+  api_key: "YOUR_GROQ_API_KEY"  # Get from: https://console.groq.com/keys
+  temperature: 0.1
+  max_tokens: 4096
+
+# Scraper Settings (HackerOne report scraping)
+scraper:
+  platform: "hackerone"
+  rate_limit: 2
+  cache_dir: "data/reports"
+
+# Engine Settings (HTTP replay)
+engine:
+  timeout: 30
+  max_retries: 3
+  follow_redirects: true
+  verify_ssl: false
+
+# Browser Settings (browser-use agent)
+browser:
+  headless: false  # Set true for no-GUI environments
+  timeout: 60000
+  screenshot: true
+
+# Vision Browser Agent Settings
+vision:
+  provider: "claude"  # Options: groq, gemini, claude
+  
+  # Groq (free tier, good for recon)
+  groq_model: "llama-4-scout-17b-16e-instruct"
+  
+  # Gemini (free tier with limits)
+  gemini_model: "gemini-2.0-flash"
+  gemini_api_key: "YOUR_GEMINI_API_KEY"  # Get from: https://aistudio.google.com/apikey
+  
+  # Claude (most accurate, paid)
+  claude_model: "claude-sonnet-4-20250514"
+  claude_api_key: "YOUR_ANTHROPIC_API_KEY"  # Get from: https://console.anthropic.com/
+  
+  screenshot_width: 1280
+  screenshot_height: 720
+  max_actions: 15
+
+# Validator Settings
+validator:
+  confidence_threshold: 0.7
+
+# Reporter Settings
+reporter:
+  output_dir: "data/results"
+  formats:
+    - "html"
+    - "json"
+
+# Database
+database:
+  url: "sqlite:///data/resurface.db"
+
+# Authentication Profiles
+# Define auth profiles for different targets
+auth:
+  profiles:
+    # Example: Juice Shop SQLi bypass login
+    juice-shop:
+      type: "jwt"
+      domains:
+        - "localhost:3333"
+        - "localhost"
+        - "127.0.0.1"
+      login_url: "http://localhost:3333/rest/user/login"
+      login_body:
+        email: "' OR 1=1--"
+        password: "anything"
+      token_path: "authentication.token"
+    
+    # Example: DVWA cookie-based auth
+    dvwa:
+      type: "cookie"
+      domains:
+        - "localhost:4444"
+      login_url: "http://localhost:4444/login.php"
+      login_body:
+        username: "admin"
+        password: "password"
+        Login: "Login"
+      csrf_field: "user_token"
+      cookie_name: "PHPSESSID"
+      extra_cookies:
+        security: "low"
+
+# Notifications (optional)
+notifications:
+  enabled: false
+  on:
+    - "vulnerable"
+    - "partial"
