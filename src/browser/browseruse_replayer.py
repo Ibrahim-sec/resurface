@@ -90,84 +90,33 @@ class BrowserUseReplayer:
 
     MAX_ACTIONS = 15
 
-    PLAYBOOKS = {
-        "privilege_escalation": (
-            "STRATEGY: Test if profile update or registration APIs accept unauthorized role manipulation.\n\n"
-            "CRITICAL: READ RESPONSE BODIES! Update email first and check if response shows 'roleid' or 'role' fields.\n\n"
-            "Step 1 - RECON: Log in, update email, READ the response for role field names (roleid, role, isAdmin).\n\n"
-            "Step 2 - ATTACK with JSON (try this first!):\n"
-            "  make_request(url='/my-account/change-email', method='POST',\n"
-            "    headers={'Content-Type': 'application/json'},\n"
-            "    body='{\"email\": \"test@test.com\", \"roleid\": 2}')\n\n"
-            "Step 3 - TRY MULTIPLE VALUES (role IDs are often numeric):\n"
-            "  - 'roleid': 2 (admin is often 2)\n"
-            "  - 'roleid': 1 or 0\n"
-            "  - 'role': 'admin'\n"
-            "  - 'isAdmin': true\n\n"
-            "Step 4 - VERIFY: Navigate to /admin. If still denied, re-read last response — did roleid change?\n\n"
-            "AVOID: Only using form-urlencoded (try JSON!), only trying string values (try numeric!), not reading responses.\n"
-        ),
-        "xss_reflected": (
-            "STRATEGY: Find input fields that reflect user input in the page.\n"
-            "1. Find search bars, URL parameters, or form fields\n"
-            "2. Type the XSS payload: <iframe src=\"javascript:alert('xss')\">\n"
-            "3. Press Enter to submit\n"
-            "4. If a JavaScript dialog/alert appears → CONFIRMED, report immediately\n"
-            "5. If you see your payload rendered as HTML in the page → CONFIRMED\n"
-            "6. If the payload is escaped/filtered, try: <img src=x onerror=alert(1)>\n"
-        ),
-        "xss_stored": (
-            "STRATEGY: Inject a payload that persists and executes when the page is revisited.\n"
-            "1. Find forms that store data (comments, reviews, profile fields)\n"
-            "2. Type the XSS payload in the field\n"
-            "3. Submit the form\n"
-            "4. Navigate away, then return to the page where the data is displayed\n"
-            "5. If a dialog appears or payload is rendered as HTML → CONFIRMED\n"
-        ),
-        "sqli": (
-            "STRATEGY: Test login and search forms for SQL injection.\n"
-            "1. Find the login form\n"
-            "2. Type in email/username field: ' OR 1=1--\n"
-            "3. Type any password and press Enter\n"
-            "4. If you get logged in → CONFIRMED (auth bypass)\n"
-            "5. Also try search fields with: ' UNION SELECT NULL--\n"
-            "6. Check for database errors or unexpected data in responses\n"
-        ),
-        "idor": (
-            "STRATEGY: Access resources belonging to other users by manipulating IDs.\n"
-            "1. Use make_request to try sequential IDs: GET /api/Users/1, /api/Users/2, etc.\n"
-            "2. Try accessing other users' data: /api/Baskets/1, /api/Baskets/2\n"
-            "3. If you can see data that doesn't belong to you → CONFIRMED\n"
-            "4. Compare responses between your own ID and other IDs\n"
-        ),
-        "info_disclosure": (
-            "STRATEGY: Find endpoints that expose sensitive data.\n"
-            "1. Use make_request to probe common sensitive endpoints:\n"
-            "   GET /api/Users, GET /rest/admin, GET /api/SecurityQuestions\n"
-            "2. Check for exposed data in page source or API responses\n"
-            "3. If you find emails, passwords, tokens, or internal config → CONFIRMED\n"
-        ),
-        "broken_access_control": (
-            "STRATEGY: Access admin/restricted functionality without proper authorization.\n"
-            "1. Try navigating directly to admin pages: /#/administration, /admin, /api/admin\n"
-            "2. Use make_request to probe admin API endpoints\n"
-            "3. If you can access restricted resources → CONFIRMED\n"
-        ),
-        "path_traversal": (
-            "STRATEGY: Read files outside the intended directory.\n"
-            "1. Find file download or include endpoints\n"
-            "2. Use make_request with path traversal: GET /ftp/../../etc/passwd\n"
-            "3. Try URL encoding: %2e%2e%2f\n"
-            "4. If you see file contents from outside the web root → CONFIRMED\n"
-        ),
-        "open_redirect": (
-            "STRATEGY: Redirect users to an external site.\n"
-            "1. Find redirect parameters (url=, redirect=, next=, returnTo=)\n"
-            "2. Use make_request: GET /redirect?url=https://evil.com\n"
-            "3. Check the response for a redirect to the external URL\n"
-            "4. Also try: //evil.com, /\\evil.com\n"
-        ),
-    }
+    # Playbooks loaded from src/prompts/playbooks/*.md
+    _playbook_cache: dict = None
+
+    @classmethod
+    def _load_playbooks(cls) -> dict:
+        """Load playbooks from markdown files."""
+        if cls._playbook_cache is not None:
+            return cls._playbook_cache
+
+        cls._playbook_cache = {}
+        playbook_dir = Path(__file__).parent.parent / "prompts" / "playbooks"
+
+        if playbook_dir.exists():
+            for md_file in playbook_dir.glob("*.md"):
+                vuln_type = md_file.stem  # e.g., "xss_reflected"
+                try:
+                    cls._playbook_cache[vuln_type] = md_file.read_text()
+                except Exception as e:
+                    print(f"Warning: Failed to load playbook {md_file}: {e}")
+
+        return cls._playbook_cache
+
+    @classmethod
+    def get_playbook(cls, vuln_type: str) -> str:
+        """Get playbook for a vulnerability type."""
+        playbooks = cls._load_playbooks()
+        return playbooks.get(vuln_type, playbooks.get("generic", ""))
 
     def __init__(
         self,
@@ -231,7 +180,7 @@ class BrowserUseReplayer:
 
         # Look up playbook for this vuln type
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.PLAYBOOKS.get(vuln_key, "")
+        playbook = self.get_playbook(vuln_key)
         if not playbook:
             playbook = (
                 "STRATEGY: Follow the steps provided and test for the described vulnerability.\n"
@@ -294,7 +243,7 @@ class BrowserUseReplayer:
         """Build task prompt for blind mode (no URLs or step details)."""
         # Look up playbook for this vuln type
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.PLAYBOOKS.get(vuln_key, "")
+        playbook = self.get_playbook(vuln_key)
         if not playbook:
             playbook = (
                 "STRATEGY: Explore the application and test for the described vulnerability type.\n"
