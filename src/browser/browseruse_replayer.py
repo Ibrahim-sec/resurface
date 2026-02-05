@@ -132,10 +132,16 @@ class BrowserUseReplayer:
         return cls._lab_playbook_cache
 
     @classmethod
-    def get_playbook(cls, vuln_type: str, title: str = None) -> str:
-        """Get playbook for a vulnerability type, with optional title matching for lab-specific playbooks."""
-        # Try lab-specific playbook first if title provided
-        if title:
+    def get_playbook(cls, vuln_type: str, title: str = None, target_url: str = None) -> str:
+        """Get playbook for a vulnerability type.
+        
+        Lab-specific playbooks are ONLY used for PortSwigger targets to avoid
+        leaking lab-specific endpoints/patterns to real targets.
+        """
+        # Only use lab-specific playbooks for PortSwigger Academy targets
+        is_portswigger = target_url and "web-security-academy.net" in target_url
+        
+        if title and is_portswigger:
             lab_playbooks = cls._load_lab_playbooks()
             # Normalize title for matching
             import re
@@ -151,7 +157,7 @@ class BrowserUseReplayer:
                 if len(title_words & key_words) >= 3:
                     return content
 
-        # Fallback to category playbook
+        # Use generic category playbook for real targets (or fallback)
         playbooks = cls._load_playbooks()
         return playbooks.get(vuln_type, playbooks.get("generic", ""))
 
@@ -215,9 +221,9 @@ class BrowserUseReplayer:
             if s.payload: steps += f"   Payload: {s.payload}\n"
             if s.expected_behavior: steps += f"   Expected: {s.expected_behavior}\n"
 
-        # Look up playbook for this vuln type (try lab-specific first)
+        # Look up playbook for this vuln type (lab-specific only for PortSwigger)
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.get_playbook(vuln_key, title=report.title)
+        playbook = self.get_playbook(vuln_key, title=report.title, target_url=target_url)
         if not playbook:
             playbook = (
                 "STRATEGY: Follow the steps provided and test for the described vulnerability.\n"
@@ -278,9 +284,9 @@ class BrowserUseReplayer:
 
     def _build_blind_prompt(self, report: ParsedReport, target_url: str) -> str:
         """Build task prompt for blind mode (no URLs or step details)."""
-        # Look up playbook for this vuln type (try lab-specific first)
+        # Look up playbook for this vuln type (lab-specific only for PortSwigger)
         vuln_key = report.vuln_type.value if report.vuln_type else "unknown"
-        playbook = self.get_playbook(vuln_key, title=report.title)
+        playbook = self.get_playbook(vuln_key, title=report.title, target_url=target_url)
         if not playbook:
             playbook = (
                 "STRATEGY: Explore the application and test for the described vulnerability type.\n"
