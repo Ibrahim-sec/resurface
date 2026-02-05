@@ -157,8 +157,12 @@ class BrowserUseReplayer:
                 if len(title_words & key_words) >= 3:
                     return content
 
-        # Use generic category playbook for real targets (or fallback)
+        # Use synthesized playbook if available, else generic category playbook
         playbooks = cls._load_playbooks()
+        # Prefer synthesized (trained from labs) over basic generic
+        synthesized_key = f"{vuln_type}_synthesized"
+        if synthesized_key in playbooks:
+            return playbooks[synthesized_key]
         return playbooks.get(vuln_type, playbooks.get("generic", ""))
 
     def __init__(
