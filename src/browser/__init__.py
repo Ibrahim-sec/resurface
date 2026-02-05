@@ -11,7 +11,8 @@ DEFAULT_CHROME_ARGS = [
     '--disable-save-password-bubble',
     '--disable-features=PasswordManager,PasswordManagerOnboarding,PasswordManagerBubble,'
     'PasswordLeakDetection,PasswordCheck,PasswordImport,'
-    'TranslateUI,InfoBars,AutofillServerCommunication,AutofillCreditCardUpload',
+    'TranslateUI,InfoBars,AutofillServerCommunication,AutofillCreditCardUpload,'
+    'PasswordChangeInSettings,PasswordManagerAccountStorage',
     '--disable-infobars',
     '--disable-component-update',
     '--disable-default-apps',
@@ -19,4 +20,8 @@ DEFAULT_CHROME_ARGS = [
     '--password-store=basic',
     '--disable-notifications',
     '--deny-permission-prompts',
+    # Extra flags to suppress credential prompts
+    '--disable-blink-features=CredentialManagerAccess',
+    '--disable-prompt-on-repost',
+    '--disable-site-isolation-trials',
 ]

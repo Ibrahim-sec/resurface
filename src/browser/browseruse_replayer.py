@@ -32,6 +32,18 @@ from src.engine.browser_waf_bypass import BrowserWAFBypass, create_waf_bypass_to
 NETWORK_INTERCEPTOR_JS = """(() => {
     if (window.__resurface) return;
     window.__resurface = { events: [] };
+    
+    // Suppress credential manager / password save prompts
+    if (navigator.credentials) {
+        navigator.credentials.store = () => Promise.resolve();
+        navigator.credentials.get = () => Promise.resolve(null);
+        navigator.credentials.create = () => Promise.resolve(null);
+        navigator.credentials.preventSilentAccess = () => Promise.resolve();
+    }
+    // Override PasswordCredential if it exists
+    if (typeof PasswordCredential !== 'undefined') {
+        window.PasswordCredential = function() { return {}; };
+    }
     const classify = (url, status, text) => {
         if (status === 200 && /login|auth|signin|session/i.test(url) &&
             /token|jwt|session|authenticated|success/i.test(text))
