@@ -62,7 +62,7 @@ class PoC_Step(BaseModel):
 
 class ParsedReport(BaseModel):
     """LLM-parsed structure from a raw report"""
-    model_config = ConfigDict(use_enum_values=True)
+    model_config = ConfigDict()
     
     report_id: int
     title: str

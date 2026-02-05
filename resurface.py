@@ -449,7 +449,7 @@ def cmd_replay(args, config):
             for retry in range(2, max_retries + 1):
                 print(f"\n   🔄 Retry {retry}/{max_retries} — refining attack plan...")
                 # Build failure log from evidence
-                failure_log = f"Result: {replay_result.result.value}\n"
+                failure_log = f"Result: {getattr(replay_result.result, 'value', replay_result.result)}\n"
                 failure_log += f"Analysis: {replay_result.llm_analysis or 'N/A'}\n"
                 for ev in replay_result.evidence[:10]:
                     failure_log += f"  Step {ev.step_number}: {ev.notes[:200]}\n"
@@ -524,7 +524,7 @@ def cmd_replay(args, config):
         'title': parsed_report.title,
         'vuln_type': parsed_report.vuln_type.value,
         'target': args.target,
-        'result': replay_result.result.value,
+        'result': getattr(replay_result.result, 'value', replay_result.result),
         'confidence': replay_result.confidence,
         'analysis': replay_result.llm_analysis,
         'duration_seconds': replay_result.duration_seconds,
@@ -568,7 +568,7 @@ def cmd_replay(args, config):
             severity=parsed_report.severity,
             confidence=replay_result.confidence,
             target_url=args.target,
-            result=replay_result.result.value,
+            result=getattr(replay_result.result, 'value', replay_result.result),
             analysis=replay_result.llm_analysis or '',
         )
 
@@ -790,7 +790,7 @@ def _cmd_replay_all_sync(args, config):
             # Save result to DB
             result_data = {
                 'report_id': replay_result.report_id,
-                'result': replay_result.result.value if hasattr(replay_result.result, 'value') else replay_result.result,
+                'result': getattr(replay_result.result, 'value', replay_result.result) if hasattr(replay_result.result, 'value') else replay_result.result,
                 'confidence': replay_result.confidence,
                 'target_url': args.target,
                 'llm_analysis': replay_result.llm_analysis,
@@ -811,7 +811,7 @@ def _cmd_replay_all_sync(args, config):
             with open(results_dir / f"{rid}_result.json", 'w') as f:
                 json.dump(file_result, f, indent=2)
 
-            status = replay_result.result.value if hasattr(replay_result.result, 'value') else str(replay_result.result)
+            status = getattr(replay_result.result, 'value', replay_result.result) if hasattr(replay_result.result, 'value') else str(replay_result.result)
             counters[status] = counters.get(status, 0) + 1
 
             status_emoji = {"vulnerable": "🔴", "fixed": "🟢", "partial": "🟡",
@@ -975,7 +975,7 @@ def _cmd_replay_all_async(args, config):
             # Save to DB
             result_data = {
                 'report_id': replay_result.report_id,
-                'result': replay_result.result.value if hasattr(replay_result.result, 'value') else replay_result.result,
+                'result': getattr(replay_result.result, 'value', replay_result.result) if hasattr(replay_result.result, 'value') else replay_result.result,
                 'confidence': replay_result.confidence,
                 'target_url': args.target,
                 'llm_analysis': replay_result.llm_analysis,
@@ -996,7 +996,7 @@ def _cmd_replay_all_async(args, config):
             with open(results_dir / f"{replay_result.report_id}_result.json", 'w') as f:
                 json.dump(file_result, f, indent=2)
 
-            status = replay_result.result.value if hasattr(replay_result.result, 'value') else str(replay_result.result)
+            status = getattr(replay_result.result, 'value', replay_result.result) if hasattr(replay_result.result, 'value') else str(replay_result.result)
             counters[status] = counters.get(status, 0) + 1
 
             status_emoji = {"vulnerable": "🔴", "fixed": "🟢", "partial": "🟡",
