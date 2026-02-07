@@ -5,7 +5,7 @@ Uses LiteLLM for provider abstraction + instructor for structured output.
 Includes tenacity for automatic retries with exponential backoff.
 
 Supported providers:
-- groq: groq/llama-4-scout-17b-16e-instruct, groq/llama-3.3-70b-versatile
+- groq: groq/meta-llama/llama-4-scout-17b-16e-instruct, groq/llama-3.3-70b-versatile
 - gemini: gemini/gemini-2.0-flash, gemini/gemini-1.5-pro
 - anthropic: anthropic/claude-sonnet-4-20250514
 - openai: gpt-4o, gpt-4o-mini
@@ -13,7 +13,7 @@ Supported providers:
 Usage:
     from src.llm import LLMClient
     
-    client = LLMClient(provider="groq", model="llama-4-scout-17b-16e-instruct")
+    client = LLMClient(provider="groq", model="meta-llama/llama-4-scout-17b-16e-instruct")
     
     # Simple text response
     response = client.call("What is 2+2?")
@@ -46,9 +46,11 @@ except ImportError:
 
 try:
     import instructor
+    from instructor import Mode
     INSTRUCTOR_AVAILABLE = True
 except ImportError:
     INSTRUCTOR_AVAILABLE = False
+    Mode = None
     logger.warning("instructor not installed. Run: pip install instructor")
 
 
@@ -89,7 +91,7 @@ class LLMClient:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "llama-4-scout-17b-16e-instruct",
+        model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
         provider: str = "groq",
         temperature: float = 0.1,
         max_tokens: int = 4096,
@@ -110,10 +112,19 @@ class LLMClient:
         self.full_model = self._build_model_name(model, self.provider)
         
         # Initialize instructor client for structured output
+        # Groq's tool calling is broken, use JSON mode instead
         if INSTRUCTOR_AVAILABLE:
-            self._instructor_client = instructor.from_litellm(litellm.completion)
+            if self.provider == "groq":
+                self._instructor_client = instructor.from_litellm(
+                    litellm.completion,
+                    mode=Mode.JSON
+                )
+            else:
+                self._instructor_client = instructor.from_litellm(litellm.completion)
+            self._instructor_mode = Mode.JSON if self.provider == "groq" else Mode.TOOLS
         else:
             self._instructor_client = None
+            self._instructor_mode = None
         
         if not verbose:
             litellm.suppress_debug_info = True
@@ -338,7 +349,7 @@ _default_client: Optional[LLMClient] = None
 
 def get_client(
     api_key: Optional[str] = None,
-    model: str = "llama-4-scout-17b-16e-instruct",
+    model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
     provider: str = "groq",
     **kwargs
 ) -> LLMClient:
@@ -361,7 +372,7 @@ def llm_call(
     system_prompt: Optional[str] = None,
     json_response: bool = False,
     api_key: Optional[str] = None,
-    model: str = "llama-4-scout-17b-16e-instruct",
+    model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
     provider: str = "groq",
     temperature: float = 0.1,
     max_tokens: int = 4096,
@@ -391,7 +402,7 @@ def llm_call_structured(
     response_model: Type[T],
     system_prompt: Optional[str] = None,
     api_key: Optional[str] = None,
-    model: str = "llama-4-scout-17b-16e-instruct",
+    model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
     provider: str = "groq",
     temperature: float = 0.1,
     max_tokens: int = 4096,

@@ -16,10 +16,11 @@
 - **Impact:** No screenshots saved with findings
 - **Fix:** Changed to `page.screenshot(type='png', full_page=True)` — Playwright returns bytes directly
 
-### 3. Groq tool calling incompatible with instructor
+### 3. Groq tool calling incompatible with instructor — ✅ FIXED (2026-02-07)
 - **Error:** Groq wraps tool params in `{"type": "string", "value": "..."}` instead of just the value
 - **Impact:** Parsing with Groq fails completely
-- **Fix:** Either use a different model for parsing, or add Groq-specific response unwrapping
+- **Fix:** Use `instructor.Mode.JSON` instead of default tool calling mode for Groq provider
+- **Also fixed:** Default model ID updated to `meta-llama/llama-4-scout-17b-16e-instruct`
 
 ### 4. Enum `.value` calls on strings
 - **Error:** `AttributeError: 'str' object has no attribute 'value'`
