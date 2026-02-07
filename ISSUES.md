@@ -72,6 +72,12 @@
 - [x] Fixed enum `.value` AttributeError with getattr pattern
 - [x] Committed refactor (28 files, 1583 insertions)
 
+## Completed Fixes (2026-02-07)
+
+- [x] Groq structured output — use `instructor.Mode.JSON` instead of tool calling
+- [x] Default model ID — updated to `meta-llama/llama-4-scout-17b-16e-instruct`
+- [x] All critical bugs now resolved
+
 ---
 
 ## Test Results Summary
