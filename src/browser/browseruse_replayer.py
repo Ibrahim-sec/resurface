@@ -240,6 +240,13 @@ class BrowserUseReplayer:
             f"- Description: {report.description}\n\n## Target\n{target_url}\n\n"
             f"## Steps to Reproduce\n{steps or 'No specific steps provided.'}\n\n"
             f"## PLAYBOOK for {vuln_key}\n{playbook}\n\n"
+            "## PROOF-BASED VALIDATION\n"
+            "You must reach a definitive conclusion with evidence:\n"
+            "- Level 1 (NOT VULNERABLE): Payload blocked/encoded — report as FIXED\n"
+            "- Level 2 (PARTIAL): Payload present but execution blocked (WAF/CSP) — report with low confidence\n"
+            "- Level 3 (VULNERABLE): Vulnerability behavior confirmed — report with high confidence\n"
+            "- Level 4 (CRITICAL): Impact demonstrated (data leak, session hijack, etc.) — report immediately\n"
+            "When you call report_vulnerability, include: exact payload used, response evidence, and proof level.\n\n"
             "## CREDENTIAL TRACKING\n"
             "- When you create an account or receive credentials, use save_note to WRITE THEM DOWN (e.g. save_note(key='email', value='...'), save_note(key='password', value='...'))\n"
             "- When logging in, use get_note to recall the EXACT credentials you saved. Do NOT guess passwords.\n"
@@ -303,13 +310,21 @@ class BrowserUseReplayer:
             f"## Description: {report.description}\n\n"
             f"## Target: {target_url}\n\n"
             f"## PLAYBOOK for {vuln_key}\n{playbook}\n\n"
+            "## PROOF-BASED VALIDATION\n"
+            "You must prove the vulnerability exists with evidence:\n"
+            "- Level 1 (NOT VULNERABLE): Payload blocked/encoded — stop testing this vector\n"
+            "- Level 2 (POTENTIAL): Payload injected but blocked by WAF/CSP — try bypass techniques\n"
+            "- Level 3 (VULNERABLE): Vulnerability behavior confirmed — report with 0.8+ confidence\n"
+            "- Level 4 (CRITICAL): Impact demonstrated (data leak, RCE, etc.) — report with 0.95 confidence\n"
+            "Default to skepticism: assume NOT vulnerable until you have proof.\n\n"
             "## FIRST STEPS (do these before anything else):\n"
             "1. Dismiss any cookie consent banners (click 'Accept', 'Me want it!', 'OK', etc.)\n"
             "2. Dismiss any welcome banners or dialogs (click 'Dismiss', 'Close', 'X', etc.)\n"
             "3. Dismiss any notification snackbars ('Language changed', 'Registration completed', etc.) — click X or ignore them\n"
             "4. If you see a 'Change Password', 'Reset Password', or 'Forgot Password' page/panel, CLOSE it or navigate away — do NOT fill it in\n"
             "5. If you see tooltips like 'Click for more information', ignore them\n"
-            "6. NOW explore the application — do NOT get distracted by non-security UI elements\n\n"
+            "6. IGNORE any 'Solved', 'Congratulations', or 'Lab completed' banners — these are from prior tests and don't affect your assessment\n"
+            "7. NOW explore the application — do NOT get distracted by non-security UI elements\n\n"
             "## CREDENTIAL TRACKING\n"
             "- When you create an account or receive credentials, use save_note to WRITE THEM DOWN (e.g. save_note(key='email', value='...'), save_note(key='password', value='...'))\n"
             "- When logging in, use get_note to recall the EXACT credentials you saved. Do NOT guess passwords.\n"
@@ -324,18 +339,33 @@ class BrowserUseReplayer:
             "- Do NOT create a new account unless necessary — use the one you already created.\n"
             "- Do NOT retry the same action more than twice — try a different approach.\n\n"
             "## Testing Strategy:\n"
-            "1. Find relevant input fields for this vulnerability type\n"
-            "2. For SEARCH: click the search ICON first to reveal the input, then type into the input field\n"
-            "3. Test with appropriate payloads\n"
-            "4. Report findings using the report_vulnerability tool\n\n"
+            "### Phase 1: EXPLORATION (do this first!)\n"
+            "- Click on 3-5 different links/products/pages to discover the app's features\n"
+            "- Look for: forms, search boxes, URL parameters, dropdowns, comment fields\n"
+            "- Note which pages have user input fields relevant to this vuln type\n"
+            "- Don't test yet — just explore and understand the app structure\n\n"
+            "### Phase 2: TARGETED TESTING\n"
+            "1. Go to the most promising page you found in Phase 1\n"
+            "2. Find relevant input fields for this vulnerability type\n"
+            "3. For SEARCH: click the search ICON first to reveal the input, then type into the input field\n"
+            "4. Test with appropriate payloads\n"
+            "5. Report findings using the report_vulnerability tool\n\n"
             "## Payloads by type:\n"
             '- XSS: <iframe src="javascript:alert(\'xss\')"> (try this FIRST) or <script>alert(1)</script>\n'
+            "- DOM XSS: Check URL parameters — add ?param=<script>alert(1)</script> to URLs, look for params reflected in dropdowns/selects\n"
             "- SQLi: ' OR 1=1-- or ' UNION SELECT NULL--\n"
             "- IDOR: Try sequential IDs (1, 2, 3...) on API endpoints\n\n"
+            "## DOM XSS SPECIFIC:\n"
+            "- For DOM XSS, you MUST check URL parameters and their reflection in the page\n"
+            "- Visit product/item pages — they often have vulnerable URL params\n"
+            "- Look at the URL bar for parameters like ?storeId=, ?productId=, ?category=\n"
+            "- Inject payloads INTO the URL parameter, then observe if they appear in the DOM\n"
+            "- Check <select> dropdowns, <option> values, and JavaScript-rendered content\n\n"
             "## UI RULES:\n"
             "- ALWAYS dismiss popups/banners BEFORE interacting with the app\n"
             "- For search fields: click the search ICON/BUTTON first to open it, then type in the revealed input\n"
             "- After typing a payload, ALWAYS press Enter to submit\n"
+            "- BEFORE submitting a form: check for required fields (marked with *, 'required', or red borders). Fill ALL required fields with valid dummy data before injecting payloads.\n"
             "- AFTER EVERY FORM SUBMISSION: READ the page for error messages or success indicators. If you see errors like 'email must be unique', 'already exists', 'invalid input', etc. — ADAPT your approach (use a different email, different payload, etc.)\n"
             "- For registration: ALWAYS use a random email like test<random_numbers>@example.com (e.g. test83719@example.com) — never use common emails like test@example.com\n"
             "- For XSS: if a JavaScript alert dialog appears, that CONFIRMS the vulnerability — report with 0.95 confidence\n"
@@ -624,10 +654,8 @@ class BrowserUseReplayer:
                 page = await browser.get_current_page()
                 if page:
                     screenshot_path = self.evidence_dir / f"{rid}_vuln_{vuln_type}_{int(time.time())}.png"
-                    # browser-use screenshot() returns base64 string, not bytes
-                    import base64
-                    b64_data = await page.screenshot(format='png')
-                    screenshot_data = base64.b64decode(b64_data)
+                    # Playwright screenshot() returns bytes directly
+                    screenshot_data = await page.screenshot(type='png', full_page=True)
                     screenshot_path.write_bytes(screenshot_data)
                     logger.info(f"  📸 Vulnerability screenshot saved: {screenshot_path.name}")
                     findings[-1]["screenshot"] = str(screenshot_path)
@@ -660,6 +688,19 @@ class BrowserUseReplayer:
         def get_note(key: str) -> str:
             val = agent_notes.get(key, "NOT FOUND")
             return f"{key} = {val}"
+
+        @controller.action(description="Generate a 6-digit TOTP code for 2FA authentication. Pass the base32 secret.")
+        def generate_totp(secret: str) -> str:
+            """Generate TOTP code for 2FA."""
+            try:
+                from src.auth.totp import get_totp_with_expiry, validate_totp_secret
+                if not validate_totp_secret(secret):
+                    return "Error: Invalid base32 secret"
+                code, expires = get_totp_with_expiry(secret)
+                logger.info(f"  🔐 TOTP: {code} (expires in {expires}s)")
+                return f"TOTP code: {code} (expires in {expires} seconds)"
+            except Exception as e:
+                return f"Error generating TOTP: {e}"
 
         @controller.action(description=(
             "Make an HTTP request (inherits browser cookies/JWT). "

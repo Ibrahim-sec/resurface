@@ -10,11 +10,11 @@
 - **Impact:** Agent can't capture DOM snapshots for evidence
 - **Fix:** Use JS eval `document.documentElement.outerHTML` instead of `page.content()`
 
-### 2. Screenshot capture fails in `report_vulnerability` — ✅ FIXED
-- **Error:** `Page.screenshot() got an unexpected keyword argument 'path'`
-- **Location:** `src/browser/browseruse_replayer.py:616`
+### 2. Screenshot capture fails in `report_vulnerability` — ✅ FIXED (2026-02-07)
+- **Error:** `Page.screenshot() got unexpected keyword argument 'format'`
+- **Location:** `src/browser/browseruse_replayer.py:642`
 - **Impact:** No screenshots saved with findings
-- **Fix:** browser-use `screenshot()` returns base64 string — decode and write to file
+- **Fix:** Changed to `page.screenshot(type='png', full_page=True)` — Playwright returns bytes directly
 
 ### 3. Groq tool calling incompatible with instructor
 - **Error:** Groq wraps tool params in `{"type": "string", "value": "..."}` instead of just the value
@@ -31,26 +31,24 @@
 
 ## Agent Behavior Issues
 
-### 5. Blind mode lacks systematic page exploration
+### 5. Blind mode lacks systematic page exploration — ✅ FIXED (2026-02-07)
 - **Problem:** Agent searches homepage exhaustively but doesn't click into sub-pages
 - **Example:** DOM XSS lab had vulnerable select on product pages, not homepage. Agent never found it.
 - **Impact:** Blind mode fails on multi-page apps where vuln is on sub-pages
-- **Fix ideas:**
-  - Add "explore all links" phase before testing
-  - Use recon agent output to guide blind replay
-  - Require clicking at least N distinct links before giving up
+- **Fix:** Added Phase 1 (Exploration) / Phase 2 (Testing) to blind prompt
+  - Phase 1: Click 3-5 links to discover app structure before testing
+  - Phase 2: Target the most promising page found
+  - Added DOM XSS specific guidance for URL parameters
 
-### 6. Stale lab state confusion
+### 6. Stale lab state confusion — ✅ FIXED (2026-02-07)
 - **Problem:** Previously solved lab shows "Solved" banner, agent gets confused
 - **Impact:** Agent wastes steps trying to understand why lab is already solved
-- **Fix:** Ignore "Solved"/"Congratulations" banners during blind testing
+- **Fix:** Added instruction to ignore "Solved"/"Congratulations" banners in blind prompt
 
-### 7. Form validation retry overhead
+### 7. Form validation retry overhead — ✅ FIXED (2026-02-07)
 - **Problem:** Agent submits forms without filling required fields, then has to retry
 - **Impact:** Wastes 2-3 steps per form
-- **Fix ideas:**
-  - Pre-scan form for required fields before injecting payload
-  - Fill all visible fields with dummy data by default
+- **Fix:** Added instruction to check for required fields before submitting forms
 
 ---
 
