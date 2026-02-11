@@ -449,9 +449,14 @@ class BrowserUseReplayer:
             logger.debug(f"  Recon data injection skipped: {e}")
         return prompt
 
-    def _build_hunt_prompt(self, target_url: str, vuln_types: list[str]) -> str:
+    def _build_hunt_prompt(self, target_url: str, vuln_types: list[str], stop_on_find: bool = False) -> str:
         """Build task prompt for autonomous hunt mode."""
         types = "\n".join(f"- {vt}" for vt in vuln_types)
+        stop_instruction = (
+            "\n\nIMPORTANT: Once you find and report the FIRST confirmed vulnerability, "
+            "call done() immediately. Do NOT continue testing other areas.\n"
+            if stop_on_find else "\n\nBe systematic. Map the app first, then test. Report ALL findings.\n"
+        )
         return (
             "You are an autonomous security scanner hunting for vulnerabilities.\n\n"
             f"## Target\n{target_url}\n\n"
@@ -464,8 +469,8 @@ class BrowserUseReplayer:
             "   - IDOR: Access /api/users/1, /api/users/2 to check authorization\n"
             "   - Auth Bypass: Access admin pages without credentials\n"
             "   - Info Disclosure: Check /robots.txt, /.env, /api/swagger\n"
-            "3. Use the report_vulnerability tool for each finding\n\n"
-            "Be systematic. Map the app first, then test. Report ALL findings.\n"
+            "3. Use the report_vulnerability tool for each finding\n"
+            + stop_instruction
         )
 
     # ── Auth Helpers ─────────────────────────────────────────────────
@@ -1309,7 +1314,7 @@ class BrowserUseReplayer:
                 args=DEFAULT_CHROME_ARGS + ['--disable-gpu', '--disable-dev-shm-usage', '--disable-popup-blocking'],
             )
         agent = Agent(
-            task=self._build_hunt_prompt(target_url, vuln_types),
+            task=self._build_hunt_prompt(target_url, vuln_types, stop_on_find=stop_on_find),
             llm=self._create_llm(), browser=browser, controller=controller, max_actions_per_step=5,
         )
 

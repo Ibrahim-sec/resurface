@@ -1492,29 +1492,43 @@ def cmd_hunt(args, config):
 
     # Print results
     findings = result['findings']
+    duration = result.get('duration', 0)
     print(f"\n{'='*60}")
     print(f"  🔍 HUNT RESULTS — {target}")
     print(f"{'='*60}")
     print(f"  Actions: {result['actions_taken']}")
-    print(f"  Duration: {result['duration']}s")
-    print(f"  Cost: ${result['cost']:.3f}")
-    print(f"  Screenshots: {len(result['screenshots'])}")
+    print(f"  Duration: {duration:.1f}s")
+    print(f"  Screenshots: {len(result.get('screenshots', []))}")
+
+    # Cost tracking
+    try:
+        from src.cost_tracker import get_cost_tracker
+        cost_summary = get_cost_tracker().get_summary()
+        print(f"  💰 Cost: ${cost_summary['estimated_cost_usd']:.4f} | Tokens: {cost_summary['total_input_tokens']:,} in / {cost_summary['total_output_tokens']:,} out | LLM calls: {cost_summary['call_count']}")
+    except Exception:
+        pass
+
     print()
 
     if findings:
         print(f"  🎯 VULNERABILITIES FOUND: {len(findings)}")
         print(f"  {'-'*50}")
         for i, f in enumerate(findings, 1):
+            vtype = f.get('vuln_type', f.get('type', 'unknown'))
             emoji = {
                 'xss': '💉', 'sqli': '🗃️', 'idor': '🔓',
                 'auth_bypass': '🚪', 'info_disclosure': '📋',
-                'path_traversal': '📁', 'other': '⚠️'
-            }.get(f['type'], '⚠️')
-            print(f"  {emoji} #{i} [{f['type'].upper()}] {f['title']}")
-            print(f"     Evidence: {f['evidence'][:120]}")
-            print(f"     Payload: {f.get('payload', 'N/A')[:80]}")
-            print(f"     Location: {f['location']}")
-            print(f"     Found at step: {f.get('step', '?')}")
+                'path_traversal': '📁',
+            }
+            # Match emoji by substring
+            matched_emoji = '⚠️'
+            for key, em in emoji.items():
+                if key in vtype.lower():
+                    matched_emoji = em
+                    break
+            print(f"  {matched_emoji} #{i} [{vtype.upper()}]")
+            print(f"     Evidence: {f.get('evidence', 'N/A')[:150]}")
+            print(f"     Confidence: {f.get('confidence', 0):.0%}")
             print()
     else:
         print(f"  ⚪ No vulnerabilities found")
