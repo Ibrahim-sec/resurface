@@ -1,0 +1,93 @@
+# Authentication Configuration for Resurface
+# Copy this file and modify for your target application
+
+# Authentication settings
+authentication:
+  # Login type: 'form', 'sso', 'api', 'basic'
+  login_type: form
+  
+  # Login page URL
+  login_url: "https://example.com/login"
+  
+  # Credentials
+  credentials:
+    username: "testuser"
+    password: "testpassword"
+    # Optional: TOTP secret for 2FA (base32 encoded)
+    totp_secret: "JBSWY3DPEHPK3PXP"
+  
+  # Natural language login flow instructions
+  # Use $username, $password, $totp as placeholders
+  login_flow:
+    - "Type $username into the email field"
+    - "Type $password into the password field"
+    - "Click the 'Sign In' button"
+    - "If 2FA prompt appears, enter $totp in the code field"
+    - "Click 'Verify' or 'Submit'"
+  
+  # How to verify successful login
+  success_condition:
+    type: url_contains  # Options: 'url_contains', 'element_present', 'cookie_exists'
+    value: "/dashboard"
+
+# Scope rules
+rules:
+  # Paths/features to AVOID during testing
+  avoid:
+    - description: "Don't test logout"
+      type: path
+      url_path: "/logout"
+    
+    - description: "Skip password reset"
+      type: path
+      url_path: "/reset-password"
+    
+    - description: "Don't DELETE users"
+      type: method
+      method: DELETE
+      url_path: "/api/users/*"
+  
+  # Paths/features to PRIORITIZE
+  focus:
+    - description: "Focus on admin panel"
+      type: path
+      url_path: "/admin"
+    
+    - description: "Prioritize API endpoints"
+      type: path
+      url_path: "/api/*"
+    
+    - description: "Focus on user data"
+      type: path
+      url_path: "/api/users"
+
+# Target-specific settings
+target:
+  # Base URL (can be overridden via CLI)
+  base_url: "https://example.com"
+  
+  # Technology hints (helps with payload selection)
+  tech_stack:
+    - "node"
+    - "express"
+    - "mongodb"
+  
+  # Known WAF/protection
+  protections:
+    - "cloudflare"
+    # - "akamai"
+    # - "modsecurity"
+
+# Replay settings
+replay:
+  # Max actions per replay
+  max_actions: 50
+  
+  # Screenshot on every action
+  screenshot_all: false
+  
+  # Use blind mode (no report steps, just vuln type)
+  blind_mode: false
+  
+  # Enable recon phase before replay
+  enable_recon: true

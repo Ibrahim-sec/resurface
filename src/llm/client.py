@@ -88,6 +88,7 @@ class LLMClient:
         "anthropic": "anthropic/",
         "openai": "",
         "claude": "anthropic/",
+        "openrouter": "openrouter/",
     }
     
     def __init__(
@@ -115,15 +116,16 @@ class LLMClient:
         
         # Initialize instructor client for structured output
         # Groq's tool calling is broken, use JSON mode instead
+        # OpenRouter models vary — use JSON mode for safety (works with all models)
         if INSTRUCTOR_AVAILABLE:
-            if self.provider == "groq":
+            if self.provider in ("groq", "openrouter"):
                 self._instructor_client = instructor.from_litellm(
                     litellm.completion,
                     mode=Mode.JSON
                 )
             else:
                 self._instructor_client = instructor.from_litellm(litellm.completion)
-            self._instructor_mode = Mode.JSON if self.provider == "groq" else Mode.TOOLS
+            self._instructor_mode = Mode.JSON if self.provider in ("groq", "openrouter") else Mode.TOOLS
         else:
             self._instructor_client = None
             self._instructor_mode = None
@@ -139,16 +141,29 @@ class LLMClient:
             "anthropic": "ANTHROPIC_API_KEY",
             "openai": "OPENAI_API_KEY",
             "claude": "ANTHROPIC_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
         }
         env_var = env_vars.get(self.provider, "OPENAI_API_KEY")
         os.environ[env_var] = api_key
     
     def _build_model_name(self, model: str, provider: str) -> str:
-        """Build full model name with provider prefix for LiteLLM."""
+        """Build full model name with provider prefix for LiteLLM.
+        
+        OpenRouter format: openrouter/provider/model (e.g. openrouter/moonshotai/kimi-k2.5)
+        If model already starts with 'openrouter/', use as-is.
+        """
         prefix = self.PROVIDER_PREFIXES.get(provider, "")
         
+        # Already has the correct prefix
         if model.startswith(prefix) and prefix:
             return model
+        
+        # For openrouter, model should be like "moonshotai/kimi-k2.5"
+        # which becomes "openrouter/moonshotai/kimi-k2.5"
+        if provider == "openrouter":
+            if model.startswith("openrouter/"):
+                return model
+            return f"openrouter/{model}"
         
         if "/" in model and not any(model.startswith(p) for p in self.PROVIDER_PREFIXES.values() if p):
             return f"{prefix}{model}"
@@ -208,7 +223,7 @@ class LLMClient:
             "max_tokens": self.max_tokens,
         }
         
-        if json_response and self.provider in ("groq", "openai"):
+        if json_response and self.provider in ("groq", "openai", "openrouter"):
             kwargs["response_format"] = {"type": "json_object"}
         
         try:

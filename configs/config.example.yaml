@@ -3,11 +3,16 @@
 
 # LLM Settings
 llm:
-  provider: "groq"  # Options: groq, gemini, anthropic, openai
+  provider: "groq"  # Options: groq, gemini, anthropic, openai, openrouter
   model: "llama-4-scout-17b-16e-instruct"  # Model name for the provider
   api_key: "YOUR_GROQ_API_KEY"  # Get from: https://console.groq.com/keys
   temperature: 0.1
   max_tokens: 4096
+  
+  # OpenRouter alternative (access Kimi, Pony, Aurora, DeepSeek, etc.)
+  # provider: "openrouter"
+  # model: "moonshotai/kimi-k2.5"  # or "openrouter/pony-alpha" (free), "openrouter/aurora-alpha" (free)
+  # api_key: "YOUR_OPENROUTER_API_KEY"  # Get from: https://openrouter.ai/keys
 
 # Scraper Settings (HackerOne report scraping)
 scraper:

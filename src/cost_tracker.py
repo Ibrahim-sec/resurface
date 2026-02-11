@@ -24,6 +24,20 @@ MODEL_PRICING = {
     "gemini-2.0-flash": (0.10, 0.40),
     "gemini/gemini-1.5-pro": (0.10, 0.40),
     "gemini-1.5-pro": (0.10, 0.40),
+    # OpenRouter — Kimi K2.5
+    "openrouter/moonshotai/kimi-k2.5": (0.45, 2.25),
+    "moonshotai/kimi-k2.5": (0.45, 2.25),
+    # OpenRouter — Kimi K2 Thinking
+    "openrouter/moonshotai/kimi-k2-thinking": (0.40, 1.75),
+    "moonshotai/kimi-k2-thinking": (0.40, 1.75),
+    # OpenRouter — Kimi K2 0905
+    "openrouter/moonshotai/kimi-k2-0905": (0.39, 1.90),
+    "moonshotai/kimi-k2-0905": (0.39, 1.90),
+    # OpenRouter — Free models
+    "openrouter/openrouter/pony-alpha": (0.0, 0.0),
+    "openrouter/pony-alpha": (0.0, 0.0),
+    "openrouter/openrouter/aurora-alpha": (0.0, 0.0),
+    "openrouter/aurora-alpha": (0.0, 0.0),
 }
 
 # Default pricing if model not found (conservative estimate)
