@@ -48,11 +48,48 @@ DO NOT stop at just confirming the vulnerability exists. DO NOT stop at just ext
   10. For Oracle: use `FROM dual` for queries without a real table, `||` for concat
   11. For NULL type mismatches: try `TO_CHAR()` or cast as needed
 
+**SSRF (Server-Side Request Forgery) — Full Kill Chain:**
+  1. **Find SSRF-capable inputs** — look for features that fetch external resources:
+     - Stock check / price check buttons (often send URLs in POST body or hidden fields)
+     - URL preview / link unfurl features
+     - Webhook / callback URL fields
+     - Image/file import from URL
+     - PDF generators, screenshot services
+  2. **Identify the request parameter** — intercept the request (watch network tab or inspect the form):
+     - Look for parameters like `url=`, `stockApi=`, `callback=`, `redirect=`, `path=`, `src=`, `dest=`
+     - These often send full URLs or partial paths to the server
+  3. **Test for SSRF** — replace the URL value with internal targets:
+     - `http://localhost/` or `http://127.0.0.1/`
+     - `http://localhost/admin` or `http://127.0.0.1/admin`
+     - `http://localhost:8080/`, `http://localhost:3000/`
+     - If the response contains internal page content, SSRF is confirmed
+  4. **Escalate to admin access** (DO NOT SKIP):
+     - Access admin interfaces: `http://localhost/admin`, `http://localhost/admin/panel`
+     - Read the admin page content — look for user management, delete buttons, API endpoints
+     - If the admin page has actions (delete user, change role), find the action URLs
+  5. **Perform destructive/privileged actions** (DO NOT SKIP — this proves impact):
+     - If admin panel has "delete user" links like `/admin/delete?username=carlos`, trigger them via SSRF
+     - Craft the SSRF payload to hit the action URL: `http://localhost/admin/delete?username=carlos`
+     - Submit it through the vulnerable parameter
+     - Verify the action succeeded (re-check the admin page, look for confirmation)
+  6. **Alternative internal targets** if localhost doesn't work:
+     - `http://169.254.169.254/latest/meta-data/` (AWS metadata — cloud SSRF)
+     - `http://[::1]/` (IPv6 localhost)
+     - `http://0.0.0.0/`, `http://0177.0.0.1/` (alternative localhost representations)
+     - `http://internal-hostname/`, `http://192.168.x.x/` (internal network)
+
 **XSS (Cross-Site Scripting):**
   1. Confirm reflection/injection point
   2. Escalate to actual script execution: get `alert()`, `print()`, or similar to fire
   3. If basic `<script>alert(1)</script>` is blocked, try event handlers: `<img src=x onerror=alert(1)>`, `<svg onload=alert(1)>`, `"><script>alert(1)</script>`
   4. Try encoding bypasses if WAF blocks: HTML entities, URL encoding, case mixing
+
+**Path Traversal / File Read:**
+  1. Find file-serving parameters (`file=`, `path=`, `page=`, `template=`, `include=`)
+  2. Test basic traversal: `../../../etc/passwd`, `....//....//etc/passwd`
+  3. Try encoding bypasses: `%2e%2e%2f`, double URL encoding, null byte `%00`
+  4. Extract sensitive files: `/etc/passwd`, `/etc/shadow`, application config, source code
+  5. If writing is possible, attempt to write a web shell
 
 **IDOR / Access Control:**
   1. Confirm you can access another user's resource
@@ -62,6 +99,12 @@ DO NOT stop at just confirming the vulnerability exists. DO NOT stop at just ext
 **Auth Bypass:**
   1. Access protected functionality (admin panel, other user's account)
   2. Perform an action that proves access (view data, modify settings)
+
+**Command Injection:**
+  1. Find inputs that might be passed to OS commands (ping, DNS lookup, file operations)
+  2. Test with command separators: `; id`, `| id`, `$(id)`, `` `id` ``
+  3. Confirm with time-based: `; sleep 5`, `| timeout 5`
+  4. Extract data: `; cat /etc/passwd`, `; whoami`
 
 ### Phase 4: Report (ONE report only)
 - Only call report_vulnerability ONCE after achieving maximum impact

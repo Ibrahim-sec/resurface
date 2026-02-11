@@ -454,9 +454,9 @@ class BrowserUseReplayer:
     _hunt_prompt_cache: str = None
 
     @classmethod
-    def _load_hunt_prompt(cls) -> str:
+    def _load_hunt_prompt(cls, force_reload: bool = False) -> str:
         """Load hunt prompt template from src/prompts/hunt.md."""
-        if cls._hunt_prompt_cache is not None:
+        if cls._hunt_prompt_cache is not None and not force_reload:
             return cls._hunt_prompt_cache
 
         prompt_path = Path(__file__).parent.parent / "prompts" / "hunt.md"
