@@ -1260,7 +1260,7 @@ class BrowserUseReplayer:
             try: await browser.stop()
             except Exception: pass
 
-    async def _async_hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30) -> dict:
+    async def _async_hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30, stop_on_find: bool = False) -> dict:
         """Async hunt: autonomous vulnerability discovery without a report."""
         from browser_use import Agent, Browser
         from browser_use.controller import Controller
@@ -1277,6 +1277,8 @@ class BrowserUseReplayer:
         def report_vulnerability(vuln_type: str, evidence: str, confidence: float) -> str:
             findings.append({"vuln_type": vuln_type, "evidence": evidence, "confidence": confidence, "ts": time.time()})
             logger.info(f"  🚨 HUNT: {vuln_type} ({confidence:.0%}) — {evidence[:200]}")
+            if stop_on_find:
+                return f"Logged: {vuln_type}. VULNERABILITY CONFIRMED — task complete. Stop testing and call done()."
             return f"Logged: {vuln_type}"
 
         # Auth via storage_state
@@ -1360,9 +1362,9 @@ class BrowserUseReplayer:
         """
         return self._run_async(self._async_replay(parsed_report, target_override, max_actions, resume_context=resume_context))
 
-    def hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30) -> dict:
+    def hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30, stop_on_find: bool = False) -> dict:
         """
         Autonomously explore a web app and discover vulnerabilities.
         Sync wrapper for CLI compatibility.
         """
-        return self._run_async(self._async_hunt(target_url, vuln_types, max_actions))
+        return self._run_async(self._async_hunt(target_url, vuln_types, max_actions, stop_on_find=stop_on_find))

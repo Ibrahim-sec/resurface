@@ -1473,7 +1473,7 @@ def cmd_hunt(args, config):
         api_key=gemini_key or groq_key or claude_key,
         model=bu_model,
         provider=bu_provider,
-        headless=True,
+        headless=not getattr(args, 'headed', False),
         verbose=verbose,
         auth_manager=auth_manager,
         evidence_dir=str(base / 'data' / 'results'),
@@ -1487,6 +1487,7 @@ def cmd_hunt(args, config):
         target_url=target,
         vuln_types=vuln_types,
         max_actions=max_actions,
+        stop_on_find=getattr(args, 'stop_on_find', False),
     )
 
     # Print results
@@ -2302,6 +2303,10 @@ def main():
                              help='Maximum USD spend before aborting')
     hunt_parser.add_argument('--max-time', type=float, default=None,
                              help='Maximum wall-clock minutes before aborting')
+    hunt_parser.add_argument('--headed', action='store_true',
+                             help='Run browser in headed mode (visible on display)')
+    hunt_parser.add_argument('--stop-on-find', action='store_true',
+                             help='Stop hunting after first confirmed vulnerability')
 
     args = arg_parser.parse_args()
     
