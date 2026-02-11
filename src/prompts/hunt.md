@@ -67,11 +67,19 @@ DO NOT stop at just confirming the vulnerability exists. DO NOT stop at just ext
      - Access admin interfaces: `http://localhost/admin`, `http://localhost/admin/panel`
      - Read the admin page content — look for user management, delete buttons, API endpoints
      - If the admin page has actions (delete user, change role), find the action URLs
-  5. **Perform destructive/privileged actions** (DO NOT SKIP — this proves impact):
-     - If admin panel has "delete user" links like `/admin/delete?username=carlos`, trigger them via SSRF
-     - Craft the SSRF payload to hit the action URL: `http://localhost/admin/delete?username=carlos`
-     - Submit it through the vulnerable parameter
-     - Verify the action succeeded (re-check the admin page, look for confirmation)
+  5. **Perform privileged actions VIA SSRF** (CRITICAL — do not just click links!):
+     - ⚠️ WARNING: You CANNOT just click links on the SSRF-returned page! Those links point to the 
+       EXTERNAL server URL which will block you (admin access restricted to localhost).
+     - ALL admin actions MUST go through the SSRF channel. To trigger an action:
+       a. Read the action URL from the admin page (e.g. `/admin/delete?username=carlos`)
+       b. Construct a NEW SSRF payload: `http://localhost/admin/delete?username=carlos`
+       c. Submit it through the SAME vulnerable parameter (e.g. modify stockApi value again)
+       d. This makes the SERVER perform the action from localhost, bypassing restrictions
+     - Example flow for stock check SSRF:
+       a. First request: set stockApi = `http://localhost/admin` → see admin panel with user list
+       b. Read the delete URL from the response (e.g. `/admin/delete?username=carlos`)
+       c. Second request: set stockApi = `http://localhost/admin/delete?username=carlos` → deletes the user
+     - Verify the action succeeded by sending another SSRF to `http://localhost/admin` and checking
   6. **Alternative internal targets** if localhost doesn't work:
      - `http://169.254.169.254/latest/meta-data/` (AWS metadata — cloud SSRF)
      - `http://[::1]/` (IPv6 localhost)
