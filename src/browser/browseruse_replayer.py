@@ -26,6 +26,7 @@ from src.payloads.payload_library import PayloadLibrary
 from src.evidence.evidence_chain import EvidenceChain
 from src.chain.vuln_chain import create_chain_for_vuln, create_chain_tools
 from src.engine.browser_waf_bypass import BrowserWAFBypass, create_waf_bypass_tools
+from src.browser.display_manager import DisplayManager
 
 
 # JS interceptor: monitors fetch/XHR for auth success and data leaks
@@ -1171,6 +1172,21 @@ class BrowserUseReplayer:
             )
             logger.info(f"  🔑 Auth: {auth_session.profile_name} ({len(auth_session.cookies)} cookies)")
 
+        # Start display stack for headed mode
+        display_mgr = None
+        if not self.headless:
+            display_mgr = DisplayManager()
+            if not display_mgr.start():
+                logger.error("  ❌ Failed to start display stack for headed mode")
+                return ReplayReport(
+                    report_id=rid, title=parsed_report.title, target_url=target_url,
+                    result="ERROR", confidence=0.0, evidence="Display stack failed to start",
+                    actions_taken=0, duration=time.time() - start, screenshots=[],
+                )
+        else:
+            # Even in headless mode, clean chrome locks
+            DisplayManager()._clean_chrome_locks()
+
         if self.use_cloud:
             browser = Browser(
                 headless=self.headless, disable_security=True, storage_state=storage_state,
@@ -1323,6 +1339,8 @@ class BrowserUseReplayer:
         finally:
             try: await browser.stop()
             except Exception: pass
+            if display_mgr:
+                display_mgr.stop()
 
     async def _async_hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30, stop_on_find: bool = False) -> dict:
         """Async hunt: autonomous vulnerability discovery without a report."""
@@ -1349,6 +1367,22 @@ class BrowserUseReplayer:
             logger.warning(f"⚠️  Target pre-check failed: {e} — proceeding anyway")
 
         logger.info(f"🔍 HUNT — {target_url} | types: {', '.join(vuln_types)} | max: {max_actions}")
+
+        # Start display stack for headed mode
+        display_mgr = None
+        if not self.headless:
+            display_mgr = DisplayManager()
+            if not display_mgr.start():
+                logger.error("❌ Failed to start display stack for headed mode")
+                return {
+                    "findings": [], "actions_taken": 0, "duration": time.time() - start,
+                    "screenshots": [], "dialogs": [], "error": "Display stack failed to start",
+                    "target_url": target_url, "vuln_types": vuln_types,
+                    "timestamp": datetime.now().isoformat(),
+                }
+        else:
+            # Even in headless mode, clean chrome locks
+            DisplayManager()._clean_chrome_locks()
 
         controller = Controller()
 
@@ -1431,6 +1465,8 @@ class BrowserUseReplayer:
         finally:
             try: await browser.stop()
             except Exception: pass
+            if display_mgr:
+                display_mgr.stop()
 
     # ── Public Sync API ──────────────────────────────────────────────
 
