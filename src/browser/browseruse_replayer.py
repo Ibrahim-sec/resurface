@@ -592,6 +592,7 @@ class BrowserUseReplayer:
         self, parsed_report: ParsedReport,
         target_override: Optional[str] = None,
         max_actions: Optional[int] = None,
+        resume_context: Optional[str] = None,
     ) -> ReplayReport:
         """Async replay: create Agent, inject auth, run, collect evidence."""
         from browser_use import Agent, Browser
@@ -1127,6 +1128,12 @@ class BrowserUseReplayer:
         # Set WAF bypass browser reference now that browser exists
         _waf_browser_ref[0] = browser
 
+        # Append resume context from previous attempts (multi-attempt mode)
+        if resume_context:
+            task += f"\n\n## PREVIOUS ATTEMPT\n{resume_context}\n" \
+                    "Learn from the previous attempt. Try different approaches, " \
+                    "payloads, or pages. Do NOT repeat the same failed actions.\n"
+
         # Append vuln chain context only in blind mode (guided mode has explicit steps already)
         if self.blind:
             chain_context = vuln_chain.to_prompt_context()
@@ -1142,6 +1149,19 @@ class BrowserUseReplayer:
             logger.info(f"  ▶️  Running agent (max {max_actions} steps)...")
             history = await agent.run(max_steps=max_actions)
             logger.info(f"  ✅ Done — {len(findings)} finding(s)")
+
+            # Estimate browser-use agent cost from step count
+            try:
+                from src.cost_tracker import get_cost_tracker
+                action_results = list(history.action_results()) if history else []
+                step_count = len(action_results)
+                if step_count > 0:
+                    # Map provider to model name for pricing
+                    browser_model = self.model if self.model else "claude-sonnet-4-0"
+                    get_cost_tracker().record_browser_steps(step_count, browser_model)
+                    logger.info(f"  💰 Browser cost estimated for {step_count} steps")
+            except Exception as e:
+                logger.debug(f"  Cost estimation skipped: {e}")
 
             # Save all screenshots as numbered frames for evidence
             try:
@@ -1333,12 +1353,12 @@ class BrowserUseReplayer:
                 return pool.submit(asyncio.run, coro).result()
         return asyncio.run(coro)
 
-    def replay(self, parsed_report: ParsedReport, target_override: str = None, max_actions: int = None) -> ReplayReport:
+    def replay(self, parsed_report: ParsedReport, target_override: str = None, max_actions: int = None, resume_context: str = None) -> ReplayReport:
         """
         Replay a parsed vulnerability report using browser-use.
         Sync wrapper for CLI compatibility.
         """
-        return self._run_async(self._async_replay(parsed_report, target_override, max_actions))
+        return self._run_async(self._async_replay(parsed_report, target_override, max_actions, resume_context=resume_context))
 
     def hunt(self, target_url: str, vuln_types: list[str] = None, max_actions: int = 30) -> dict:
         """

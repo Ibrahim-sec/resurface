@@ -245,6 +245,19 @@ def cmd_replay(args, config):
     verbose = getattr(args, 'verbose', False)
     no_llm = getattr(args, 'no_llm', False)
 
+    # Initialize cost tracker and deadline
+    from src.cost_tracker import get_cost_tracker
+    from src.deadline import Deadline
+    cost_tracker = get_cost_tracker()
+    cost_tracker.reset()
+    max_time_seconds = getattr(args, 'max_time', None)
+    if max_time_seconds is not None:
+        max_time_seconds = max_time_seconds * 60  # convert minutes to seconds
+    deadline = Deadline(max_seconds=max_time_seconds)
+    max_cost = getattr(args, 'max_cost', None)
+    max_turns = getattr(args, 'max_turns', None)
+    num_attempts = getattr(args, 'attempts', 1) or 1
+
     if not no_llm and not config.llm.api_key:
         print("❌ No LLM API key configured!")
         return
@@ -436,32 +449,123 @@ def cmd_replay(args, config):
         else:
             print("   🧪 Enrichment skipped (no Groq API key for cheap LLM calls)")
 
-    replay_result = replayer.replay(parsed_report, target_override=args.target)
+    # ── Multi-Attempt Loop ─────────────────────────────────────────
+    results_dir = Path(config.reporter.output_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+    resume_context = None
+    replay_result = None
 
-    # ── Post-failure retry with refinement ───────────────────────
-    if (enrich_mode and enriched_report and max_retries > 1
-            and replay_result.result != ReplayResult.VULNERABLE
-            and use_browser):
-        from src.enricher.report_enricher import ReportEnricher
-        groq_enrich_key = os.environ.get('GROQ_API_KEY', config.llm.api_key if config.llm.provider == 'groq' else None)
-        if groq_enrich_key:
-            enricher = ReportEnricher(api_key=groq_enrich_key, verbose=verbose)
-            for retry in range(2, max_retries + 1):
-                print(f"\n   🔄 Retry {retry}/{max_retries} — refining attack plan...")
-                # Build failure log from evidence
-                failure_log = f"Result: {getattr(replay_result.result, 'value', replay_result.result)}\n"
-                failure_log += f"Analysis: {replay_result.llm_analysis or 'N/A'}\n"
-                for ev in replay_result.evidence[:10]:
-                    failure_log += f"  Step {ev.step_number}: {ev.notes[:200]}\n"
-                # Refine
-                enriched_report = enricher.refine(enriched_report, failure_log, args.target)
-                if enriched_report.enriched_prompt:
-                    replayer._enriched_prompt = enriched_report.enriched_prompt
-                # Retry
-                replay_result = replayer.replay(parsed_report, target_override=args.target)
-                if replay_result.result == ReplayResult.VULNERABLE:
-                    print(f"   ✅ Succeeded on retry {retry}!")
-                    break
+    for attempt in range(1, num_attempts + 1):
+        # Check deadline before each attempt
+        if deadline.expired:
+            print(f"\n   ⏰ Time limit reached ({getattr(args, 'max_time', '?')} min) — aborting")
+            break
+
+        # Check cost limit before each attempt (after first)
+        if attempt > 1 and max_cost is not None:
+            current_cost = cost_tracker.get_summary()['estimated_cost_usd']
+            if current_cost >= max_cost:
+                print(f"\n   💰 Cost limit reached (${current_cost:.4f} >= ${max_cost:.4f}) — aborting")
+                break
+
+        if num_attempts > 1:
+            print(f"\n   🔁 Attempt {attempt}/{num_attempts}" +
+                  (f" (resume from previous)" if resume_context else ""))
+
+        # Determine max_actions for this replay
+        replay_max_actions = max_turns  # may be None (use replayer default)
+
+        # Run replay with optional resume context
+        if use_browser:
+            replay_result = replayer.replay(
+                parsed_report, target_override=args.target,
+                max_actions=replay_max_actions,
+                resume_context=resume_context,
+            )
+        else:
+            replay_result = replayer.replay(parsed_report, target_override=args.target)
+
+        # ── Post-failure retry with enrichment refinement ────────────
+        if (enrich_mode and enriched_report and max_retries > 1
+                and replay_result.result != ReplayResult.VULNERABLE
+                and use_browser):
+            from src.enricher.report_enricher import ReportEnricher
+            groq_enrich_key = os.environ.get('GROQ_API_KEY', config.llm.api_key if config.llm.provider == 'groq' else None)
+            if groq_enrich_key:
+                enricher = ReportEnricher(api_key=groq_enrich_key, verbose=verbose)
+                for retry in range(2, max_retries + 1):
+                    # Check limits before each retry
+                    if deadline.expired:
+                        print(f"\n   ⏰ Time limit reached — stopping retries")
+                        break
+                    if max_cost is not None and cost_tracker.get_summary()['estimated_cost_usd'] >= max_cost:
+                        print(f"\n   💰 Cost limit reached — stopping retries")
+                        break
+                    print(f"\n   🔄 Retry {retry}/{max_retries} — refining attack plan...")
+                    # Build failure log from evidence
+                    failure_log = f"Result: {getattr(replay_result.result, 'value', replay_result.result)}\n"
+                    failure_log += f"Analysis: {replay_result.llm_analysis or 'N/A'}\n"
+                    for ev in replay_result.evidence[:10]:
+                        failure_log += f"  Step {ev.step_number}: {ev.notes[:200]}\n"
+                    # Refine
+                    enriched_report = enricher.refine(enriched_report, failure_log, args.target)
+                    if enriched_report.enriched_prompt:
+                        replayer._enriched_prompt = enriched_report.enriched_prompt
+                    # Retry
+                    replay_result = replayer.replay(parsed_report, target_override=args.target)
+                    if replay_result.result == ReplayResult.VULNERABLE:
+                        print(f"   ✅ Succeeded on retry {retry}!")
+                        break
+
+        # Save per-attempt result if multi-attempt
+        if num_attempts > 1:
+            attempt_result_data = {
+                'report_id': replay_result.report_id,
+                'attempt': attempt,
+                'result': getattr(replay_result.result, 'value', replay_result.result),
+                'confidence': replay_result.confidence,
+                'analysis': replay_result.llm_analysis,
+                'duration_seconds': replay_result.duration_seconds,
+                'evidence_count': len(replay_result.evidence),
+            }
+            attempt_file = results_dir / f"{args.report}_attempt_{attempt}_result.json"
+            with open(attempt_file, 'w') as f:
+                json.dump(attempt_result_data, f, indent=2)
+
+        # If VULNERABLE found, stop attempts
+        if replay_result.result == ReplayResult.VULNERABLE:
+            if num_attempts > 1:
+                print(f"   ✅ VULNERABLE found on attempt {attempt}!")
+            break
+
+        # Build resume context for next attempt from this failed attempt
+        if attempt < num_attempts:
+            summary_lines = []
+            summary_lines.append(f"## Attempt {attempt} Summary")
+            summary_lines.append(f"Result: {getattr(replay_result.result, 'value', replay_result.result)}")
+            summary_lines.append(f"Confidence: {replay_result.confidence:.0%}")
+            summary_lines.append(f"Analysis: {replay_result.llm_analysis or 'N/A'}")
+            summary_lines.append("")
+            summary_lines.append("### Steps taken:")
+            for ev in replay_result.evidence[:15]:
+                summary_lines.append(f"- Step {ev.step_number}: {ev.notes[:300]}")
+            summary_lines.append("")
+            summary_lines.append("### What to try differently:")
+            summary_lines.append("- Use different payloads or approaches")
+            summary_lines.append("- Try different entry points or pages")
+            summary_lines.append("- If blocked, try bypass techniques")
+            resume_context = "\n".join(summary_lines)
+
+            # Save the progress summary markdown
+            summary_path = results_dir / f"{args.report}_attempt_{attempt}.md"
+            with open(summary_path, 'w') as f:
+                f.write(resume_context)
+            print(f"   📝 Attempt {attempt} summary saved: {summary_path}")
+
+    # If no replay_result was produced (e.g., deadline expired before first attempt)
+    if replay_result is None:
+        print("❌ No replay attempt was executed (time/cost limit reached)")
+        return
 
     # If browser engine already confirmed vulnerability (e.g., caught alert dialog),
     # trust the direct detection over LLM validation
@@ -515,10 +619,13 @@ def cmd_replay(args, config):
         )
         replay_result = validator.validate(replay_result)
     
+    # ── Cost Summary ─────────────────────────────────────────────
+    cost_summary = cost_tracker.get_summary()
+    replay_result.cost_usd = cost_summary['estimated_cost_usd']
+    replay_result.total_tokens = cost_summary['total_input_tokens'] + cost_summary['total_output_tokens']
+    replay_result.llm_calls = cost_summary['call_count']
+
     # Save result
-    results_dir = Path(config.reporter.output_dir)
-    results_dir.mkdir(parents=True, exist_ok=True)
-    
     result_data = {
         'report_id': replay_result.report_id,
         'title': parsed_report.title,
@@ -530,7 +637,10 @@ def cmd_replay(args, config):
         'duration_seconds': replay_result.duration_seconds,
         'replayed_at': replay_result.replayed_at.isoformat() if replay_result.replayed_at else None,
         'evidence_count': len(replay_result.evidence),
-        'steps_executed': len(parsed_report.steps)
+        'steps_executed': len(parsed_report.steps),
+        'cost_usd': cost_summary['estimated_cost_usd'],
+        'total_tokens': cost_summary['total_input_tokens'] + cost_summary['total_output_tokens'],
+        'llm_calls': cost_summary['call_count'],
     }
     
     with open(results_dir / f"{args.report}_result.json", 'w') as f:
@@ -549,6 +659,7 @@ def cmd_replay(args, config):
     print(f"  RESULT: {result_emoji.get(replay_result.result, '?')}")
     print(f"  Confidence: {replay_result.confidence:.0%}")
     print(f"  Duration: {replay_result.duration_seconds:.1f}s")
+    print(f"  {cost_tracker.format_summary()}")
     print(f"{'='*60}")
     print(f"\n📝 Analysis:\n{replay_result.llm_analysis}")
     print(f"\n💾 Result saved to: {results_dir}/{args.report}_result.json")
@@ -2060,6 +2171,14 @@ def main():
                               help='Max attempts with post-failure refinement (requires --enrich, default: 1)')
     replay_parser.add_argument('--recon', action='store_true',
                               help='Run LLM recon agent first to learn the site (auto-skips if cache exists)')
+    replay_parser.add_argument('--max-turns', type=int, default=None,
+                              help='Maximum browser agent steps (overrides default MAX_ACTIONS)')
+    replay_parser.add_argument('--max-cost', type=float, default=None,
+                              help='Maximum USD spend before aborting')
+    replay_parser.add_argument('--max-time', type=float, default=None,
+                              help='Maximum wall-clock minutes before aborting')
+    replay_parser.add_argument('--attempts', type=int, default=1,
+                              help='Number of replay attempts with resume context (default: 1)')
 
     # Replay-all command
     replay_all_parser = subparsers.add_parser('replay-all',
@@ -2085,6 +2204,14 @@ def main():
                                    help='Enable LLM-driven autonomous authentication (auto signup/login)')
     replay_all_parser.add_argument('--blind', action='store_true',
                                    help='Blind mode: agent gets no URLs or step details, must navigate autonomously')
+    replay_all_parser.add_argument('--max-turns', type=int, default=None,
+                                   help='Maximum browser agent steps per replay')
+    replay_all_parser.add_argument('--max-cost', type=float, default=None,
+                                   help='Maximum USD spend before aborting')
+    replay_all_parser.add_argument('--max-time', type=float, default=None,
+                                   help='Maximum wall-clock minutes before aborting')
+    replay_all_parser.add_argument('--attempts', type=int, default=1,
+                                   help='Number of replay attempts with resume context (default: 1)')
 
     # Stats command
     subparsers.add_parser('stats', help='Show database statistics')
@@ -2171,6 +2298,10 @@ def main():
                              help='Show LLM prompts/responses')
     hunt_parser.add_argument('--auth-profile', default=None,
                              help='Auth profile name from config.yaml')
+    hunt_parser.add_argument('--max-cost', type=float, default=None,
+                             help='Maximum USD spend before aborting')
+    hunt_parser.add_argument('--max-time', type=float, default=None,
+                             help='Maximum wall-clock minutes before aborting')
 
     args = arg_parser.parse_args()
     

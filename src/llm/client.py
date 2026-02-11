@@ -44,6 +44,8 @@ except ImportError:
     LITELLM_AVAILABLE = False
     logger.warning("LiteLLM not installed. Run: pip install litellm")
 
+from src.cost_tracker import get_cost_tracker
+
 try:
     import instructor
     from instructor import Mode
@@ -213,6 +215,16 @@ class LLMClient:
             response = completion(**kwargs)
             content = response.choices[0].message.content
             
+            # Track cost via usage metadata
+            try:
+                usage = getattr(response, 'usage', None)
+                if usage:
+                    in_tok = getattr(usage, 'prompt_tokens', 0) or 0
+                    out_tok = getattr(usage, 'completion_tokens', 0) or 0
+                    get_cost_tracker().record(self.full_model, in_tok, out_tok, label=label)
+            except Exception:
+                pass
+            
             if self.verbose:
                 logger.debug(f"[{label}] Response ({len(content)} chars)")
             
@@ -320,6 +332,18 @@ class LLMClient:
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
+            
+            # Track cost — instructor attaches _raw_response on the model
+            try:
+                raw = getattr(result, '_raw_response', None)
+                if raw:
+                    usage = getattr(raw, 'usage', None)
+                    if usage:
+                        in_tok = getattr(usage, 'prompt_tokens', 0) or 0
+                        out_tok = getattr(usage, 'completion_tokens', 0) or 0
+                        get_cost_tracker().record(self.full_model, in_tok, out_tok, label=label)
+            except Exception:
+                pass
             
             if self.verbose:
                 logger.debug(f"[{label}] Got valid {response_model.__name__}")

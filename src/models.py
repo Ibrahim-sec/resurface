@@ -149,6 +149,10 @@ class ReplayReport(BaseModel):
     error_message: Optional[str] = None
     mutation_results: list[MutationResult] = Field(default_factory=list)
     session_state: Optional[SessionState] = None
+    # Cost tracking fields
+    cost_usd: Optional[float] = None
+    total_tokens: Optional[int] = None
+    llm_calls: Optional[int] = None
 
 
 # ─────────────────────────────────────────────────────────────────────
