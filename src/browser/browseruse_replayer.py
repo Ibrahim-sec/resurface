@@ -1198,7 +1198,7 @@ class BrowserUseReplayer:
                         "Use the `checkpoint` tool after completing each step.\n" \
                         "Use `chain_status` to see your progress.\n"
 
-        agent = Agent(task=task, llm=self._create_llm(), browser=browser, controller=controller, max_actions_per_step=5)
+        agent = Agent(task=task, llm=self._create_llm(), browser=browser, controller=controller, max_actions_per_step=5, calculate_cost=True)
 
         try:
             # Run agent (browser-use handles browser launch internally)
@@ -1206,18 +1206,26 @@ class BrowserUseReplayer:
             history = await agent.run(max_steps=max_actions)
             logger.info(f"  ✅ Done — {len(findings)} finding(s)")
 
-            # Estimate browser-use agent cost from step count
+            # Extract real token usage from browser-use's built-in tracking
             try:
-                from src.cost_tracker import get_cost_tracker
-                action_results = list(history.action_results()) if history else []
-                step_count = len(action_results)
-                if step_count > 0:
-                    # Map provider to model name for pricing
-                    browser_model = self.model if self.model else "claude-sonnet-4-0"
-                    get_cost_tracker().record_browser_steps(step_count, browser_model)
-                    logger.info(f"  💰 Browser cost estimated for {step_count} steps")
+                if history.usage:
+                    bu = history.usage
+                    logger.info(f"  💰 Cost: ${bu.total_cost:.4f} | "
+                                f"Tokens: {bu.total_prompt_tokens:,} in / {bu.total_completion_tokens:,} out | "
+                                f"Calls: {bu.entry_count}")
+                    # Also feed into our cost tracker for unified reporting
+                    try:
+                        from src.cost_tracker import get_cost_tracker
+                        tracker = get_cost_tracker()
+                        tracker.record(
+                            input_tokens=bu.total_prompt_tokens,
+                            output_tokens=bu.total_completion_tokens,
+                            model=self.model,
+                        )
+                    except Exception:
+                        pass
             except Exception as e:
-                logger.debug(f"  Cost estimation skipped: {e}")
+                logger.debug(f"  Cost extraction skipped: {e}")
 
             # Save all screenshots as numbered frames for evidence
             try:
@@ -1401,32 +1409,61 @@ class BrowserUseReplayer:
         agent = Agent(
             task=task_prompt,
             llm=self._create_llm(), browser=browser, controller=controller, max_actions_per_step=5,
+            calculate_cost=True,
         )
 
         try:
             history = await agent.run(max_steps=max_actions)
 
+            # Extract token usage from browser-use's built-in tracking
+            bu_cost = {}
+            try:
+                if history.usage:
+                    bu_cost = {
+                        "input_tokens": history.usage.total_prompt_tokens,
+                        "output_tokens": history.usage.total_completion_tokens,
+                        "cached_tokens": history.usage.total_prompt_cached_tokens,
+                        "total_tokens": history.usage.total_tokens,
+                        "cost_usd": round(history.usage.total_cost, 6),
+                        "llm_calls": history.usage.entry_count,
+                    }
+                    logger.info(f"  💰 Cost: ${bu_cost['cost_usd']:.4f} | "
+                                f"Tokens: {bu_cost['input_tokens']:,} in / {bu_cost['output_tokens']:,} out | "
+                                f"Calls: {bu_cost['llm_calls']}")
+            except Exception as e:
+                logger.warning(f"  ⚠️  Cost extraction failed: {e}")
+
             # Save screenshots
             try:
-                for i, data in enumerate(history.screenshots() or []):
-                    p = self.evidence_dir / f"hunt_{int(time.time())}_{i}.png"
-                    p.write_bytes(data)
-                    screenshots.append(str(p))
-            except Exception:
-                pass
+                shot_data = history.screenshots() or []
+                if not shot_data:
+                    # Try screenshot_paths as fallback
+                    shot_paths = history.screenshot_paths() if hasattr(history, 'screenshot_paths') else []
+                    for sp in (shot_paths or []):
+                        if os.path.exists(sp):
+                            screenshots.append(str(sp))
+                else:
+                    for i, data in enumerate(shot_data):
+                        p = self.evidence_dir / f"hunt_{int(time.time())}_{i}.png"
+                        p.write_bytes(data)
+                        screenshots.append(str(p))
+            except Exception as e:
+                logger.warning(f"  ⚠️  Screenshot extraction failed: {e}")
 
             # Dialog-based XSS finding
             if dialogs and not any(f["vuln_type"].lower().startswith("xss") for f in findings):
                 findings.append({"vuln_type": "xss", "evidence": f"JS dialogs: {'; '.join(dialogs[:3])}", "confidence": 0.9, "ts": time.time()})
 
+            actual_steps = history.number_of_steps() if hasattr(history, 'number_of_steps') else max_actions
             dur = time.time() - start
             logger.info(f"🔍 Hunt done — {len(findings)} finding(s) in {dur:.1f}s")
             return {
-                "findings": findings, "actions_taken": max_actions, "duration": dur,
+                "findings": findings, "actions_taken": actual_steps, "duration": dur,
                 "screenshots": screenshots, "dialogs": dialogs,
                 "prompt": task_prompt, "target_url": target_url,
                 "vuln_types": vuln_types, "model": self.model, "provider": self.provider,
                 "stop_on_find": stop_on_find, "timestamp": datetime.now().isoformat(),
+                "bu_cost": bu_cost,
             }
 
         except Exception as e:
@@ -1437,6 +1474,7 @@ class BrowserUseReplayer:
                 "prompt": task_prompt, "target_url": target_url,
                 "vuln_types": vuln_types, "model": self.model, "provider": self.provider,
                 "stop_on_find": stop_on_find, "timestamp": datetime.now().isoformat(),
+                "bu_cost": {},
             }
         finally:
             try: await browser.stop()

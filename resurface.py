@@ -1507,13 +1507,22 @@ def cmd_hunt(args, config):
     print(f"  Duration: {duration:.1f}s")
     print(f"  Screenshots: {len(result.get('screenshots', []))}")
 
-    # Cost tracking
-    try:
-        from src.cost_tracker import get_cost_tracker
-        cost_summary = get_cost_tracker().get_summary()
-        print(f"  💰 Cost: ${cost_summary['estimated_cost_usd']:.4f} | Tokens: {cost_summary['total_input_tokens']:,} in / {cost_summary['total_output_tokens']:,} out | LLM calls: {cost_summary['call_count']}")
-    except Exception:
-        pass
+    # Cost tracking — use browser-use's real data
+    bu_cost = result.get('bu_cost', {})
+    if bu_cost and bu_cost.get('total_tokens', 0) > 0:
+        print(f"  💰 Cost: ${bu_cost.get('cost_usd', 0):.4f} | "
+              f"Tokens: {bu_cost.get('input_tokens', 0):,} in / {bu_cost.get('output_tokens', 0):,} out "
+              f"(cached: {bu_cost.get('cached_tokens', 0):,}) | "
+              f"LLM calls: {bu_cost.get('llm_calls', 0)}")
+    else:
+        # Fallback to our cost tracker
+        try:
+            from src.cost_tracker import get_cost_tracker
+            cost_summary = get_cost_tracker().get_summary()
+            if cost_summary.get('call_count', 0) > 0:
+                print(f"  💰 Cost: ${cost_summary['estimated_cost_usd']:.4f} | Tokens: {cost_summary['total_input_tokens']:,} in / {cost_summary['total_output_tokens']:,} out | LLM calls: {cost_summary['call_count']}")
+        except Exception:
+            pass
 
     print()
 
