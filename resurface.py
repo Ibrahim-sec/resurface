@@ -1490,6 +1490,13 @@ def cmd_hunt(args, config):
         stop_on_find=getattr(args, 'stop_on_find', False),
     )
 
+    # Check for target-down error
+    if result.get('error') and ('unreachable' in result['error'].lower() or 'timed out' in result['error'].lower()):
+        print(f"\n❌ TARGET DOWN — {target}")
+        print(f"   {result['error']}")
+        print(f"   Check the URL is correct and the target is running.\n")
+        return
+
     # Print results
     findings = result['findings']
     duration = result.get('duration', 0)

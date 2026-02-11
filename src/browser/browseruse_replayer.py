@@ -662,6 +662,29 @@ class BrowserUseReplayer:
 
         # Resolve target URL and rewrite step URLs if overridden
         target_url = target_override or parsed_report.target_url or ""
+
+        # Pre-flight: check if target is alive
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15, verify=False, follow_redirects=True) as client:
+                resp = await client.get(target_url)
+                logger.info(f"  🌐 Target alive: HTTP {resp.status_code}")
+        except httpx.ConnectError as e:
+            logger.error(f"  ❌ Target unreachable: {target_url} — {e}")
+            return ReplayReport(
+                report_id=rid, title=parsed_report.title, target_url=target_url,
+                result="ERROR", confidence=0.0, evidence=f"Target unreachable: {e}",
+                actions_taken=0, duration=time.time() - start, screenshots=[],
+            )
+        except httpx.TimeoutException:
+            logger.error(f"  ❌ Target timed out: {target_url} (15s)")
+            return ReplayReport(
+                report_id=rid, title=parsed_report.title, target_url=target_url,
+                result="ERROR", confidence=0.0, evidence="Target timed out after 15s",
+                actions_taken=0, duration=time.time() - start, screenshots=[],
+            )
+        except Exception as e:
+            logger.warning(f"  ⚠️  Target pre-check failed: {e} — proceeding anyway")
         if target_override:
             tgt = urllib.parse.urlparse(target_override)
             for step in parsed_report.steps:
@@ -1305,10 +1328,25 @@ class BrowserUseReplayer:
         """Async hunt: autonomous vulnerability discovery without a report."""
         from browser_use import Agent, Browser
         from browser_use.controller import Controller
+        import httpx
 
         vuln_types = vuln_types or ["xss", "sqli", "idor", "auth_bypass", "info_disclosure"]
         start = time.time()
         findings, dialogs, screenshots = [], [], []
+
+        # Pre-flight: check if target is alive
+        try:
+            async with httpx.AsyncClient(timeout=15, verify=False, follow_redirects=True) as client:
+                resp = await client.get(target_url)
+                logger.info(f"🌐 Target alive: {target_url} (HTTP {resp.status_code})")
+        except httpx.ConnectError as e:
+            logger.error(f"❌ Target unreachable: {target_url} — {e}")
+            return {"findings": [], "actions_taken": 0, "duration": time.time() - start, "screenshots": [], "dialogs": [], "error": f"Target unreachable: {e}"}
+        except httpx.TimeoutException:
+            logger.error(f"❌ Target timed out: {target_url} (15s)")
+            return {"findings": [], "actions_taken": 0, "duration": time.time() - start, "screenshots": [], "dialogs": [], "error": "Target timed out after 15s"}
+        except Exception as e:
+            logger.warning(f"⚠️  Target pre-check failed: {e} — proceeding anyway")
 
         logger.info(f"🔍 HUNT — {target_url} | types: {', '.join(vuln_types)} | max: {max_actions}")
 
