@@ -5,6 +5,7 @@ data/reports/
 data/results/
 data/parsed/
 data/site_cache/
+data/exploitdb/
 data/.auto_auth_cache.json
 logs/
 *.db
@@ -13,6 +14,7 @@ venv/
 configs/config.yaml
 chrome_profile/
 legacy/
+training/
 *.png
 *.jpg
 node_modules/
