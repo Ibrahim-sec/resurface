@@ -1542,11 +1542,62 @@ def cmd_hunt(args, config):
         print(f"  The agent explored {result['actions_taken']} actions without finding issues.")
         print()
 
-    # Save findings to JSON
+    # Save findings with timestamp
+    from datetime import datetime as _dt
+    ts = _dt.now().strftime('%Y-%m-%d_%H%M%S')
+    vuln_tag = '_'.join(vuln_types)[:30]
+    # Extract domain for filename
+    from urllib.parse import urlparse as _urlparse
+    domain = _urlparse(target).netloc.split('.')[0][:20] or 'unknown'
+    hunt_filename = f"hunt_{ts}_{domain}_{vuln_tag}.json"
+
+    hunt_dir = base / 'data' / 'results' / 'hunts'
+    hunt_dir.mkdir(parents=True, exist_ok=True)
+
+    # Add cost data to result
+    try:
+        from src.cost_tracker import get_cost_tracker
+        cost_summary = get_cost_tracker().get_summary()
+        result['cost'] = cost_summary
+    except Exception:
+        pass
+
+    # Save individual hunt result
+    hunt_path = hunt_dir / hunt_filename
+    with open(hunt_path, 'w') as fp:
+        json.dump(result, fp, indent=2, default=str)
+    print(f"  Result saved: {hunt_path}")
+
+    # Also keep the latest as hunt_findings.json for backwards compat
     findings_path = base / 'data' / 'results' / 'hunt_findings.json'
     with open(findings_path, 'w') as fp:
         json.dump(result, fp, indent=2, default=str)
-    print(f"  Findings saved: {findings_path}")
+
+    # Update hunt history
+    history_path = hunt_dir / 'hunt_history.json'
+    try:
+        with open(history_path) as fp:
+            history = json.load(fp)
+    except (FileNotFoundError, json.JSONDecodeError):
+        history = []
+
+    history.append({
+        "file": hunt_filename,
+        "timestamp": result.get('timestamp', ts),
+        "target": target,
+        "vuln_types": vuln_types,
+        "model": result.get('model', ''),
+        "provider": result.get('provider', ''),
+        "findings_count": len(findings),
+        "solved": any(f.get('confidence', 0) >= 0.9 for f in findings),
+        "duration": result.get('duration', 0),
+        "cost": result.get('cost', {}),
+        "error": result.get('error'),
+    })
+
+    with open(history_path, 'w') as fp:
+        json.dump(history, fp, indent=2, default=str)
+    print(f"  History updated: {history_path} ({len(history)} total runs)")
     print(f"{'='*60}\n")
 
 

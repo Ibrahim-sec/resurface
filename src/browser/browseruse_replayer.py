@@ -1387,8 +1387,9 @@ class BrowserUseReplayer:
                 user_data_dir=chrome_profile,
                 args=DEFAULT_CHROME_ARGS + ['--disable-gpu', '--disable-dev-shm-usage', '--disable-popup-blocking'],
             )
+        task_prompt = self._build_hunt_prompt(target_url, vuln_types, stop_on_find=stop_on_find)
         agent = Agent(
-            task=self._build_hunt_prompt(target_url, vuln_types, stop_on_find=stop_on_find),
+            task=task_prompt,
             llm=self._create_llm(), browser=browser, controller=controller, max_actions_per_step=5,
         )
 
@@ -1410,11 +1411,23 @@ class BrowserUseReplayer:
 
             dur = time.time() - start
             logger.info(f"🔍 Hunt done — {len(findings)} finding(s) in {dur:.1f}s")
-            return {"findings": findings, "actions_taken": max_actions, "duration": dur, "screenshots": screenshots, "dialogs": dialogs}
+            return {
+                "findings": findings, "actions_taken": max_actions, "duration": dur,
+                "screenshots": screenshots, "dialogs": dialogs,
+                "prompt": task_prompt, "target_url": target_url,
+                "vuln_types": vuln_types, "model": self.model, "provider": self.provider,
+                "stop_on_find": stop_on_find, "timestamp": datetime.now().isoformat(),
+            }
 
         except Exception as e:
             logger.error(f"  ❌ Hunt error: {e}")
-            return {"findings": findings, "actions_taken": 0, "duration": time.time() - start, "screenshots": screenshots, "dialogs": dialogs, "error": str(e)}
+            return {
+                "findings": findings, "actions_taken": 0, "duration": time.time() - start,
+                "screenshots": screenshots, "dialogs": dialogs, "error": str(e),
+                "prompt": task_prompt, "target_url": target_url,
+                "vuln_types": vuln_types, "model": self.model, "provider": self.provider,
+                "stop_on_find": stop_on_find, "timestamp": datetime.now().isoformat(),
+            }
         finally:
             try: await browser.stop()
             except Exception: pass
